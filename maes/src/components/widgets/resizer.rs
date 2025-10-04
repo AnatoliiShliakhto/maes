@@ -4,14 +4,12 @@ use ::dioxus::{
 };
 
 #[component]
-pub fn WindowResizer() -> Element {
-    let window = use_window();
-
+pub fn Resizer() -> Element {
     rsx! {
         div {
             class: "absolute bottom-0 right-0 w-4 h-4 cursor-se-resize",
-            onmousedown: move |event| { 
-                window.drag_resize_window(ResizeDirection::SouthEast).ok(); 
+            onmousedown: move |_evt| {
+                use_window().drag_resize_window(ResizeDirection::SouthEast).ok();
             },
         }
     }

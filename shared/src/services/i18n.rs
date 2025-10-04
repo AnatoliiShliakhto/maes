@@ -113,7 +113,7 @@ fn format_msg(
 #[macro_export]
 macro_rules! t {
     ($key:expr) => {
-        ::shared::service::i18n::t($key)
+        ::shared::services::i18n::t($key)
     };
 
     // ($key:expr, $args:expr) => {
@@ -121,10 +121,10 @@ macro_rules! t {
     // };
 
     ($key:expr, $($name:ident = $value:expr),+ $(,)?) => {{
-        let mut __fa = ::shared::service::i18n::FluentArgs::new();
+        let mut __fa = ::shared::services::i18n::FluentArgs::new();
         $(
             __fa.set(stringify!($name), $value);
         )+
-        ::shared::service::i18n::t_args($key, &__fa)
+        ::shared::services::i18n::t_args($key, &__fa)
     }};
 }

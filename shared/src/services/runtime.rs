@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use crate::service::env;
+use crate::services::env;
 use ::std::{sync::OnceLock, thread::available_parallelism, time::Duration};
 use ::tokio::runtime::{Builder, Runtime};
 use ::tracing::info;

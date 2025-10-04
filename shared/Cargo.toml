@@ -11,38 +11,46 @@ license.workspace = true
 
 [features]
 default = []
-desktop = ["dep:tokio", "dep:nanoid", "dep:tracing-subscriber", "dep:tracing-appender", "dep:image", "dep:dioxus"]
+desktop = [
+    "dep:arboard", "dep:csv", "dep:dioxus", "dep:getrandom", "dep:image",
+    "dep:nanoid", "dep:qrcode-generator", "dep:tokio", "dep:tracing-appender", "dep:tracing-subscriber"
+]
 server = [
-    "dep:axum", "dep:nanoid", "dep:aes-gcm", "dep:argon2", "dep:base64", "dep:pbkdf2", "dep:sha2",
-    "dep:lz4_flex", "dep:subtle", "dep:getrandom", "dep:tokio", "dep:surrealdb"
+    "dep:aes-gcm", "dep:argon2", "dep:axum", "dep:base64", "dep:dashmap", "dep:getrandom", "dep:lz4_flex",
+    "dep:nanoid", "dep:pbkdf2", "dep:sha2", "dep:subtle", "dep:tokio"
 ]
 mobile = []
-wasm = []
+wasm = ["dep:fluent-bundle", "dep:unic-langid"]
 
 
 [dependencies]
+aes-gcm = { workspace = true, optional = true }
+arboard = { workspace = true, optional = true }
+argon2 = { workspace = true, optional = true }
+axum = { workspace = true, optional = true }
+base64 = { workspace = true, optional = true }
+chrono = { workspace = true }
+csv = { workspace = true, optional = true }
+dashmap = { workspace = true, optional = true }
+dioxus = { workspace = true, optional = true }
+fluent-bundle = { workspace = true, optional = true }
+getrandom = { workspace = true, optional = true }
+image = { workspace = true, optional = true }
+indexmap = { workspace = true }
+lz4_flex = { workspace = true, optional = true }
+nanoid = { workspace = true, optional = true }
+pbkdf2 = { workspace = true, optional = true }
+qrcode-generator = { workspace = true, optional = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-tokio = { workspace = true, optional = true }
-chrono = { workspace = true }
-indexmap = { workspace = true }
-axum = { workspace = true, optional = true }
-tracing = { workspace = true }
-tracing-subscriber = { workspace = true, optional = true }
-tracing-appender = { workspace = true, optional = true }
-nanoid = { workspace = true, optional = true }
-aes-gcm = { workspace = true, optional = true }
-argon2 = { workspace = true, optional = true }
-base64 = { workspace = true, optional = true }
-pbkdf2 = { workspace = true, optional = true }
-sha2 = { workspace = true, optional = true }
-lz4_flex = { workspace = true, optional = true }
-subtle = { workspace = true, optional = true }
-getrandom = { workspace = true, optional = true }
-surrealdb = { workspace = true, optional = true }
 serde_repr = { workspace = true }
-image = { workspace = true, optional = true }
-dioxus = { workspace = true, optional = true }
+sha2 = { workspace = true, optional = true }
+subtle = { workspace = true, optional = true }
+tokio = { workspace = true, optional = true }
+tracing = { workspace = true }
+tracing-appender = { workspace = true, optional = true }
+tracing-subscriber = { workspace = true, optional = true }
+unic-langid = { workspace = true, optional = true }
 
 [build-dependencies]
 dotenvy = { workspace = true }

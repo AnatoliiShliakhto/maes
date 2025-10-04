@@ -1,3 +1,16 @@
+use ::chrono::Utc;
+use ::getrandom;
+
+pub fn uu64() -> u64 {
+    let millis = Utc::now().timestamp_millis() as u64 & 0x0000_FFFF_FFFF_FFFF;
+
+    let mut rnd = [0u8; 2];
+    getrandom::fill(&mut rnd).expect("randomizer failed");
+    let rand16 = u16::from_be_bytes(rnd) as u64;
+
+    (millis << 16) | rand16
+}
+
 #[macro_export]
 macro_rules! safe_nanoid {
     () => {

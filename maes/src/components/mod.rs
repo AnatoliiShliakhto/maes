@@ -1,1 +1,9 @@
 pub mod widgets;
+pub mod inputs;
+pub mod dialogs;
+pub mod workspace;
+pub mod quiz;
+pub mod survey;
+pub mod students;
+pub mod tasks;
+pub mod wizards;

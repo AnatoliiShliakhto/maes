@@ -1,4 +1,5 @@
-use serde::{Serialize, Deserialize};
+use crate::models::WorkspaceRole;
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct CreateWorkspacePayload {
@@ -10,18 +11,21 @@ pub struct CreateWorkspacePayload {
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct CreateWorkspaceTreeNodePayload {
-    pub id: String,
     pub name: String,
     pub parent: String,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct UpdateWorkspaceTreeNodePayload {
-    pub id: String,
     pub name: String,
+    pub parent: String,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
-pub struct DeleteWorkspaceTreeNodePayload {
-    pub id: String,
+pub struct CreateWorkspaceUserPayload {
+    pub username: String,
+    pub login: String,
+    pub password: String,
+    pub node: String,
+    pub role: WorkspaceRole,
 }

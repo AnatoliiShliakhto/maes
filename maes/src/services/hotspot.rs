@@ -1,7 +1,7 @@
-use crate::prelude::*;
+use crate::{prelude::*, services::*};
 use ::std::sync::{Arc, LazyLock};
-use ::tokio::sync::RwLock;
-use ::tracing::{error, info, warn};
+use ::tokio::sync::{RwLock, watch};
+use ::tracing::{error, info};
 use ::windows::{
     Devices::WiFiDirect::{
         WiFiDirectAdvertisementListenStateDiscoverability, WiFiDirectAdvertisementPublisher,
@@ -10,7 +10,7 @@ use ::windows::{
         WiFiDirectConnectionRequest, WiFiDirectConnectionRequestedEventArgs,
     },
     Foundation::TypedEventHandler,
-    Security::Credentials::PasswordCredential,
+    Security::Credentials::{PasswordCredential},
     core::{HSTRING, Result},
 };
 
@@ -18,38 +18,81 @@ static HOTSPOT: LazyLock<Arc<RwLock<Hotspot>>> =
     LazyLock::new(|| Arc::new(RwLock::new(Hotspot::new())));
 static HOTSPOT_STATUS: GlobalSignal<bool> = Signal::global(|| false);
 
+static HOTSPOT_MSG_CH: LazyLock<(watch::Sender<HotspotMsg>, watch::Receiver<HotspotMsg>)> =
+    LazyLock::new(|| watch::channel(HotspotMsg::Inactive));
+
+#[derive(PartialEq)]
+pub enum HotspotMsg {
+    Inactive,
+    Active,
+    Error(&'static str),
+}
+
 pub struct HotspotService;
 
 impl HotspotService {
     pub fn start(ssid: impl Into<String>, passphrase: impl Into<String>) {
-        if *HOTSPOT_STATUS.read() {
+        if *HOTSPOT_MSG_CH.1.borrow() == HotspotMsg::Active {
             return;
         }
         let ssid = ssid.into();
         let passphrase = passphrase.into();
-        spawn(async move {
-            if let Err(e) = HOTSPOT
-                .write()
-                .await
-                .start_hotspot(&ssid, &passphrase)
-            {
+        tokio::spawn(async move {
+            if let Err(e) = HOTSPOT.write().await.start_hotspot(&ssid, &passphrase) {
                 error!("hotspot start failed: {e:?}");
+                HOTSPOT_MSG_CH
+                    .0
+                    .send_replace(HotspotMsg::Error("hotspot-start-failed"));
             }
         });
     }
 
     pub fn stop() {
-        if !*HOTSPOT_STATUS.read() {
+        if *HOTSPOT_MSG_CH.1.borrow() == HotspotMsg::Inactive {
             return;
         }
-        spawn(async move {
+        tokio::spawn(async move {
             if let Err(e) = HOTSPOT.write().await.stop() {
-                error!("hotspot stop failed: {e:?}");
+                error!("{e:?}");
+                HOTSPOT_MSG_CH
+                    .0
+                    .send_replace(HotspotMsg::Error("hotspot-stop-failed"));
             }
         });
     }
 
-    pub fn status() -> Signal<bool> {
+    pub fn subscribe() -> watch::Receiver<HotspotMsg> {
+        HOTSPOT_MSG_CH.1.clone()
+    }
+
+    pub fn use_status() -> Signal<bool> {
+        HOTSPOT_STATUS.signal()
+    }
+
+    pub fn use_init_status() -> Signal<bool> {
+        use_coroutine(move |_rx: UnboundedReceiver<()>| async move {
+            let mut rx = Self::subscribe();
+            loop {
+                if rx.changed().await.is_err() {
+                    break;
+                }
+                match &*rx.borrow() {
+                    HotspotMsg::Inactive => {
+                        HOTSPOT_STATUS.with_mut(|s| *s = false);
+                        ToastService::warning(t!("hotspot-stopped"))
+                    }
+                    HotspotMsg::Active => {
+                        HOTSPOT_STATUS.with_mut(|s| *s = true);
+                        ToastService::success(t!("hotspot-started"))
+                    }
+                    HotspotMsg::Error(e) => {
+                        HOTSPOT_STATUS.with_mut(|s| *s = false);
+                        ToastService::error(t!(e));
+                    }
+                }
+            }
+        });
+
         HOTSPOT_STATUS.signal()
     }
 }
@@ -71,7 +114,6 @@ impl Hotspot {
         let publisher = WiFiDirectAdvertisementPublisher::new()?;
         let advertisement = publisher.Advertisement()?;
         advertisement.SetIsAutonomousGroupOwnerEnabled(true)?;
-
         advertisement.SetListenStateDiscoverability(
             WiFiDirectAdvertisementListenStateDiscoverability::Normal,
         )?;
@@ -80,13 +122,17 @@ impl Hotspot {
             legacy.SetIsEnabled(true)?;
             legacy.SetSsid(&HSTRING::from(ssid))?;
 
-            let cred = PasswordCredential::new()?;
-            cred.SetResource(&HSTRING::from("WiFiDirectPassphrase"))?;
-            cred.SetUserName(&HSTRING::from("user"))?;
-            cred.SetPassword(&HSTRING::from(passphrase))?;
-            legacy.SetPassphrase(&cred)?;
+            if !passphrase.is_empty() {
+                let cred = PasswordCredential::new()?;
+                cred.SetResource(&HSTRING::from("WiFiDirectPassphrase"))?;
+                cred.SetUserName(&HSTRING::from("user"))?;
+                cred.SetPassword(&HSTRING::from(passphrase))?;
+                legacy.SetPassphrase(&cred)?;
+            }
         } else {
-            warn!("Device does not support legacy settings");
+            HOTSPOT_MSG_CH
+                .0
+                .send_replace(HotspotMsg::Error("hotspot-legacy-not-supported"));
         }
 
         self.setup_event_handlers(&publisher)?;
@@ -98,7 +144,7 @@ impl Hotspot {
         self.setup_connection_listener(&connection_listener)?;
         self.listener = Some(connection_listener);
 
-        info!("started SSID {ssid:?} password {passphrase:?}");
+        info!("SSID {ssid:?} password {passphrase:?}");
         Ok(())
     }
 
@@ -108,7 +154,7 @@ impl Hotspot {
         }
         self.publisher = None;
         self.listener = None;
-        info!("stopped");
+        info!("deactivated");
         Ok(())
     }
 
@@ -121,11 +167,13 @@ impl Hotspot {
                 let p: &WiFiDirectAdvertisementPublisher = p;
                 if let Ok(status) = p.Status() {
                     match status {
-                        WiFiDirectAdvertisementPublisherStatus::Started =>
-                            HOTSPOT_STATUS.with_mut(|s| *s = true),
-                        WiFiDirectAdvertisementPublisherStatus::Stopped =>
-                            HOTSPOT_STATUS.with_mut(|s| *s = false),
-                        _ => (),
+                        WiFiDirectAdvertisementPublisherStatus::Created => (),
+                        WiFiDirectAdvertisementPublisherStatus::Started => {
+                            HOTSPOT_MSG_CH.0.send_replace(HotspotMsg::Active);
+                        }
+                        _ => {
+                            HOTSPOT_MSG_CH.0.send_replace(HotspotMsg::Inactive);
+                        }
                     }
                 }
             }
@@ -147,7 +195,7 @@ impl Hotspot {
                     Ok(request) => {
                         let _ = Self::handle_connection_request(request);
                     }
-                    Err(e) => error!("connection request: {e:?}"),
+                    Err(e) => error!("{e:?}"),
                 }
             }
             Ok(())
@@ -158,8 +206,12 @@ impl Hotspot {
     }
 
     fn handle_connection_request(request: WiFiDirectConnectionRequest) -> Result<()> {
-        if let Ok(device_info) = request.DeviceInformation() && let Ok(id) = device_info.Id() {
-            info!("device connected: {id}");
+        if let Ok(device_info) = request.DeviceInformation() {
+            let device = device_info
+                .Name()
+                .map(|n| n.to_string_lossy())
+                .unwrap_or_else(|_| "(unknown)".to_string());
+            info!("connection request from {device}");
         }
         Ok(())
     }

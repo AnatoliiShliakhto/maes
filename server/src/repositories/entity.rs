@@ -1,39 +1,148 @@
+use crate::services::*;
 use ::shared::{common::*, models::*};
-use ::surrealdb::{Surreal, engine::any::Any};
+use ::std::collections::HashSet;
 
-pub trait EntityRepository {
-    async fn list_entities(&self, kind: EntityKind) -> Result<Vec<Entity>>;
-    async fn find_entity(&self, id: impl Into<String>) -> Result<Entity>;
-    async fn upsert_entity(&self, entity: Entity) -> Result<()>;
-    async fn delete_entity(&self, id: impl Into<String>) -> Result<()>;
-}
+pub struct EntityRepository;
 
-impl EntityRepository for Surreal<Any> {
-    async fn list_entities(&self, kind: EntityKind) -> Result<Vec<Entity>> {
-        let sql = include_str!("../../res/surql/entity/list.surql");
-        self.query(sql)
-            .bind(("kind", kind))
-            .await?
-            .take::<Vec<Entity>>(0)
-            .err_into()
+impl EntityRepository {
+    pub async fn init(workspace: Entity) -> Result<()> {
+        if let Ok(path) = Store::get_path(&workspace.id, ENTITIES)
+            && !path.exists()
+        {
+            let entities = Entities::new(workspace);
+            Store::upsert(entities).await?;
+        };
+        Ok(())
     }
 
-    async fn find_entity(&self, id: impl Into<String>) -> Result<Entity> {
-        let sql = include_str!("../../res/surql/entity/get_by_id.surql");
-        self.query(sql)
-            .bind(("id", id.into()))
-            .await?
-            .take::<Option<Entity>>(0)?
-            .ok_or_else(|| (StatusCode::NOT_FOUND, "entity-not-found").into())
+    pub async fn list_by_filter(
+        workspace: impl Into<String>,
+        kind: Option<Vec<EntityKind>>,
+        nodes: Option<Vec<String>>,
+    ) -> Result<Vec<Entity>> {
+        let entities_arc = Store::find::<Entities>(workspace, ENTITIES).await?;
+
+        let kinds = kind.map(|vec| vec.into_iter().collect::<HashSet<EntityKind>>());
+        let nodes = nodes.map(|vec| vec.into_iter().collect::<HashSet<String>>());
+
+        let mut entities = {
+            let entities_guard = entities_arc.read().await;
+            let mut out = Vec::with_capacity(entities_guard.len());
+            for e in entities_guard.values() {
+                if kinds.as_ref().map_or(true, |set| set.contains(&e.kind))
+                    && nodes.as_ref().map_or(true, |set| set.contains(&e.node))
+                {
+                    out.push(e.clone());
+                }
+            }
+            out
+        };
+        entities.sort_unstable_by(|a, b| a.path.cmp(&b.path).then(a.name.cmp(&b.name)));
+
+        Ok(entities)
     }
 
-    async fn upsert_entity(&self, entity: Entity) -> Result<()> {
-        let sql = include_str!("../../res/surql/entity/upsert.surql");
-        self.query(sql).bind(entity).await.discard()
+    pub async fn find(workspace: impl Into<String>, id: impl AsRef<str>) -> Result<Entity> {
+        let entities_arc = Store::find::<Entities>(workspace, ENTITIES).await?;
+        let entity = {
+            let entities_guard = entities_arc.read().await;
+            entities_guard.get(id.as_ref()).cloned()
+        };
+        entity.ok_or_else(|| (StatusCode::NOT_FOUND, "entity-not-found").into())
     }
 
-    async fn delete_entity(&self, id: impl Into<String>) -> Result<()> {
-        let sql = include_str!("../../res/surql/entity/delete.surql");
-        self.query(sql).bind(("id", id.into())).await.discard()
+    pub async fn upsert(workspace: impl Into<String>, entity: Entity) -> Result<()> {
+        let entities_arc = Store::find::<Entities>(workspace, ENTITIES).await?;
+
+        let snapshot = {
+            let mut entities_guard = entities_arc.write().await;
+            entities_guard.insert(entity.id.clone(), entity);
+
+            entities_guard.clone()
+        };
+
+        Store::upsert(snapshot).await
+    }
+
+    pub async fn delete(
+        workspace: impl Into<String>,
+        id: Option<String>,
+        node: Option<String>,
+    ) -> Result<()> {
+        let entities_arc = Store::find::<Entities>(workspace, ENTITIES).await?;
+
+        let to_delete = {
+            let entities_guard = entities_arc.read().await;
+            if entities_guard.is_empty() {
+                Vec::new()
+            } else {
+                let mut out = Vec::with_capacity(entities_guard.len());
+                for e in entities_guard.values() {
+                    if id.as_ref().map_or(true, |k| e.id == *k)
+                        && node.as_ref().map_or(true, |n| e.node == *n)
+                    {
+                        out.push(e.id.clone());
+                    }
+                }
+                out
+            }
+        };
+
+        if to_delete.is_empty() {
+            return Ok(());
+        }
+
+        let snapshot = {
+            let mut entities_guard = entities_arc.write().await;
+            for k in &to_delete {
+                entities_guard.remove(k);
+            }
+            entities_guard.clone()
+        };
+
+        Store::upsert(snapshot).await
+    }
+
+    pub async fn batch_remove(
+        workspace: impl Into<String>,
+        ids: Option<Vec<String>>,
+        nodes: Option<Vec<String>>,
+    ) -> Result<()> {
+        let ws_id = workspace.into();
+        let entities_arc = Store::find::<Entities>(&ws_id, ENTITIES).await?;
+        let ids = ids.map(|vec| vec.into_iter().collect::<HashSet<String>>());
+        let nodes = nodes.map(|vec| vec.into_iter().collect::<HashSet<String>>());
+
+        let to_delete = {
+            let entities_guard = entities_arc.read().await;
+            if entities_guard.is_empty() {
+                Vec::new()
+            } else {
+                let mut out = Vec::with_capacity(entities_guard.len());
+                for e in entities_guard.values() {
+                    if ids.as_ref().map_or(true, |set| set.contains(&e.id))
+                        && nodes.as_ref().map_or(true, |set| set.contains(&e.node))
+                    {
+                        out.push(e.id.clone());
+                    }
+                }
+                out
+            }
+        };
+
+        if to_delete.is_empty() {
+            return Ok(());
+        }
+
+        let snapshot = {
+            let mut entities_guard = entities_arc.write().await;
+            for k in &to_delete {
+                entities_guard.remove(k);
+            }
+            entities_guard.clone()
+        };
+
+        Store::upsert(snapshot).await?;
+        Store::batch_remove(ws_id, to_delete).await
     }
 }

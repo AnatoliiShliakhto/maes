@@ -1,24 +1,32 @@
-use crate::model::Metadata;
+use crate::{models::*, utils::*};
 use ::serde::{Deserialize, Serialize};
 use ::serde_repr::{Deserialize_repr, Serialize_repr};
-use ::std::{fmt, str::FromStr};
+use ::std::{collections::HashMap, fmt, str::FromStr, ops::{Deref, DerefMut}};
+
+pub const WORKSPACE: &str = "workspace";
+pub const ENTITIES: &str = "entities";
+pub const STUDENTS: &str = "students";
+pub const TASKS: &str = "tasks";
 
 #[repr(i32)]
-#[derive(Clone, PartialEq, Serialize_repr, Deserialize_repr)]
+#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash, Serialize_repr, Deserialize_repr)]
 pub enum EntityKind {
+    #[default]
     Workspace = 0,
+    Entities = 1,
+    Students = 2,
+    Tasks = 3,
 
-    Quizz = 1,
-    Survey = 2,
-    Checklist = 3,
+    Quiz = 100,
+    QuizRecord = 101,
 
-    QuizTask = 100,
-    SurveyTask = 101,
-    ChecklistTask = 102,
+    Survey = 110,
+    SurveyRecord = 111,
 
-    QuizArchive = 1000,
-    SurveyArchive = 1001,
-    ChecklistArchive = 1002,
+    Checklist = 120,
+    ChecklistRecord = 121,
+
+    Json = 130,
 }
 
 #[derive(Debug, Clone)]
@@ -40,12 +48,16 @@ impl FromStr for EntityKind {
 
         Ok(match key.as_str() {
             "workspace" => EntityKind::Workspace,
-            "quizz" => EntityKind::Quizz,
+            "entities" => EntityKind::Entities,
+            "tasks" => EntityKind::Tasks,
+            "students" => EntityKind::Students,
+            "quiz" => EntityKind::Quiz,
             "survey" => EntityKind::Survey,
             "checklist" => EntityKind::Checklist,
-            "quiz-task" => EntityKind::QuizTask,
-            "survey-task" => EntityKind::SurveyTask,
-            "checklist-task" => EntityKind::ChecklistTask,
+            "qz" => EntityKind::QuizRecord,
+            "sr" => EntityKind::SurveyRecord,
+            "checklist-record" => EntityKind::ChecklistRecord,
+            "json" => EntityKind::Json,
             _ => return Err(ParseEntityKindError),
         })
     }
@@ -69,15 +81,19 @@ impl EntityKind {
     pub fn as_str(&self) -> &'static str {
         match self {
             EntityKind::Workspace => "workspace",
-            EntityKind::Quizz => "quizz",
+            EntityKind::Entities => "entities",
+            EntityKind::Tasks => "tasks",
+            EntityKind::Students => "students",
+
+            EntityKind::Quiz => "quiz",
             EntityKind::Survey => "survey",
             EntityKind::Checklist => "checklist",
-            EntityKind::QuizTask => "quiz-task",
-            EntityKind::SurveyTask => "survey-task",
-            EntityKind::ChecklistTask => "checklist-task",
-            EntityKind::QuizArchive => "quiz-archive",
-            EntityKind::SurveyArchive => "survey-archive",
-            EntityKind::ChecklistArchive => "checklist-archive",
+
+            EntityKind::QuizRecord => "qz",
+            EntityKind::SurveyRecord => "sr",
+            EntityKind::ChecklistRecord => "checklist-record",
+
+            EntityKind::Json => "json",
         }
     }
 }
@@ -88,19 +104,15 @@ impl fmt::Display for EntityKind {
     }
 }
 
-#[derive(Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Serialize, Deserialize, Debug)]
 pub struct Entity {
     pub id: String,
     pub name: String,
     pub kind: EntityKind,
     #[serde(default, skip_serializing_if = "String::is_empty")]
-    pub workspace: String,
-    #[serde(default, skip_serializing_if = "String::is_empty")]
-    pub section: String,
+    pub node: String,
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub path: String,
-    #[serde(default, skip_serializing_if = "is_zero")]
-    pub progress: usize,
     pub metadata: Metadata,
 }
 
@@ -110,15 +122,59 @@ impl Default for Entity {
             id: "".to_string(),
             name: "".to_string(),
             kind: EntityKind::Workspace,
-            workspace: "".to_string(),
-            section: "".to_string(),
+            node: "".to_string(),
             path: "".to_string(),
-            progress: 0,
             metadata: Default::default(),
         }
     }
 }
 
-fn is_zero(v: &usize) -> bool {
-    *v == 0
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
+pub struct Entities {
+    workspace: String,
+    inner: HashMap<String, Entity>,
 }
+
+impl Entities {
+    pub fn new(workspace: Entity) -> Self {
+        let ws_id = workspace.id.clone();
+        let mut entities = HashMap::<String, Entity>::new();
+        entities.insert(workspace.id.clone(), workspace);
+        Self {
+            workspace: ws_id,
+            inner: entities,
+        }
+    }
+}
+
+impl Deref for Entities {
+    type Target = HashMap<String, Entity>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+impl DerefMut for Entities {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.inner
+    }
+}
+
+impl Cachable for Entities {
+    fn kind() -> EntityKind {
+        EntityKind::Entities
+    }
+
+    fn get_id(&self) -> String {
+        ENTITIES.to_string()
+    }
+
+    fn get_ws(&self) -> String {
+        self.workspace.clone()
+    }
+}
+
+// fn is_zero(v: &usize) -> bool {
+//     *v == 0
+// }

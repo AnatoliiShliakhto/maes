@@ -53,7 +53,7 @@ pub fn init_logger(config: LoggerConfig) -> Result<Option<WorkerGuard>> {
             .filename_suffix("log")
             .max_log_files(config.max_log_files)
             .build(file_path)
-            .map_err(map_server_err)?;
+            .map_err(map_log_err)?;
         let (non_blocking, file_guard) = tracing_appender::non_blocking(file_appender);
         let file_layer = layer()
             .compact()
@@ -69,7 +69,7 @@ pub fn init_logger(config: LoggerConfig) -> Result<Option<WorkerGuard>> {
         .with(layers)
         .with(env_filter)
         .try_init()
-        .map_err(map_server_err)?;
+        .map_err(map_log_err)?;
     Ok(guard)
 }
 

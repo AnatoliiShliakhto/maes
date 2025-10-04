@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use crate::{services::*, prelude::*};
 
 const _BOOTSTRAP_ICONS_WOFF2: Asset = asset!(
     "/assets/bootstrap-icons.woff2",
@@ -64,11 +64,22 @@ pub fn Head() -> Element {
         _UAFSANS_SEMIBOLD_TTF.resolve(),
         _UAFSANS_BOLD_TTF.resolve(),
     );
+    let config = ConfigService::read();
 
     rsx! {
-        document::Link { rel: "icon", href: APP_ICON }
-        document::Link { rel: "stylesheet", href: TAILWIND_CSS }
-        document::Link { rel: "stylesheet", href: BOOTSTRAP_ICONS_CSS }
+        document::Script {
+            r#"
+                document.documentElement.style.visibility='hidden';
+                document.documentElement.attributes.add('data-theme', '{config.theme}');
+            "#
+        }
         document::Script { src: MAIN_JS }
+        document::Link { rel: "icon", href: APP_ICON }
+        document::Link { rel: "stylesheet", href: BOOTSTRAP_ICONS_CSS }
+        document::Link {
+            rel: "stylesheet",
+            href: TAILWIND_CSS,
+            onload: r#"document.documentElement.style.visibility='visible';"#,
+        }
     }
 }

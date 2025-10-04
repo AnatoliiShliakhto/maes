@@ -1,4 +1,9 @@
-use ::std::sync::LazyLock;
-use ::surrealdb::{Surreal, engine::any::Any};
+use ::shared::common::*;
+use ::std::sync::OnceLock;
 
-pub static DB: LazyLock<Surreal<Any>> = LazyLock::new(Surreal::init);
+pub static IDENT: OnceLock<String> = OnceLock::new();
+
+pub async fn init_state(ident: impl Into<String>) -> Result<()> {
+    IDENT.set(ident.into()).map_err(map_log_err)?;
+    Ok(())
+}

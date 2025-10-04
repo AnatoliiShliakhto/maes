@@ -10,7 +10,7 @@ static CONFIG_STATE: LazyLock<Arc<RwLock<ConfigState>>> =
     LazyLock::new(|| Arc::new(RwLock::new(ConfigService::init_state())));
 
 struct ConfigState {
-    config: Config,
+    config: Arc<Config>,
     path: Option<PathBuf>,
 }
 
@@ -19,7 +19,7 @@ pub struct ConfigService;
 
 impl ConfigService {
     fn init_state() -> ConfigState {
-        let path = dirs::data_dir().map(|p| p.join(env!("APP_NAME")).join("config.json"));
+        let path = dirs::data_dir().map(|p| p.join(env!("CARGO_PKG_NAME")).join("maes-config.json"));
         let config = match &path {
             Some(p) => Self::load_file(p).unwrap_or_else(|e| {
                 error!("{e}");
@@ -27,14 +27,14 @@ impl ConfigService {
             }),
             None => Self::default_config(),
         };
-        ConfigState { config, path }
+        ConfigState { config: Arc::new(config), path }
     }
 
-    pub fn read() -> Config {
-        if let Ok(guard) = CONFIG_STATE.read() {
-            guard.config.clone()
+    pub fn read() -> Arc<Config> {
+        if let Ok(config_state_guard) = CONFIG_STATE.read() {
+            config_state_guard.config.clone()
         } else {
-            Self::default_config()
+            Arc::new(Self::default_config())
         }
     }
 
@@ -43,16 +43,22 @@ impl ConfigService {
         F: FnOnce(&mut Config) -> R,
     {
         let arc = &*CONFIG_STATE;
-        let mut state = arc
-            .write()
-            .map_err(|e| format!("{e}"))?;
-        let result = f(&mut state.config);
-        if let Some(path) = &state.path {
-            Self::save_file_atomic(&state.config, path)?;
+
+        let (result, need_save) = {
+            let mut state = arc.write().map_err(|e| format!("{e}"))?;
+            let result = f(Arc::make_mut(&mut state.config));
+            let path = state.path.clone();
+            (result, path)
+        };
+
+        if let Some(path) = need_save {
+            let config_state_guard = arc.read().map_err(|e| format!("{e}"))?;
+            Self::save_file_atomic(&config_state_guard.config, &path)?;
         }
+
         Ok(result)
     }
-    
+
     fn default_config() -> Config {
         Config {
             server: ServerConfig {
@@ -62,8 +68,7 @@ impl ConfigService {
             },
             wifi: WiFiConfig {
                 ssid: format!("maes-{}", safe_nanoid!(4)),
-                password: "12345678".to_string(),
-                start: false,
+                password: safe_nanoid!(8),
             },
             recent: RecentConfig {
                 workspace: "".to_string(),
@@ -73,6 +78,9 @@ impl ConfigService {
             },
             main_window: Default::default(),
             child_window: Default::default(),
+            menu_state: false,
+            language: "uk".to_string(),
+            theme: "corporate".to_string(),
         }
     }
 

@@ -20,8 +20,8 @@ impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             #[cfg(feature = "server")]
-            Error::Server(_, message) => write!(f, "{message}"),
-            Error::Common(message) => write!(f, "{}", message),
+            Error::Server(_, message) |
+            Error::Common(message) => write!(f, "{message}"),
         }
     }
 }
@@ -72,24 +72,24 @@ impl From<&'static str> for Error {
     }
 }
 
-#[cfg(feature = "server")]
-impl From<surrealdb::Error> for Error {
-    fn from(value: surrealdb::Error) -> Self {
-        error!("{value}");
-        (StatusCode::INTERNAL_SERVER_ERROR, "internal-server-error").into()
-    }
-}
-
+#[inline]
 pub fn map_ok<T>(_value: T) -> Result<()> {
     Ok(())
 }
 
+// #[inline]
+// pub fn map_err_ok<T, E: std::fmt::Display>(value: std::result::Result<T, E>) -> Result<T> {
+//     value.map_err(map_err)
+// }
+
+#[inline]
 pub fn map_err(e: impl Into<String>) -> Error {
     Error::Common(Cow::Owned(e.into()))
 }
 
 #[cfg(feature = "server")]
-pub fn map_server_err(e: impl std::fmt::Display) -> Error {
+#[inline]
+pub fn map_log_err(e: impl std::fmt::Display) -> Error {
     error!("{e}");
     (StatusCode::INTERNAL_SERVER_ERROR, "internal-server-error").into()
 }
