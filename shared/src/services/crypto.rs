@@ -8,26 +8,31 @@ use ::argon2::{
     password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
 };
 use ::base64::{Engine as _, engine::general_purpose};
+use ::dashmap::DashMap;
 use ::serde::{Deserialize, Serialize};
+use ::std::sync::Arc;
 
-pub struct JsonCrypto {
+const AES_KEY: &str = env!("AES_KEY");
+const AES_SALT: &str = env!("AES_SALT");
+
+pub struct Crypto {
     cipher: Aes256Gcm,
 }
 
-impl JsonCrypto {
+impl Crypto {
     pub fn init() -> Result<Self> {
-        let key = Aes256Gcm::generate_key().map_err(map_server_err)?;
+        let key = Aes256Gcm::generate_key().map_err(map_log_err)?;
         let cipher = Aes256Gcm::new(&key);
         Ok(Self { cipher })
     }
 
     pub fn init_with_key(key: impl AsRef<str>) -> Result<Self> {
-        let key = Key::<Aes256Gcm>::try_from(key.as_ref().as_bytes()).map_err(map_server_err)?;
+        let key = Key::<Aes256Gcm>::try_from(key.as_ref().as_bytes()).map_err(map_log_err)?;
         let cipher = Aes256Gcm::new(&key);
         Ok(Self { cipher })
     }
     pub fn init_with_bytes_key(key: &[u8]) -> Result<Self> {
-        let key = Key::<Aes256Gcm>::try_from(key).map_err(map_server_err)?;
+        let key = Key::<Aes256Gcm>::try_from(key).map_err(map_log_err)?;
         let cipher = Aes256Gcm::new(&key);
         Ok(Self { cipher })
     }
@@ -48,38 +53,41 @@ impl JsonCrypto {
         Self::init_with_bytes_key(&key)
     }
 
-    pub fn encrypt_binary<T>(&self, data: &T) -> Result<Vec<u8>>
+    pub fn encrypt_binary<T>(&self, data: T, compress: bool) -> Result<Vec<u8>>
     where
         T: Serialize,
     {
-        let json_string = serde_json::to_string(data).map_err(map_server_err)?;
+        let json_string = serde_json::to_string(&data).map_err(map_log_err)?;
 
-        let nonce = Aes256Gcm::generate_nonce().map_err(map_server_err)?;
+        let nonce = Aes256Gcm::generate_nonce().map_err(map_log_err)?;
 
         let ciphertext = self
             .cipher
             .encrypt(&nonce, json_string.as_bytes())
-            .map_err(map_server_err)?;
+            .map_err(map_log_err)?;
 
         let mut result = Vec::with_capacity(nonce.len() + ciphertext.len());
         result.extend_from_slice(&nonce);
         result.extend_from_slice(&ciphertext);
 
-        Ok(lz4_flex::compress_prepend_size(&result))
+        match compress {
+            true => Ok(lz4_flex::compress_prepend_size(&result)),
+            false => Ok(result),
+        }
     }
 
-    pub fn encrypt_json<T>(&self, data: &T) -> Result<String>
+    pub fn encrypt_json<T>(&self, data: T) -> Result<String>
     where
         T: Serialize,
     {
-        let json_string = serde_json::to_string(data).map_err(map_server_err)?;
+        let json_string = serde_json::to_string(&data).map_err(map_log_err)?;
 
-        let nonce = Aes256Gcm::generate_nonce().map_err(map_server_err)?;
+        let nonce = Aes256Gcm::generate_nonce().map_err(map_log_err)?;
 
         let ciphertext = self
             .cipher
             .encrypt(&nonce, json_string.as_bytes())
-            .map_err(map_server_err)?;
+            .map_err(map_log_err)?;
 
         let mut result = Vec::with_capacity(nonce.len() + ciphertext.len());
         result.extend_from_slice(&nonce);
@@ -98,7 +106,7 @@ impl JsonCrypto {
 
         let encrypted_bytes = general_purpose::STANDARD
             .decode(encrypted_data.as_ref().trim())
-            .map_err(map_server_err)?;
+            .map_err(map_log_err)?;
 
         const NONCE_SIZE: usize = 12;
         if encrypted_bytes.len() < NONCE_SIZE + 1 {
@@ -106,20 +114,20 @@ impl JsonCrypto {
         }
 
         let (nonce_bytes, ciphertext) = encrypted_bytes.split_at(NONCE_SIZE);
-        let nonce = Nonce::try_from(nonce_bytes).map_err(map_server_err)?;
+        let nonce = Nonce::try_from(nonce_bytes).map_err(map_log_err)?;
 
         let plaintext = self
             .cipher
             .decrypt(&nonce, ciphertext)
-            .map_err(map_server_err)?;
+            .map_err(map_log_err)?;
 
-        let json_string = String::from_utf8(plaintext).map_err(map_server_err)?;
+        let json_string = String::from_utf8(plaintext).map_err(map_log_err)?;
 
-        let result: T = serde_json::from_str(&json_string).map_err(map_server_err)?;
+        let result: T = serde_json::from_str(&json_string).map_err(map_log_err)?;
         Ok(result)
     }
 
-    pub fn decrypt_binary<T>(&self, encrypted_data: &[u8]) -> Result<T>
+    pub fn decrypt_binary<T>(&self, encrypted_data: &[u8], compressed: bool) -> Result<T>
     where
         T: for<'de> Deserialize<'de>,
     {
@@ -127,8 +135,10 @@ impl JsonCrypto {
             Err(Error::from("Data is empty"))?
         }
 
-        let encrypted_bytes =
-            lz4_flex::decompress_size_prepended(encrypted_data).map_err(map_server_err)?;
+        let encrypted_bytes = match compressed {
+            true => &lz4_flex::decompress_size_prepended(encrypted_data).map_err(map_log_err)?,
+            false => encrypted_data,
+        };
 
         const NONCE_SIZE: usize = 12;
         if encrypted_bytes.len() < NONCE_SIZE + 1 {
@@ -136,16 +146,16 @@ impl JsonCrypto {
         }
 
         let (nonce_bytes, ciphertext) = encrypted_bytes.split_at(NONCE_SIZE);
-        let nonce = Nonce::try_from(nonce_bytes).map_err(map_server_err)?;
+        let nonce = Nonce::try_from(nonce_bytes).map_err(map_log_err)?;
 
         let plaintext = self
             .cipher
             .decrypt(&nonce, ciphertext)
-            .map_err(map_server_err)?;
+            .map_err(map_log_err)?;
 
-        let json_string = String::from_utf8(plaintext).map_err(map_server_err)?;
+        let json_string = String::from_utf8(plaintext).map_err(map_log_err)?;
 
-        let result: T = serde_json::from_str(&json_string).map_err(map_server_err)?;
+        let result: T = serde_json::from_str(&json_string).map_err(map_log_err)?;
         Ok(result)
     }
 
@@ -154,18 +164,45 @@ impl JsonCrypto {
     }
 }
 
+pub struct Cipher {
+    ciphers: DashMap<String, Arc<Crypto>>,
+}
+
+impl Cipher {
+    pub fn init() -> Result<Self> {
+        let ciphers = DashMap::new();
+        let cipher = Crypto::init_with_password(AES_KEY, AES_SALT)?;
+        ciphers.insert("".to_string(), Arc::new(cipher));
+        Ok(Self { ciphers })
+    }
+
+    pub fn get(&self, workspace: impl AsRef<str>) -> Result<Arc<Crypto>> {
+        let ws_id = workspace.as_ref();
+        let cipher = if let Some(cipher_ref) = self.ciphers.get(ws_id) {
+            cipher_ref.value().clone()
+        } else {
+            let key = format!("{AES_KEY}{ws_id}");
+            let cipher = Arc::new(Crypto::init_with_password(key, AES_SALT)?);
+            self.ciphers.insert(ws_id.to_string(), cipher.clone());
+            cipher
+        };
+
+        Ok(cipher)
+    }
+}
+
 pub fn encrypt_json_string<T>(data: &T, key: impl AsRef<str>) -> Result<String>
 where
     T: Serialize,
 {
-    JsonCrypto::init_with_key(key)?.encrypt_json(data)
+    Crypto::init_with_key(key)?.encrypt_json(data)
 }
 
 pub fn decrypt_json_string<T>(encrypted_data: impl AsRef<str>, key: impl AsRef<str>) -> Result<T>
 where
     T: for<'de> Deserialize<'de>,
 {
-    JsonCrypto::init_with_key(key)?.decrypt_json(encrypted_data)
+    Crypto::init_with_key(key)?.decrypt_json(encrypted_data)
 }
 
 pub fn generate_key() -> [u8; 32] {
@@ -183,21 +220,21 @@ pub fn keys_equal(key1: &[u8], key2: &[u8]) -> bool {
 
 pub fn hash_password(password: impl AsRef<str>) -> Result<String> {
     let mut salt_bytes = [0u8; 16];
-    getrandom::fill(&mut salt_bytes).map_err(map_server_err)?;
+    getrandom::fill(&mut salt_bytes).map_err(map_log_err)?;
 
     let salt_b64 = general_purpose::STANDARD_NO_PAD.encode(salt_bytes);
 
-    let salt = SaltString::from_b64(&salt_b64).map_err(map_server_err)?;
+    let salt = SaltString::from_b64(&salt_b64).map_err(map_log_err)?;
 
     let argon2 = Argon2::default();
     let password_hash = argon2
         .hash_password(password.as_ref().as_bytes(), &salt)
-        .map_err(map_server_err)?;
+        .map_err(map_log_err)?;
     Ok(password_hash.to_string())
 }
 
 pub fn verify_password(password: impl AsRef<str>, hash: impl AsRef<str>) -> Result<()> {
-    let parsed_hash = PasswordHash::new(hash.as_ref()).map_err(map_server_err)?;
+    let parsed_hash = PasswordHash::new(hash.as_ref()).map_err(map_log_err)?;
     let argon2 = Argon2::default();
 
     argon2

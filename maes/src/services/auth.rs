@@ -1,10 +1,14 @@
-use crate::prelude::*;
+use crate::{prelude::*, services::*};
 
-static CLAIMS: GlobalSignal<Option<Claims>> = Signal::global(|| None);
+static CLAIMS: GlobalSignal<Arc<Claims>> = Signal::global(|| Arc::new(Claims::default()));
 
 pub struct AuthService;
 
 impl AuthService {
+    pub fn claims() -> Arc<Claims> {
+        CLAIMS.signal()()
+    }
+
     pub fn login(
         workspace: impl Into<String>,
         login: impl Into<String>,
@@ -13,23 +17,31 @@ impl AuthService {
         api_fetch!(
             POST,
             "/api/v1/auth",
-            |body: Claims| {
-                ClientService::set_token(&body.token);
-                CLAIMS.with_mut(|c| *c = Some(body));
-            },
             AuthPayload {
                 workspace: workspace.into(),
                 login: login.into(),
                 password: password.into(),
-            }
+            },
+            on_success = |body: Claims| {
+                if ClientService::set_token(&body.token) { 
+                    CLAIMS.with_mut(|c| *c = Arc::new(body));
+                    use_app_state().set(AppState::Authorized);
+                }
+            },
         );
     }
 
     pub fn logout() {
-        api_call!(DELETE, "/api/v1/auth", || {
-            CLAIMS.with_mut(|c| *c = None);
-            ClientService::remove_token();
-            widgets::ToastManager::info(t!("logout-success"));
-        });
+        api_call!(
+            DELETE,
+            "/api/v1/auth",
+            on_success = || {
+                if ClientService::remove_token() {
+                    CLAIMS.with_mut(|c| *c = Arc::new(Claims::default()));
+                    ToastService::info(t!("logout-success"));
+                    use_app_state().set(AppState::Running);
+                }
+            }
+        )
     }
 }

@@ -15,10 +15,9 @@ use ::tokio::{
     task::spawn_blocking,
 };
 
-const AES_KEY: &str = env!("AES_KEY");
-const AES_SALT: &str = env!("AES_SALT");
-
-static CRYPTO: OnceCell<Arc<JsonCrypto>> = OnceCell::const_new();
+static CIPHER: LazyLock<Arc<Cipher>> = LazyLock::new(|| {
+    Arc::new(Cipher::init().unwrap_or_else(|e| panic!("Cipher init failed: {e}")))
+});
 static PATH: OnceCell<Arc<PathBuf>> = OnceCell::const_new();
 static CACHE: LazyLock<Cache<String, Arc<dyn Any + Send + Sync>>> =
     LazyLock::new(|| Cache::builder().max_capacity(1_000).build());
@@ -28,11 +27,9 @@ pub struct Store;
 
 impl Store {
     pub async fn init(path: impl Into<PathBuf>) -> Result<()> {
-        let path = path.into().join("encrypted");
+        let path = path.into().join("workspaces");
         fs::create_dir_all(&path).await.map_err(map_log_err)?;
         PATH.set(Arc::new(path.clone())).map_err(map_log_err)?;
-        let crypto = JsonCrypto::init_with_password(env!("AES_KEY"), env!("AES_SALT"))?;
-        CRYPTO.set(Arc::new(crypto)).map_err(map_log_err)?;
         Ok(())
     }
 
@@ -55,7 +52,7 @@ impl Store {
         let erased = CACHE
             .try_get_with(cache_id.clone(), async move {
                 let data = fs::read(path).await.map_err(map_log_err)?;
-                let val = Self::decrypt_binary::<T>(data, false)
+                let val = Self::decrypt_binary::<T>(ws_id, data, false)
                     .await
                     .map_err(map_log_err)?;
                 let arc: Arc<Arc<RwLock<T>>> = Arc::new(Arc::new(RwLock::new(val)));
@@ -84,7 +81,7 @@ impl Store {
         }
 
         tokio::spawn(async move {
-            if let Ok(data) = Self::encrypt_binary::<T>(payload, false)
+            if let Ok(data) = Self::encrypt_binary::<T>(ws_id, payload, false)
                 .await
                 .map_err(map_log_err)
             {
@@ -136,42 +133,50 @@ impl Store {
     }
 
     pub async fn encrypt_json<T: Serialize + Send + 'static>(
+        workspace: impl Into<String>,
         data: T,
     ) -> Result<String> {
+        let ws_id = workspace.into();
         spawn_blocking(move || -> Result<String> {
-            CRYPTO.get().unwrap().encrypt_json::<T>(data)
+            CIPHER.get(ws_id)?.encrypt_json::<T>(data)
         })
             .await
             .map_err(map_log_err)?
     }
 
     pub async fn encrypt_binary<T: Serialize + Send + 'static>(
+        workspace: impl Into<String>,
         data: T,
         compress: bool,
     ) -> Result<Vec<u8>> {
+        let ws_id = workspace.into();
         spawn_blocking(move || -> Result<Vec<u8>> {
-            CRYPTO.get().unwrap().encrypt_binary::<T>(data, compress)
+            CIPHER.get(ws_id)?.encrypt_binary::<T>(data, compress)
         })
             .await
             .map_err(map_log_err)?
     }
 
     pub async fn decrypt_json<T: for<'de> Deserialize<'de> + Send + 'static>(
+        workspace: impl Into<String>,
         encrypted_data: String,
     ) -> Result<T> {
+        let ws_id = workspace.into();
         spawn_blocking(move || -> Result<T> {
-            CRYPTO.get().unwrap().decrypt_json(encrypted_data)
+            CIPHER.get(ws_id)?.decrypt_json(encrypted_data)
         })
             .await
             .map_err(map_log_err)?
     }
 
     pub async fn decrypt_binary<T: for<'de> Deserialize<'de> + Send + 'static>(
+        workspace: impl Into<String>,
         encrypted_data: Vec<u8>,
         compressed: bool,
     ) -> Result<T> {
+        let ws_id = workspace.into();
         spawn_blocking(move || -> Result<T> {
-            CRYPTO.get().unwrap().decrypt_binary(&encrypted_data, compressed)
+            CIPHER.get(ws_id)?.decrypt_binary(&encrypted_data, compressed)
         })
             .await
             .map_err(map_log_err)?
@@ -184,7 +189,6 @@ impl Store {
     pub fn get_path(workspace: impl AsRef<str>, id: impl AsRef<str>) -> Result<PathBuf> {
         let ws_id = workspace.as_ref();
         let id = id.as_ref();
-//        let ws_id = if ws_id.is_empty() { id } else { ws_id };
 
         if let Some(path) = PATH.get().map(|p| p.join(ws_id).join(format!("{id}.bin"))) {
             Ok(path)

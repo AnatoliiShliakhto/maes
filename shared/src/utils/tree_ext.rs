@@ -10,6 +10,7 @@ pub trait TreeExt {
     fn node_path(&self, id: impl AsRef<str>) -> String;
     fn node_descendants(&self, id: impl AsRef<str>) -> Vec<String>;
     fn populate_children(&mut self);
+    fn sort_by_name(&mut self);
 }
 
 #[inline]
@@ -166,6 +167,11 @@ impl TreeExt for Vec<TreeNode> {
             self[i].children = children;
         }
     }
+
+    fn sort_by_name(&mut self) {
+        self.sort_by(|a, b|
+            a.name.to_lowercase().cmp(&b.name.to_lowercase()))
+    }
 }
 
 impl TreeExt for HashMap<String, TreeNode> {
@@ -241,6 +247,8 @@ impl TreeExt for HashMap<String, TreeNode> {
             }
         }
     }
+
+    fn sort_by_name(&mut self) {}
 }
 
 impl TreeExt for IndexMap<String, TreeNode> {
@@ -315,5 +323,29 @@ impl TreeExt for IndexMap<String, TreeNode> {
                 node.children = children;
             }
         }
+    }
+
+    fn sort_by_name(&mut self) {
+        let mut order: Vec<(String, String)> = self
+            .iter()
+            .map(|(k, v)| (k.clone(), v.name.clone()))
+            .collect();
+
+        order.sort_by(|a, b| {
+            let (an, bn) = (&a.1, &b.1);
+            let alc = an.to_lowercase();
+            let blc = bn.to_lowercase();
+            alc.cmp(&blc)
+                .then_with(|| an.cmp(bn))
+                .then_with(|| a.0.cmp(&b.0))
+        });
+
+        let mut tmp = IndexMap::with_capacity(self.len());
+        for (k, _) in order {
+            if let Some(v) = self.shift_remove(&k) {
+                tmp.insert(k, v);
+            }
+        }
+        *self = tmp;
     }
 }

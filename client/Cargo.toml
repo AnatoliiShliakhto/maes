@@ -1,5 +1,5 @@
 [package]
-name = "client-wasm"
+name = "client"
 edition.workspace = true
 version.workspace = true
 description.workspace = true

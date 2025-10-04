@@ -1,5 +1,5 @@
 [package]
-name = "desktop_app"
+name = "maes"
 edition.workspace = true
 version.workspace = true
 description.workspace = true
@@ -9,8 +9,20 @@ repository.workspace = true
 readme.workspace = true
 license.workspace = true
 
-[[bin]]
-name="maes"
-path="src/main.rs"
-
 [dependencies]
+shared = { path = "../shared", features = ["desktop", "wasm"] }
+server = { path = "../server" }
+dioxus = { workspace = true, features = ["desktop", "logger", "router"] }
+dirs = { workspace = true }
+tracing = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+windows = { workspace = true }
+reqwest = { workspace = true }
+chrono = { workspace = true }
+indexmap = { workspace = true }
+
+[build-dependencies]
+dotenvy = { workspace = true }
+winres = { workspace = true }

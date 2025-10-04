@@ -17,7 +17,6 @@ pub struct Config {
 pub struct WiFiConfig {
     pub ssid: String,
     pub password: String,
-    pub start: bool,
 }
 
 #[derive(Clone, Deserialize, Serialize)]

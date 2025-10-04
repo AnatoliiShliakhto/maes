@@ -1,9 +1,9 @@
-mod migration;
-mod encrypted;
 mod entity;
+mod student;
+mod task;
 
 pub use self::{
-    encrypted::*,
-    migration::*,
     entity::*,
+    student::*,
+    task::*,
 };

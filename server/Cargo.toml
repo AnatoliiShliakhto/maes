@@ -1,5 +1,5 @@
 [package]
-name = "server-lib"
+name = "server"
 edition.workspace = true
 version.workspace = true
 description.workspace = true
@@ -10,13 +10,16 @@ readme.workspace = true
 license.workspace = true
 
 [dependencies]
-core-lib = { path = "../core", features = ["server"] }
+shared = { path = "../shared", features = ["server"] }
 tokio = { workspace = true }
 axum = { workspace = true }
-axum-extra = { workspace = true }
+axum-server = { workspace = true }
 tower-http = { workspace = true }
-surrealdb = { workspace = true }
 serde = { workspace = true }
+tracing = { workspace = true }
+moka = { workspace = true }
+dashmap = { workspace = true }
+indexmap = { workspace = true }
 
 [build-dependencies]
 dotenvy = { workspace = true }

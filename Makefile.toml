@@ -1,0 +1,56 @@
+[env]
+CARGO_MAKE_EXTEND_WORKSPACE_MAKEFILE = true
+
+[config]
+default_to_workspace = false
+
+[tasks.build]
+disabled = true
+
+[tasks.test]
+disabled = true
+
+[tasks.app-css]
+script_runner = "@shell"
+script= '''
+npx @tailwindcss/cli -i ./maes/tailwind.css -o ./maes/assets/tailwind.css
+'''
+
+[tasks.app-css-watch]
+script_runner = "@shell"
+script= '''
+npx @tailwindcss/cli -i ./maes/tailwind.css -o ./maes/assets/tailwind.css --watch
+'''
+
+[tasks.web-css]
+script_runner = "@shell"
+script= '''
+npx @tailwindcss/cli -i ./maes/tailwind.css -o ./maes/assets/tailwind.css
+'''
+
+[tasks.web-css-watch]
+script_runner = "@shell"
+script= '''
+npx @tailwindcss/cli -i ./maes/tailwind.css -o ./maes/assets/tailwind.css --watch
+'''
+
+[tasks.app-dev]
+dependencies = ["app-css"]
+script_runner = "@shell"
+script= '''
+dx serve --package maes --platform desktop
+'''
+
+[tasks.app-bundle]
+dependencies = ["app-css"]
+script_runner = "@shell"
+script= '''
+dx bundle --release --package maes --platform desktop
+'''
+
+[tasks.web]
+dependencies = ["web-css"]
+script_runner = "@shell"
+script= '''
+dx bundle --release --package client --platform web --target wasm32-unknown-unknown
+'''

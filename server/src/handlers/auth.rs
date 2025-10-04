@@ -1,4 +1,4 @@
-use crate::{middleware::*, service::*};
+use crate::{middleware::*, services::*};
 use ::axum::Json;
 use ::shared::{common::*, models::*, payloads::*, services::*, utils::*};
 
@@ -8,32 +8,35 @@ pub async fn authorize(
 ) -> Result<Json<Claims>> {
     connection.checked()?;
 
-    let (user, workspace, workspace_name, key, path) = {
-        let ws = WorkspaceService::get(&payload.workspace).await?;
-        let ws = ws.read().await;
+    let (workspace, workspace_name, user, path) = {
+        let AuthPayload {
+            workspace,
+            login,
+            password,
+        } = payload;
+        let ws_arc = Store::find::<Workspace>(workspace.clone(), workspace).await?;
+        let ws_guard = ws_arc.read().await;
 
-        let user = match ws.users.values().find(|u| u.login == payload.login) {
+        let user = match ws_guard.users.values().find(|u| u.login == login) {
             Some(u) => u.clone(),
             None => return Err((StatusCode::NOT_FOUND, "credentials-not-found").into()),
         };
 
-        verify_password(&payload.password, &user.password)?;
+        verify_password(&password, &user.password)?;
 
-        let path = ws.unit_tree.node_path(&user.unit);
-        let ws_id = ws.id.clone();
-        let ws_name = ws.name.clone();
-        let ws_key = ws.key.clone();
+        let ws_id = ws_guard.id.clone();
+        let ws_name = ws_guard.name.clone();
+        let path = ws_guard.unit_tree.node_path(&user.node);
 
-        (user, ws_id, ws_name,ws_key, path)
+        (ws_id, ws_name, user, path)
     };
 
     let session = ClientSession {
-        id: safe_nanoid!(),
+        id: user.id,
         workspace,
         workspace_name,
-        key,
         username: user.username,
-        unit: user.unit,
+        node: user.node,
         path,
         role: user.role,
     };

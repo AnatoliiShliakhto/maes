@@ -1,96 +1,79 @@
-use crate::model::Metadata;
-use ::serde::{Deserialize, Serialize};
+use crate::{models::*, utils::*};
 use ::indexmap::IndexMap;
+use ::serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Default, Clone, PartialEq, Deserialize, Serialize)]
 pub struct Survey {
     pub id: String,
     pub workspace: String,
-    pub section: String,
+    pub node: String,
     pub name: String,
     #[serde(
         default,
         skip_serializing_if = "IndexMap::is_empty",
-        with = "categories_as_vec"
+        with = "indexmap_as_vec"
     )]
     pub categories: IndexMap<String, SurveyCategory>,
     pub metadata: Metadata,
 }
 
-impl PartialEq for Survey {
-    fn eq(&self, other: &Self) -> bool {
-        self.id == other.id
-    }
-}
-
 impl Survey {
-    pub fn get_categories(&self) -> Vec<&SurveyCategory> {
-        self.categories.values().collect::<Vec<&SurveyCategory>>()
+    pub fn to_base(&self) -> Self {
+        Self {
+            id: self.id.clone(),
+            name: self.name.clone(),
+            workspace: self.workspace.clone(),
+            node: self.node.clone(),
+            categories: Default::default(),
+            metadata: self.metadata.clone(),
+        }
     }
-
-    pub fn get_category(&self, id: impl Into<String>) -> Option<&SurveyCategory> {
-        self.categories.get(&id.into())
-    }
-
-    pub fn upsert_category(&mut self, category: SurveyCategory) {
-        self.categories.insert(category.id.clone(), category);
-    }
-
-    pub fn remove_category(&mut self, id: impl Into<String>) {
-        self.categories.shift_remove(&id.into());
+    
+    pub fn to_entity(&self) -> Entity {
+        Entity {
+            id: self.id.clone(),
+            name: self.name.clone(),
+            kind: EntityKind::Survey,
+            node: self.node.clone(),
+            metadata: self.metadata.clone(),
+            ..Default::default()
+        }
     }
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Default, Clone, PartialEq, Deserialize, Serialize)]
 pub struct SurveyCategory {
     pub id: String,
     pub name: String,
     pub order: usize,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub questions: Vec<String>,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub answers: Vec<String>,
+    #[serde(
+        default,
+        skip_serializing_if = "IndexMap::is_empty",
+        with = "indexmap_as_vec"
+    )]
+    pub questions: IndexMap<String, SurveyCategoryItem>,
+    #[serde(
+        default,
+        skip_serializing_if = "IndexMap::is_empty",
+        with = "indexmap_as_vec"
+    )]
+    pub answers: IndexMap<String, SurveyCategoryItem>,
 }
 
-impl PartialEq for SurveyCategory {
-    fn eq(&self, other: &Self) -> bool {
-        self.id == other.id && self.name == other.name
+impl SurveyCategory {
+    pub fn to_base(&self) -> Self {
+        Self {
+            id: self.id.clone(),
+            name: self.name.clone(),
+            order: self.order,
+            questions: Default::default(),
+            answers: Default::default(),
+        }
     }
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Default, Clone, PartialEq, Deserialize, Serialize)]
 pub struct SurveyCategoryItem {
     pub id: String,
     pub name: String,
-}
-
-mod categories_as_vec {
-    use super::SurveyCategory;
-    use ::serde::{Deserialize, Deserializer, Serialize, Serializer};
-    use ::indexmap::IndexMap;
-
-    pub fn serialize<S>(
-        map: &IndexMap<String, SurveyCategory>,
-        serializer: S,
-    ) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        map.values()
-            .collect::<Vec<&SurveyCategory>>()
-            .serialize(serializer)
-    }
-
-    pub fn deserialize<'de, D>(deserializer: D) -> Result<IndexMap<String, SurveyCategory>, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let mut vec = Vec::<SurveyCategory>::deserialize(deserializer)?;
-        vec.sort_by(|a, b| a.order.cmp(&b.order).then(a.name.cmp(&b.name)));
-        let mut map = IndexMap::with_capacity(vec.len());
-        for item in vec {
-            map.insert(item.id.clone(), item);
-        }
-        Ok(map)
-    }
 }

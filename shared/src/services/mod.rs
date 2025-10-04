@@ -1,7 +1,7 @@
 #[cfg(feature = "server")]
 mod crypto;
 #[cfg(any(feature = "desktop", feature = "server"))]
-mod nanoid;
+mod uid;
 #[cfg(any(feature = "desktop", feature = "server"))]
 mod env;
 #[cfg(any(feature = "desktop", feature = "server"))]
@@ -10,17 +10,23 @@ mod runtime;
 mod log;
 #[cfg(feature = "wasm")]
 pub mod i18n;
+#[cfg(any(feature = "desktop", feature = "wasm"))]
 mod form_event;
+#[cfg(feature = "desktop")]
+mod clipboard;
 
 #[cfg(feature = "server")]
 pub use self::crypto::*;
 #[cfg(feature = "desktop")]
-pub use self::log::*;
+pub use self::{
+    log::*,
+    clipboard::*,
+};
 #[cfg(any(feature = "desktop", feature = "server"))]
 pub use self::{
     env::*,
     runtime::*,
-    nanoid::*,
+    uid::*,
 };
 #[cfg(any(feature = "desktop", feature = "wasm"))]
 pub use self::{

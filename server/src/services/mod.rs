@@ -1,7 +1,5 @@
-mod crypto;
-mod workspace;
+mod store;
 
 pub use self::{
-    crypto::*,
-    workspace::*,
+    store::*,
 };

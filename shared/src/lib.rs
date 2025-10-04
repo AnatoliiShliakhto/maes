@@ -1,8 +1,8 @@
-pub mod model;
-pub mod service;
+pub mod models;
+pub mod services;
 pub mod common;
-pub mod payload;
-pub mod util;
+pub mod payloads;
+pub mod utils;
 
 #[cfg(any(feature = "desktop", feature = "server"))]
 pub use ::nanoid;
