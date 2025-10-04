@@ -1,0 +1,126 @@
+@import "tailwindcss";
+@plugin "daisyui" {
+    root: ":root";
+}
+
+@plugin "daisyui/theme" {
+    name: "garden";
+    default: true;
+    prefersdark: true;
+    color-scheme: "dark";
+    --color-base-100: oklch(92.951% 0.002 17.197);
+    --color-base-200: oklch(86.445% 0.002 17.197);
+    --color-base-300: oklch(79.938% 0.001 17.197);
+    --color-base-content: oklch(16.961% 0.001 17.32);
+    --color-primary: oklch(37% 0.01 67.558);
+    --color-primary-content: oklch(100% 0 0);
+    --color-secondary: oklch(48.495% 0.11 355.095);
+    --color-secondary-content: oklch(89.699% 0.022 355.095);
+    --color-accent: oklch(56.273% 0.054 154.39);
+    --color-accent-content: oklch(100% 0 0);
+    --color-neutral: oklch(24.155% 0.049 89.07);
+    --color-neutral-content: oklch(92.951% 0.002 17.197);
+    --color-info: oklch(72.06% 0.191 231.6);
+    --color-info-content: oklch(0% 0 0);
+    --color-success: oklch(64.8% 0.15 160);
+    --color-success-content: oklch(0% 0 0);
+    --color-warning: oklch(84.71% 0.199 83.87);
+    --color-warning-content: oklch(0% 0 0);
+    --color-error: oklch(50% 0.213 27.518);
+    --color-error-content: oklch(98% 0.001 106.423);
+    --radius-selector: 1rem;
+    --radius-field: 0.5rem;
+    --radius-box: 0.5rem;
+    --size-selector: 0.25rem;
+    --size-field: 0.25rem;
+    --border: 1px;
+    --depth: 1;
+    --noise: 0;
+}
+
+@font-face {
+    font-family: 'uafsans-regular';
+    src: url('/assets/uafsans-regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'uafsans-medium';
+    src: url('/assets/uafsans-medium.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'uafsans-semibold';
+    src: url('/assets/uafsans-semibold.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'uafsans-bold';
+    src: url('/assets/uafsans-bold.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@layer base {
+    html, body {
+        @apply h-full w-full overflow-hidden select-none antialiased forced-color-adjust-none touch-manipulation;
+        @apply print:overflow-y-auto print:h-auto print:forced-color-adjust-auto;
+        font-family: uafsans-regular, ui-sans-serif, system-ui, sans-serif;
+    }
+
+    #main {
+        @apply flex flex-col h-dvh w-dvw min-h-screen overflow-hidden;
+        scroll-behavior: smooth;
+    }
+
+    .tickets-grid {
+        @apply grid grid-cols-5 gap-0 overflow-auto p-5 print:px-1 bg-white overflow-y-auto;
+    }
+    .ticket {
+        @apply flex flex-1 flex-col text-center p-2 outline-dotted outline-1 outline-offset-[-1px] outline-neutral-400;
+        @apply break-inside-avoid;
+    }
+    .ticket .rank {
+        @apply text-sm text-neutral-600;
+    }
+
+    input[type="date"]::-webkit-calendar-picker-indicator {
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="%23374151" viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/></svg>');
+        background-size: 16px 16px;
+        background-repeat: no-repeat;
+        background-position: center;
+    }
+}
+
+@media print {
+    body {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    .print-controls {
+        @apply hidden;
+    }
+    #main {
+        @apply h-full w-full;
+    }
+}
+
+@media print and (orientation: landscape) {
+    .tickets-grid {
+        @apply grid grid-cols-6 gap-0 overflow-hidden;
+    }
+}
+
+@media print and (orientation: portrait) {
+    .tickets-grid {
+        @apply grid grid-cols-4 gap-0 overflow-hidden;
+    }
+}
+
+@source "./maes/src/**/*.{rs,html,css}, ./core/src/**/*.{rs,html,css}";

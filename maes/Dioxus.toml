@@ -1,0 +1,53 @@
+[application]
+name = "maes"
+tailwind_input = "maes/tailwind.css"
+tailwind_output = "maes/assets/tailwind.css"
+asset_dir = "maes/assets"
+default_platform = "desktop"
+
+[web.app]
+
+# HTML title tag content
+title = "Military Aptitude & Evaluation System"
+
+[web.watcher]
+watch_path = ["maes/src"]
+
+[web.resource]
+style = []
+script = []
+
+[web.resource.dev]
+
+# Javascript code file
+# serve: [dev-server] only
+script = []
+
+[desktop]
+hot_reload = false
+
+
+[bundle]
+publisher = "Anatolii Shliakhto"
+identifier = "com.maes.app"
+copyright = "Copyright 2025 Anatolii Shliakhto"
+category = "Utility"
+short_description = "MAES"
+long_description = "Military Aptitude & Evaluation System"
+resources = ["target/dx/client/release/web"]
+icon = ["maes/assets/icon.ico"]
+
+[bundle.windows]
+icon_path = "maes/assets/icon.ico"
+product_name = "MAES - Military Aptitude & Evaluation System"
+file_description = "MAES - Military Aptitude & Evaluation System"
+timestamp_url = "http://timestamp.digicert.com"
+tsp = true
+allow_downgrades = false
+internal_name = "MAES"
+original_filename = "maes.exe"
+
+
+
+[bundle.windows.webview_install_mode.DownloadBootstrapper]
+silent = true

@@ -1,0 +1,38 @@
+[workspace]
+resolver = "3"
+members = ["client_wasm", "core_lib", "desktop_app", "server_lib"]
+default-members = ["desktop_app"]
+
+[workspace.package]
+edition = "2024"
+version = "0.2.0"
+description = "Military Aptitude & Evaluation System"
+keywords = ["Rust", "LMS", "WASM", "application"]
+authors = ["Anatolii Shliakhto <a.shlyakhto@gmail.com>"]
+repository = "https://github.com/AnatoliiShliakhto/maes"
+readme = "README.md"
+license = "MIT"
+
+[workspace.dependencies]
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = { version = "1.0.143" }
+dotenvy = { version = "0.15.7" }
+tokio = {version = "1.47.1", features = ["full"] }
+chrono = { version = "0.4.42" }
+indexmap = { version = "2.11.1" }
+axum = { version = "0.8.4" }
+axum-extra = { version = "0.10.1" }
+tracing = { version = "0.1.41" }
+tracing-subscriber = { version = "0.3.20", features = ["env-filter"] }
+tracing-appender = { version = "0.2.3" }
+aes-gcm = { version = "0.11.0-rc.1" }
+base64 = { version = "0.22.1" }
+argon2 = { version = "0.6.0-rc.1" }
+nanoid = { version = "0.4.0" }
+pbkdf2 = { version = "0.13.0-rc.1" }
+sha2 = { version = "0.11.0-rc.2" }
+lz4_flex = { version = "0.11.5" }
+subtle = { version = "2.6.1" }
+getrandom = { version = "0.3.3" }
+dioxus = { version = "0.7.0-rc.0" }
+dioxus-i18n = { version = "0.4.3" }

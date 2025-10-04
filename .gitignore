@@ -1,0 +1,12 @@
+/.idea
+/target
+/node_modules
+/Cargo.lock
+/package-lock.json
+/.env
+/data
+
+/desktop_app/assets/tailwind.css
+/desktop_app/syncfusion.license.js
+/desktop_app/assets/syncfusion.bundle.js
+/client_wasm/assets/tailwind.css

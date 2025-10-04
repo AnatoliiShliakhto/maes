@@ -1,0 +1,16 @@
+[package]
+name = "desktop_app"
+edition.workspace = true
+version.workspace = true
+description.workspace = true
+keywords.workspace = true
+authors.workspace = true
+repository.workspace = true
+readme.workspace = true
+license.workspace = true
+
+[[bin]]
+name="maes"
+path="src/main.rs"
+
+[dependencies]
