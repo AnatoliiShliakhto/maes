@@ -10,15 +10,16 @@ readme.workspace = true
 license.workspace = true
 
 [dependencies]
+server = { path = "../server" }
+shared = { path = "../shared", features = ["desktop", "wasm"] }
 chrono = { workspace = true }
 dioxus = { workspace = true, features = ["desktop", "logger", "router"] }
 dirs = { workspace = true }
 indexmap = { workspace = true }
 reqwest = { workspace = true }
+rfd = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-server = { path = "../server" }
-shared = { path = "../shared", features = ["desktop", "wasm"] }
 tokio = { workspace = true }
 tracing = { workspace = true }
 windows = { workspace = true }

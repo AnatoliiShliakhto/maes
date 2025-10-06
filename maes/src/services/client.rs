@@ -1,11 +1,10 @@
 use crate::{prelude::*, services::*};
 use ::reqwest::{
     Client, Response, Url,
-    header::{AUTHORIZATION, HeaderMap, HeaderValue, USER_AGENT},
+    header::*,
 };
 use ::serde::{Serialize, de::DeserializeOwned};
-use ::std::{string::ToString, sync::LazyLock};
-
+use ::std::{string::ToString, sync::LazyLock, time::Duration};
 pub use ::reqwest::Method;
 
 static HTTP: LazyLock<Http> = LazyLock::new(Http::new);
@@ -19,16 +18,26 @@ struct Http {
 impl Http {
     fn new() -> Self {
         let config = ConfigService::read();
+
         let mut headers = HeaderMap::new();
         headers.insert(
             USER_AGENT,
             HeaderValue::from_str(&config.server.ident)
                 .unwrap_or_else(|_| HeaderValue::from_static("maes-client")),
         );
+        headers.insert(CACHE_CONTROL, HeaderValue::from_static("no-cache, no-store, must-revalidate"));
+        headers.insert(PRAGMA, HeaderValue::from_static("no-cache"));
+
         let (_scheme, _host, port) = parse_scheme_host_port(&config.server.host)
             .unwrap_or_else(|_| ("".to_string(), "".to_string(), 4583));
         let base = Url::parse(&format!("http://127.0.0.1:{port}")).unwrap();
-        let client = Client::new();
+
+        let client = Client::builder()
+            .pool_idle_timeout(Duration::from_secs(30))
+            .pool_max_idle_per_host(4)
+            .tcp_keepalive(Duration::from_secs(30))
+            .build().unwrap_or_default();
+
         Self {
             client,
             base,

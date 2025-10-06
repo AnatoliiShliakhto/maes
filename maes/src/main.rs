@@ -34,11 +34,7 @@ use prelude::*;
 use services::*;
 
 fn main() {
-    let app_data_path = dirs::data_dir()
-        .unwrap()
-        .join(env!("CARGO_PKG_NAME"))
-        .canonicalize()
-        .unwrap();
+    let app_data_path = app_data_path();
     let _log_guard = init_file_logger(
         env!("CARGO_PKG_NAME"),
         &app_data_path.join("logs").to_string_lossy(),

@@ -1,4 +1,7 @@
-use crate::{components::{dialogs::*, widgets::*}, prelude::*};
+use crate::{
+    components::{dialogs::*, widgets::*},
+    prelude::*,
+};
 use ::std::time::Duration;
 
 #[component]
@@ -10,7 +13,7 @@ pub fn TasksList() -> Element {
             api_fetch!(
                 GET,
                 "/api/v1/tasks",
-                on_success = move |body: Vec<Task>| tasks.set(body),
+                on_success = move |body: Vec<Task>| tasks.set(body)
             );
             tokio::time::sleep(Duration::from_secs(5)).await
         }
@@ -20,10 +23,7 @@ pub fn TasksList() -> Element {
         div {
             class: "flex flex-nowrap shrink-0 w-full gap-2 px-3 pt-2 items-center h-10 space-between",
             i { class: "bi bi-three-dots-vertical" }
-            div {
-                class: "w-full",
-                { t!("tasks") }
-            }
+            div { class: "w-full", { t!("tasks") } }
             ul {
                 class: "menu menu-horizontal p-0 m-0 text-base-content flex-nowrap",
                 li {
@@ -36,9 +36,7 @@ pub fn TasksList() -> Element {
                 }
             }
         }
-        div {
-            class: "h-0.25 bg-base-300 mx-4 my-1",
-        }
+        div { class: "h-0.25 bg-base-300 mx-4 my-1" }
 
         ul {
             class: "list flex-scrollable",
@@ -56,36 +54,42 @@ fn RenderTaskItem(task: ReadOnlySignal<Task>) -> Element {
     let mut tasks = use_context::<Signal<Vec<Task>>>();
     let task_guard = task.read();
 
+    let is_selected = task_guard.id == selected.read().id;
+
     let delete_action = {
         let callback = use_callback(move |_| {
             let task_guard = task.peek();
+            let endpoint = format!(
+                "/api/v1/tasks/{kind}/{task_id}",
+                kind = task_guard.kind,
+                task_id = task_guard.id
+            );
             api_call!(
                 DELETE,
-                format!("/api/v1/tasks/{kind}/{id}", kind = task_guard.kind, id = task_guard.id),
+                endpoint,
                 on_success = move || {
-                    tasks.with_mut(|ts| ts.retain(|t| t.id != task.peek().id));
-                    if selected.read().id == task.peek().id {
+                    let id = task.peek().id.clone();
+                    tasks.with_mut(|ts| ts.retain(|t| t.id != id));
+                    if selected.read().id == id {
                         kind.set(EntityKind::Workspace)
                     }
                 },
             )
         });
         use_callback(move |_| {
-            use_dialog().warning(
-                t!("delete-task-message", name = task.peek().name.clone()),
-                Some(callback),
-            )
+            let name = task.peek().name.clone();
+            use_dialog().warning(t!("delete-task-message", name = name), Some(callback))
         })
     };
 
-    let ctx_menu = make_ctx_menu!([
-        (t!("delete"), "bi bi-trash", delete_action),
-    ]);
+    let ctx_menu = make_ctx_menu!([(t!("delete"), "bi bi-trash", delete_action),]);
 
     rsx! {
         li {
-            class: format!("list-row rounded-none px-4 py-0 cursor-pointer hover:bg-base-200 {class}", class =
-                if task_guard.id == selected.read().id { "bg-base-300" } else { "" }),
+            class: format!(
+                "list-row rounded-none px-4 py-0 cursor-pointer hover:bg-base-200 {class}",
+                class = if is_selected { "bg-base-300" } else { "" }
+            ),
             onclick: move |_| {
                 let task_guard = task.read();
                 kind.set(task_guard.kind);
@@ -106,14 +110,8 @@ fn RenderTaskItem(task: ReadOnlySignal<Task>) -> Element {
             }
             div {
                 class: "flex flex-col justify-center my-3 gap-1",
-                div {
-                    class: "font-semibold",
-                    "{task_guard.name}"
-                }
-                div {
-                    class: "text-xs text-base-content/60",
-                    "{task_guard.path}"
-                }
+                div { class: "font-semibold", "{task_guard.name}" }
+                div { class: "text-xs text-base-content/60", "{task_guard.path}" }
             }
             div {
                 class: "flex items-center justify-center",
@@ -122,9 +120,7 @@ fn RenderTaskItem(task: ReadOnlySignal<Task>) -> Element {
                         ProgressCircle { key: "progress-{task_guard.id}", progress: task_guard.progress }
                     },
                     EntityKind::SurveyRecord => rsx! {
-                        span { class: "text-lg text-base-content/60 font-semibold",
-                            "{task_guard.progress}"
-                        }
+                        span { class: "text-lg text-base-content/60 font-semibold", "{task_guard.progress}" }
                     },
                     _ => rsx! {},
                 }

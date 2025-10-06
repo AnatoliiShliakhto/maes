@@ -1,7 +1,12 @@
 use crate::{middleware::*, repositories::*, services::*};
-use ::axum::{Json, extract::Path};
+use ::axum::{
+    Json,
+    extract::Path,
+    response::{IntoResponse, Response},
+};
 use ::indexmap::IndexMap;
 use ::shared::{common::*, models::*, payloads::*};
+use ::std::collections::HashSet;
 
 pub async fn get_quiz(session: Session, Path(quiz_id): Path<String>) -> Result<Json<Quiz>> {
     session.checked_supervisor()?;
@@ -183,11 +188,11 @@ pub async fn update_quiz_question(
 ) -> Result<Json<QuizQuestion>> {
     session.checked_admin()?;
     let quiz_arc = Store::find::<Quiz>(&session.workspace, quiz_id).await?;
-    let UpdateQuizQuestionPayload { name, answers } = payload;
+    let UpdateQuizQuestionPayload { name, img, answers } = payload;
     let question = QuizQuestion {
         id: question_id,
         name,
-        img: None,
+        img,
         answers: answers
             .into_iter()
             .map(|a| (a.id.clone(), a))
@@ -240,4 +245,54 @@ pub async fn delete_quiz_question(
     EntityRepository::upsert(&session.workspace, snapshot.to_entity()).await?;
     Store::upsert(snapshot).await?;
     Ok(Json(question_id))
+}
+
+pub async fn validate_quiz_images(
+    session: &Session,
+    quiz_id: impl Into<String>,
+) -> Result<Response> {
+    session.checked_admin()?;
+    let quiz_id = quiz_id.into();
+
+    let image_set = ImageService::get_entity_images(&session.workspace, &quiz_id).await?;
+
+    let quiz_arc = Store::find::<Quiz>(&session.workspace, &quiz_id).await?;
+    let mut quiz_image_set = HashSet::with_capacity(image_set.len());
+
+    let snapshot = {
+        let mut quiz = quiz_arc.write().await;
+
+        for category in quiz.categories.values_mut() {
+            for question in category.questions.values_mut() {
+                if question.img && !image_set.contains(&question.id) {
+                    question.img = false;
+                }
+                if question.img {
+                    quiz_image_set.insert(question.id.clone());
+                }
+
+                for answer in question.answers.values_mut() {
+                    if answer.img && !image_set.contains(&answer.id) {
+                        answer.img = false;
+                    }
+                    if answer.img {
+                        quiz_image_set.insert(answer.id.clone());
+                    }
+                }
+            }
+        }
+
+        quiz.metadata.update(&session.username);
+        quiz.clone()
+    };
+
+    let orphan_files: HashSet<String> = image_set.difference(&quiz_image_set).cloned().collect();
+
+    EntityRepository::upsert(&session.workspace, snapshot.to_entity()).await?;
+    Store::upsert(snapshot.clone()).await?;
+    if !orphan_files.is_empty() {
+        ImageService::batch_remove(&session.workspace, quiz_id, orphan_files).await?;
+    }
+
+    Ok(Json(snapshot).into_response())
 }

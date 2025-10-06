@@ -8,7 +8,6 @@ pub struct Config {
     pub recent: RecentConfig,
     pub main_window: WindowConfig,
     pub child_window: WindowConfig,
-    pub menu_state: bool,
     pub language: String,
     pub theme: String,
 }
@@ -46,6 +45,7 @@ pub struct RecentConfig {
     pub login: String,
     pub export: PathBuf,
     pub import: PathBuf,
+    pub images: PathBuf,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]

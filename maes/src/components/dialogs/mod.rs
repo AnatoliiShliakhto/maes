@@ -3,6 +3,7 @@ mod input;
 mod dialog;
 mod create_user;
 mod add_student;
+mod file;
 
 pub use self::{
     create_workspace::*,
@@ -10,4 +11,5 @@ pub use self::{
     add_student::*,
     input::*,
     dialog::*,
+    file::*,
 };

@@ -11,7 +11,7 @@ static CONFIG_STATE: LazyLock<Arc<RwLock<ConfigState>>> =
 
 struct ConfigState {
     config: Arc<Config>,
-    path: Option<PathBuf>,
+    path: PathBuf,
 }
 
 #[derive(Copy, Clone)]
@@ -19,14 +19,11 @@ pub struct ConfigService;
 
 impl ConfigService {
     fn init_state() -> ConfigState {
-        let path = dirs::data_dir().map(|p| p.join(env!("CARGO_PKG_NAME")).join("maes-config.json"));
-        let config = match &path {
-            Some(p) => Self::load_file(p).unwrap_or_else(|e| {
+        let path = app_data_path().join("maes-config.json");
+        let config = Self::load_file(&path).unwrap_or_else(|e| {
                 error!("{e}");
                 Self::default_config()
-            }),
-            None => Self::default_config(),
-        };
+            });
         ConfigState { config: Arc::new(config), path }
     }
 
@@ -44,17 +41,15 @@ impl ConfigService {
     {
         let arc = &*CONFIG_STATE;
 
-        let (result, need_save) = {
+        let (result, path) = {
             let mut state = arc.write().map_err(|e| format!("{e}"))?;
             let result = f(Arc::make_mut(&mut state.config));
             let path = state.path.clone();
             (result, path)
         };
 
-        if let Some(path) = need_save {
-            let config_state_guard = arc.read().map_err(|e| format!("{e}"))?;
-            Self::save_file_atomic(&config_state_guard.config, &path)?;
-        }
+        let config_state_guard = arc.read().map_err(|e| format!("{e}"))?;
+        Self::save_file_atomic(&config_state_guard.config, &path)?;
 
         Ok(result)
     }
@@ -75,10 +70,10 @@ impl ConfigService {
                 login: "".to_string(),
                 export: dirs::desktop_dir().unwrap_or_default(),
                 import: dirs::desktop_dir().unwrap_or_default(),
+                images: dirs::desktop_dir().unwrap_or_default(),
             },
             main_window: Default::default(),
             child_window: Default::default(),
-            menu_state: false,
             language: "uk".to_string(),
             theme: "corporate".to_string(),
         }

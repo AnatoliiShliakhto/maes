@@ -107,8 +107,7 @@ impl QuizCategory {
 pub struct QuizQuestion {
     pub id: String,
     pub name: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub img: Option<String>,
+    pub img: bool,
     #[serde(
         default,
         skip_serializing_if = "IndexMap::is_empty",
@@ -121,7 +120,6 @@ pub struct QuizQuestion {
 pub struct QuizAnswer {
     pub id: String,
     pub name: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub img: Option<String>,
+    pub img: bool,
     pub correct: bool,
 }

@@ -15,9 +15,17 @@ pub fn QuizEditorQuiz() -> Element {
     let save_action = move |evt: FormEvent| {
         evt.stop();
         let quiz_guard = quiz.read();
-        let (Some(name), Some(attempts), Some(duration), Some(grade_a), Some(grade_b), Some(grade_c)) = form_values!(
+        let (
+            Some(name),
+            Some(attempts),
+            Some(duration),
+            Some(grade_a),
+            Some(grade_b),
+            Some(grade_c),
+        ) = form_values!(
             evt, "name", "attempts", "duration", "grade_a", "grade_b", "grade_c"
-        ) else {
+        )
+        else {
             ToastService::error(t!("missing-fields"));
             return;
         };
@@ -49,6 +57,22 @@ pub fn QuizEditorQuiz() -> Element {
         )
     };
 
+    let validate_images_action = move |evt: MouseEvent| {
+        evt.prevent_default();
+        api_fetch!(
+            GET,
+            format!(
+                "/api/v1/manager/images/validate/{kind}/{entity_id}",
+                kind = EntityKind::Quiz,
+                entity_id = quiz.read().id
+            ),
+            on_success = move |body: Quiz| {
+                quiz.set(body);
+                ToastService::success(t!("images-validated"))
+            }
+        )
+    };
+
     rsx! {
         div {
             class: "flex flex-nowrap shrink-0 w-full gap-2 px-3 pt-2 items-center h-10",
@@ -59,7 +83,15 @@ pub fn QuizEditorQuiz() -> Element {
             }
             if claims.is_admin() {
                 ul {
-                    class: "menu menu-horizontal p-0 m-0 text-base-content",
+                    class: "menu menu-horizontal p-0 m-0 text-base-content flex-nowrap",
+                    li {
+                        button {
+                            class: "hover:text-warning",
+                            onclick: validate_images_action,
+                            i { class: "bi bi-image" }
+                            { t!("validate-images") }
+                        }
+                    }
                     li {
                         button {
                             class: "hover:text-success",
@@ -92,7 +124,7 @@ pub fn QuizEditorQuiz() -> Element {
             }
 
             fieldset {
-//                class: "fieldset p-4 border border-base-300 text-sm rounded-(--radius-box)",
+                //                class: "fieldset p-4 border border-base-300 text-sm rounded-(--radius-box)",
                 class: "fieldset p-2",
                 legend {
                     class: "fieldset-legend text-sm text-primary",
@@ -157,7 +189,7 @@ pub fn QuizEditorQuiz() -> Element {
             }
 
             fieldset {
-//                class: "fieldset p-4 border border-base-300 text-sm rounded-(--radius-box)",
+                //                class: "fieldset p-4 border border-base-300 text-sm rounded-(--radius-box)",
                 class: "fieldset p-2 text-sm",
                 legend {
                     class: "fieldset-legend text-sm text-primary",

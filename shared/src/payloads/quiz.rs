@@ -30,5 +30,6 @@ pub struct UpdateQuizCategoryPayload {
 #[derive(Clone, Deserialize, Serialize)]
 pub struct UpdateQuizQuestionPayload {
     pub name: String,
+    pub img: bool,
     pub answers: Vec<QuizAnswer>,
 }

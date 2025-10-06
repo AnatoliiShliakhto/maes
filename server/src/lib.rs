@@ -26,6 +26,7 @@ pub fn launch_server(config: ServerConfig, path: PathBuf) -> Handle {
 
 async fn main(config: ServerConfig, path: PathBuf, handle: Handle) -> Result<()> {
     Store::init(&path).await.map_err(map_log_err)?;
+    ImageService::init(&path).await.map_err(map_log_err)?;
     init_state(&config.ident)
         .await
         .map_err(map_log_err)?;

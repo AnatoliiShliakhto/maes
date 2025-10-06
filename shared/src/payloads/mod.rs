@@ -4,6 +4,7 @@ mod quiz;
 mod survey;
 mod students;
 mod task;
+mod image;
 
 pub use self::{
     workspace::*,   
@@ -12,4 +13,5 @@ pub use self::{
     survey::*,
     students::*,
     task::*,
+    image::*,
 };

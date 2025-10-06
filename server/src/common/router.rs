@@ -1,4 +1,4 @@
-use crate::handlers::*;
+use crate::{middleware::*, handlers::*};
 use ::axum::{
     Router,
     http::{HeaderValue, Method, header},
@@ -10,6 +10,7 @@ use ::tower_http::{
     cors::CorsLayer,
     services::{ServeDir, ServeFile},
 };
+use ::tower::ServiceBuilder;
 
 pub fn init_router(path: PathBuf, config: &ServerConfig) -> Router {
     let (scheme, host, port) = parse_scheme_host_port(config.host.as_str()).unwrap();
@@ -32,10 +33,16 @@ pub fn init_router(path: PathBuf, config: &ServerConfig) -> Router {
 
     Router::new()
         .fallback_service(
-            ServeDir::new(path.clone()).fallback(ServeFile::new(path.join("index.html"))),
+            ServeDir::new(path.join("client")).fallback(ServeFile::new(path.join("client").join("index.html"))),
         )
         .route("/health", get(liveness))
         .nest("/api/v1", api_v1_router())
+        .layer(
+            ServiceBuilder::new().layer(StaticHeadersLayer::new(
+                "no-store, no-cache, must-revalidate",
+                "timeout=60, max=1000",
+            )),
+        )
         .layer(cors)
 }
 
@@ -52,6 +59,7 @@ fn api_v1_router() -> Router {
         .nest("/students", students_manager_router())
         .nest("/manager/quizzes", quiz_manager_router())
         .nest("/manager/surveys", survey_manager_router())
+        .nest("/manager/images", image_manager_router())
 }
 
 fn entity_router() -> Router {
@@ -137,4 +145,10 @@ fn task_manager_router() -> Router {
         .route("/{kind}/{task_id}", get(get_task).delete(delete_task))
         .route("/{kind}", post(create_task))
         .route("/", get(list_tasks))
+}
+
+fn image_manager_router() -> Router {
+    Router::new()
+        .route("/validate/{kind}/{entity_id}", get(validate_images))
+        .route("/{entity_id}/{item_id}", post(add_image).delete(remove_image))
 }
