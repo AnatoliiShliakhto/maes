@@ -1,0 +1,27 @@
+[application]
+name = "maes"
+tailwind_input = "client/tailwind.css"
+tailwind_output = "client/assets/tailwind.css"
+asset_dir = "client/assets"
+default_platform = "web"
+
+[web.app]
+
+# HTML title tag content
+title = "Military Aptitude & Evaluation System"
+
+[web.watcher]
+watch_path = ["client/src"]
+
+[web.resource]
+style = []
+script = []
+
+[web.resource.dev]
+
+# Javascript code file
+# serve: [dev-server] only
+script = []
+
+[desktop]
+hot_reload = false

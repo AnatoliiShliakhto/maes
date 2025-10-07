@@ -216,7 +216,7 @@ pub fn QuizEditorQuestion(
                     }
                     if is_admin {
                         button {
-                            class: if has_img() { "hidden group-hover:btn btn-error btn-square mt-1" } else { "hidden group-hover:btn btn-info btn-square mt-1" },
+                            class: if has_img() { "hidden group-hover:btn hover:btn-error btn-square mt-1" } else { "hidden group-hover:btn hover:btn-info btn-square mt-1" },
                             onclick: move |evt| {
                                 evt.prevent_default();
                                 if has_img() {
@@ -227,7 +227,7 @@ pub fn QuizEditorQuestion(
                                     add_image_action.call((question_id(), on_success));
                                 }
                             },
-                            i { class: "bi bi-image text-lg text-info-content" }
+                            i { class: "bi bi-image text-lg" }
                         }
                     }
                 }
@@ -290,11 +290,11 @@ pub fn QuizEditorQuestion(
                                     initial_value: "{answer.name}",
                                 }
                             }
-                            div {
-                                class: format!("flex gap-2 {class}", class = if answer.img { "flex-col" } else { "" }),
-                                if is_admin {
+                            if is_admin {
+                                div {
+                                    class: format!("hidden group-hover:flex join {class} pt-1", class = if answer.img { "flex-col join-vertical" } else { "" }),
                                     button {
-                                        class: format!("hidden group-hover:btn {class} btn-square mt-1", class = if answer.img { "btn-error" } else { "btn-info" }),
+                                        class: format!("btn {class} join-item", class = if answer.img { "hover:btn-error" } else { "hover:btn-info" }),
                                         onclick: {
                                             let answer_id = answer.id.clone();
                                             let answer_id_clone = answer_id.clone();
@@ -316,10 +316,10 @@ pub fn QuizEditorQuestion(
                                                 }
                                             }
                                         },
-                                        i { class: "bi bi-image text-lg text-info-content" }
+                                        i { class: "bi bi-image text-lg" }
                                     }
                                     button {
-                                        class: "hidden group-hover:btn btn-error btn-square mt-1",
+                                        class: "btn hover:btn-error join-item",
                                         onclick: {
                                             let answer_id = id.clone();
                                             move |evt| {
@@ -327,7 +327,7 @@ pub fn QuizEditorQuestion(
                                                 delete_action.call(answer_id.clone())
                                             }
                                         },
-                                        i { class: "bi bi-trash text-lg text-error-content" }
+                                        i { class: "bi bi-trash text-lg" }
                                     }
                                 }
                             }

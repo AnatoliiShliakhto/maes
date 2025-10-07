@@ -298,7 +298,7 @@ fn RenderSurveyCategoryItem(
             }
             if claims.is_admin() {
                 button {
-                    class: "hidden group-hover:btn btn-error btn-square mt-1",
+                    class: "hidden group-hover:btn hover:btn-error btn-square mt-1",
                     onclick: {
                         let id = item_guard.id.clone();
                         move |evt| {
@@ -306,7 +306,7 @@ fn RenderSurveyCategoryItem(
                             delete_action.call(id.clone())
                         }
                     },
-                    i { class: "bi bi-trash text-lg text-error-content" }
+                    i { class: "bi bi-trash text-lg" }
                 }
             }
         }

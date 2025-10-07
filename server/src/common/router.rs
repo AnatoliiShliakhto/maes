@@ -57,6 +57,7 @@ fn api_v1_router() -> Router {
         .nest("/entities", entity_router())
         .nest("/tasks", task_manager_router())
         .nest("/students", students_manager_router())
+        .nest("/activities", activities_router())
         .nest("/manager/quizzes", quiz_manager_router())
         .nest("/manager/surveys", survey_manager_router())
         .nest("/manager/images", image_manager_router())
@@ -151,4 +152,10 @@ fn image_manager_router() -> Router {
     Router::new()
         .route("/validate/{kind}/{entity_id}", get(validate_images))
         .route("/{entity_id}/{item_id}", post(add_image).delete(remove_image))
+}
+
+fn activities_router() -> Router {
+    Router::new()
+        .route("/{workspace_id}/{task_id}", get(get_activity_details))
+        .route("/{workspace_id}/{task_id}/{student_id}", get(get_activity_details_with_student))
 }

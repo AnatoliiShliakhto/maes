@@ -37,7 +37,7 @@
 
 @layer base {
     html, body {
-        @apply h-full w-full overflow-hidden antialiased forced-color-adjust-none touch-manipulation;
+        @apply h-full w-full overflow-hidden antialiased forced-color-adjust-none touch-manipulation select-none;
         @apply print:overflow-y-auto print:h-auto print:forced-color-adjust-auto;
         font-family: uafsans, ui-sans-serif, system-ui, sans-serif;
     }

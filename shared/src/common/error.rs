@@ -20,7 +20,7 @@ impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             #[cfg(feature = "server")]
-            Error::Server(_, message) |
+            Error::Server(_, message) => write!(f, "{message}"),
             Error::Common(message) => write!(f, "{message}"),
         }
     }

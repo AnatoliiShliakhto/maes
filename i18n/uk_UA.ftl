@@ -1,4 +1,5 @@
 about = Про додаток
+acquainted = Зрозуміло
 add = Додати
 add-student = Додати курсанта
 administrator = Адміністратор
@@ -9,6 +10,7 @@ answers-count-error = Повинно бути якнайменше дві від
 app-title = Ситема оцінювання MAES
 app-workspace-title = Ситема оцінювання MAES - { $username }
 bad-request = Запит не вдалося обробити, оскільки він некоректний
+begin = Розпочати
 cancel = Скасувати
 cannot-delete-self = Неможливо видалити свій обліковий запис
 categories = Категорії
@@ -16,6 +18,8 @@ category = Категорія
 category-placeholder = Введіть назву категорії
 checklists = Чеклисти
 clear-users-message = Ви впевнені, що бажаєте очистити список курсантів?
+client-app-announcement = Щоб розпочати тестування (або опитування), відскануйте камерою QR-код від керівника заходу та перейдіть за посиланням. 
+close = Закрити
 config-saved = Налаштування збережені
 copy-to-clipboard = Копіювати
 copy-to-clipboard-error = Помилка копіювання до буферу обміну
@@ -33,8 +37,7 @@ created = створено
 credentials = Обліковий запис
 credentials-not-found = Користувач не знайден
 delete = Видалити
-delete-entity-message = Ви впевнені, що бажаєте видалити "{ $name }"?
-delete-entity-message = Ви дійсно бажаєте видалити розділ "{ $name }"? Цю дію неможливо скасувати.
+delete-entity-message = Ви дійсно бажаєте видалити "{ $name }"? Цю дію неможливо скасувати.
 delete-quiz-category-message = Ви впевнені, що бажаєте видалити категорію "{ $name }"?
 delete-quiz-question-message = Ви впевнені, що бажаєте видалити питання "{ $name }"?
 delete-survey-category-message = Ви впевнені, що бажаєте видалити категорію "{ $name }"?
@@ -80,6 +83,7 @@ login-form-announcement = Увійдіть до свого облікового 
 login-form-title = Авторизація
 logout-success = Повертайтеся ще
 missing-fields = Не всі поля форми заповнені
+mock-title = Емулятор пристрою
 name = назва
 network-error = Помилка зв'язку з сервером
 next = Далі
@@ -118,12 +122,14 @@ search = Пошук
 select-node-first = Оберіть спочатку підрозділ
 server-settings = Сервер
 settings = Налаштування
+score = { $score }% вірних відповідей
 sign-out = Вихід
 signin = Увійти
 sort-order = Порядок сортування
 start = Початок
 student = Курсант
 students = Курсанти
+student-not-found = Курсанта не знайдено
 success = Успіх
 supervisor = Керівник
 survey = Опитування
@@ -142,6 +148,7 @@ task = Задача
 task-created = Задача створена
 task-inspector = Панель керування
 tasks = Задачі
+task-not-found = Задачу не знайдено
 ticket = Білет
 theme-abyss = Безодня
 theme-acid = Кислота
@@ -176,6 +183,7 @@ theme-synthwave = Сінтетична
 theme-winter = Зима
 theme-wireframe = Каркас
 ticket-question-count = Кількість питань в білеті
+try-again = Спробувати ще
 type-mismatch = Невідповідність типів даних
 unauthorized = Потрібна авторизація
 unit = Підрозділ
@@ -237,7 +245,32 @@ quiz-duration = { $total ->
         }
     }
 }
-
+duration = { $total ->
+    [0] Без обмежень
+    *[other] { $h ->
+        [0] { $m } { $m ->
+            [one] хвилина
+            [few] хвилини
+            *[many] хвилин
+        }
+        *[other] { $h } { $h ->
+            [one] година
+            [few] години
+            *[many] годин
+        } { $m ->
+            [0] { " " }
+            [one]  { " " }{ $m } хвилина
+            [few]  { " " }{ $m } хвилини
+            *[many] { " " }{ $m } хвилин
+        }
+    }
+}
+grade = { $grade ->
+    [5] Оцінка 5: відмінно
+    [4] Оцінка 4: добре
+    [3] Оцінка 3: задовільно
+    *[other] Оцінка 2: незадовільно
+}
 
 status-code-100 = Продовжуйте
 status-code-101 = Перемикання протоколів

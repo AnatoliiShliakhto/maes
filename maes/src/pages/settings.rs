@@ -215,12 +215,12 @@ fn RenderWorkspaces() -> Element {
                     }
                     div {
                         class: "hidden group-hover:flex h-full w-14 items-center justify-center",
-                        class: "bg-error/50 hover:bg-error cursor-pointer",
+                        class: "text-base-content/60 hover:text-error-content hover:bg-error cursor-pointer",
                         onclick: {
                             let ws = ws.clone();
                             move |_| delete_action(ws.clone())
                         },
-                        i { class: "bi bi-trash text-lg text-error-content" }
+                        i { class: "bi bi-trash text-lg" }
                     }
                 }
             }

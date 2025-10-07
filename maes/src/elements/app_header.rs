@@ -10,16 +10,16 @@ pub fn AppHeader() -> Element {
         let scale = use_window().window.scale_factor();
         ConfigService::with_mut(|config| {
             if window.is_maximized() {
-                config.main_window.maximized = true;
+                config.windows.main.maximized = true;
             } else {
                 if let Ok(position) = window.outer_position() {
-                    config.main_window.left = (position.x as f64 / scale) as i32;
-                    config.main_window.top = (position.y as f64 / scale) as i32;
+                    config.windows.main.left = (position.x as f64 / scale) as i32;
+                    config.windows.main.top = (position.y as f64 / scale) as i32;
                 }
                 let size = window.inner_size();
-                config.main_window.width = (size.width as f64 / scale) as i32;
-                config.main_window.height = (size.height as f64 / scale) as i32;
-                config.main_window.maximized = false;
+                config.windows.main.width = (size.width as f64 / scale) as i32;
+                config.windows.main.height = (size.height as f64 / scale) as i32;
+                config.windows.main.maximized = false;
             }
         })
         .ok();

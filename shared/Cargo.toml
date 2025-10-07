@@ -20,7 +20,7 @@ server = [
     "dep:nanoid", "dep:pbkdf2", "dep:sha2", "dep:subtle", "dep:tokio"
 ]
 mobile = []
-wasm = ["dep:fluent-bundle", "dep:unic-langid"]
+wasm = ["dep:dioxus", "dep:fluent-bundle", "dep:unic-langid"]
 
 
 [dependencies]

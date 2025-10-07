@@ -22,16 +22,16 @@ script= '''
 npx @tailwindcss/cli -i ./maes/tailwind.css -o ./maes/assets/tailwind.css --watch
 '''
 
-[tasks.web-css]
+[tasks.client-css]
 script_runner = "@shell"
 script= '''
-npx @tailwindcss/cli -i ./maes/tailwind.css -o ./maes/assets/tailwind.css
+npx @tailwindcss/cli -i ./client/tailwind.css -o ./client/assets/tailwind.css
 '''
 
-[tasks.web-css-watch]
+[tasks.client-css-watch]
 script_runner = "@shell"
 script= '''
-npx @tailwindcss/cli -i ./maes/tailwind.css -o ./maes/assets/tailwind.css --watch
+npx @tailwindcss/cli -i ./client/tailwind.css -o ./client/assets/tailwind.css --watch
 '''
 
 [tasks.app-dev]
@@ -55,8 +55,16 @@ script= '''
 dx bundle --release --package maes --platform desktop
 '''
 
-[tasks.web]
-dependencies = ["web-css"]
+[tasks.client-dev]
+dependencies = ["client-css"]
+script_runner = "@shell"
+script= '''
+dx bundle --release --package client --platform web --target wasm32-unknown-unknown
+xcopy /S /Y /I "target/dx/client/release/web/public" "%AppData%/maes/client"
+'''
+
+[tasks.client]
+dependencies = ["client-css"]
 script_runner = "@shell"
 script= '''
 dx bundle --release --package client --platform web --target wasm32-unknown-unknown

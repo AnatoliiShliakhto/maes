@@ -5,12 +5,35 @@ use ::serde::{Deserialize, Serialize};
 pub struct Config {
     pub server: ServerConfig,
     pub wifi: WiFiConfig,
+    pub windows: WindowsConfig,
     pub recent: RecentConfig,
-    pub main_window: WindowConfig,
-    pub child_window: WindowConfig,
     pub language: String,
     pub theme: String,
 }
+
+#[derive(Clone, Deserialize, Serialize)]
+pub struct WindowsConfig {
+    pub main: WindowConfig,
+    pub child: WindowConfig,
+    pub mock: WindowConfig,
+}
+
+impl Default for WindowsConfig {
+    fn default() -> Self {
+        Self {
+            main: WindowConfig::default(),
+            child: WindowConfig::default(),
+            mock: WindowConfig {
+                top: 50,
+                left: 50,
+                width: 400,
+                height: 600,
+                maximized: false,
+            },
+        }
+    }
+}
+
 
 #[derive(Clone, Deserialize, Serialize)]
 pub struct WiFiConfig {

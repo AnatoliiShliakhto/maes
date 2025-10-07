@@ -11,9 +11,10 @@ pub fn SurveyInspector() -> Element {
 
     let survey_qr = QrGenerator::text(
         format!(
-            "{host}/task/{kind}/{survey_id}",
+            "{host}/{kind}/{workspace_id}/{survey_id}",
             host = config.server.host,
             kind = EntityKind::SurveyRecord,
+            workspace_id = selected_guard.path,
             survey_id = selected_guard.id
         ),
         300,
@@ -62,6 +63,19 @@ pub fn SurveyInspector() -> Element {
             class: "flex-fixed w-full items-center justify-center p-10",
             img {
                 class: "max-h-full w-auto object-contain overflow-hidden rounded-(--radius-box)",
+                class: "hover:shadow-xl cursor-pointer",
+                onclick: move |_| {
+                    let selected_guard = selected.read();
+                    crate::windows::mock_window(
+                        format!(
+                            "{host}/{kind}/{workspace_id}/{survey_id}",
+                            host = localhost(),
+                            kind = EntityKind::SurveyRecord,
+                            workspace_id = selected_guard.path,
+                            survey_id = selected_guard.id
+                        ),
+                    )
+                },
                 src: survey_qr
             }
         }

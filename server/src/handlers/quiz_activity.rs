@@ -6,6 +6,7 @@ use ::axum::{
 use ::indexmap::IndexMap;
 use ::shared::{common::*, models::*, payloads::*, utils::*};
 use ::std::collections::{HashMap, HashSet};
+use std::ops::Index;
 
 pub async fn get_quiz_record(session: &Session, id: impl Into<String>) -> Result<Response> {
     let quiz_record_arc = Store::find::<QuizRecord>(&session.workspace, id).await?;
@@ -99,9 +100,11 @@ pub async fn create_quiz_record(session: &Session, payload: CreateTaskPayload) -
         QuizRecord {
             id: safe_nanoid!(),
             workspace: session.workspace.clone(),
+            quiz: quiz_guard.id.clone(),
             name,
             node,
             path,
+            attempts: quiz_guard.attempts,
             duration: quiz_guard.duration * total_count,
             grade: quiz_guard.grade.clone(),
             categories: task_categories,
@@ -142,4 +145,40 @@ pub async fn get_quiz_categories(session: &Session, id: impl Into<String>) -> Re
     };
 
     Ok(categories)
+}
+
+pub async fn get_quiz_activity_details(workspace: impl Into<String>, task_id: impl Into<String>, student: impl Into<String>) -> Result<Response> {
+    let ws_id = workspace.into();
+    let task_id = task_id.into();
+    let student_id = student.into();
+
+    let quiz_record_arc = Store::find::<QuizRecord>(&ws_id, task_id).await?;
+    let activity = {
+        let quiz_record_guard = quiz_record_arc.read().await;
+        let student_idx = quiz_record_guard.students.get_index_of(&student_id).ok_or((StatusCode::NOT_FOUND, "student-not-found"))?;
+        let scores = quiz_record_guard.results.get_row(student_idx);
+        let score = if scores.is_empty() {
+            0
+        } else {
+            let sum: i32 = scores.iter().map(|&&v| v as i32).sum();
+            ((sum as f64) / (scores.len() as f64)).round() as u8
+        };
+        let student = quiz_record_guard.students.index(student_idx);
+        let can_take = quiz_record_guard.attempts == 0 || quiz_record_guard.attempts > student.attempts;
+
+        QuizActivityDetails {
+            workspace: quiz_record_guard.workspace.clone(),
+            quiz: quiz_record_guard.quiz.clone(),
+            quiz_name: quiz_record_guard.name.clone(),
+            duration: quiz_record_guard.duration,
+            student: student.id.clone(),
+            student_rank: student.rank.clone(),
+            student_name: student.name.clone(),
+            grade: student.grade,
+            score,
+            can_take,
+        }
+    };
+
+    Ok(Json(activity).into_response())
 }

@@ -6,6 +6,7 @@ use ::serde::{Deserialize, Serialize};
 pub struct SurveyRecord {
     pub id: String,
     pub workspace: String,
+    pub survey: String,
     pub name: String,
     pub node: String,
     pub path: String,
@@ -24,6 +25,7 @@ impl SurveyRecord {
         Self {
             id: self.id.clone(),
             workspace: self.workspace.clone(),
+            survey: self.survey.clone(),
             name: self.name.clone(),
             node: self.node.clone(),
             path: self.path.clone(),

@@ -116,9 +116,9 @@ fn RenderListItemRow(item: ReadOnlySignal<Entity>) -> Element {
             if claims.is_admin() {
                 div {
                     class: "hidden group-hover:flex h-full w-14 items-center justify-center",
-                    class: "bg-error/50 hover:bg-error",
+                    class: "text-base-content/60 hover:text-error-content hover:bg-error cursor-pointer",
                     onclick: delete_action,
-                    i { class: "bi bi-trash text-lg text-error-content" }
+                    i { class: "bi bi-trash text-lg" }
                 }
             }
         }

@@ -1,6 +1,5 @@
 use crate::{prelude::*, services::*};
 use ::shared::models::*;
-use ::std::time::Duration;
 
 #[component]
 pub fn RenderWifiCard() -> Element {
@@ -44,9 +43,10 @@ pub fn RenderTicketCard() -> Element {
     let qr_src = if !active_guard.id.is_empty() {
         QrGenerator::text(
             format!(
-                "{host}/task/{kind}/{quiz_id}/{student_id}",
+                "{host}/{kind}/{workspace_id}/{quiz_id}/{student_id}",
                 host = config.server.host,
                 kind = EntityKind::QuizRecord,
+                workspace_id = quiz_guard.workspace,
                 quiz_id = quiz_guard.id,
                 student_id = active_guard.id
             ),

@@ -11,6 +11,8 @@ mod quiz_record;
 mod task;
 mod survey_record;
 mod grid;
+mod quiz_activity;
+mod survey_activity;
 
 pub use self::{
     metadata::*,
@@ -26,4 +28,6 @@ pub use self::{
     task::*,
     survey_record::*,
     grid::*,
+    quiz_activity::*,   
+    survey_activity::*, 
 };

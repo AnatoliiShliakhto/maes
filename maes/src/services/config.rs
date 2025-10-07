@@ -72,8 +72,7 @@ impl ConfigService {
                 import: dirs::desktop_dir().unwrap_or_default(),
                 images: dirs::desktop_dir().unwrap_or_default(),
             },
-            main_window: Default::default(),
-            child_window: Default::default(),
+            windows: Default::default(),
             language: "uk".to_string(),
             theme: "corporate".to_string(),
         }

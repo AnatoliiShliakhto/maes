@@ -73,7 +73,7 @@ pub fn QuizInspector() -> Element {
                     value: "{search_pattern}",
                     oninput: move |evt| search_pattern.set(evt.value()),
                 }
-                i { class: "bi bi-search relative -right-0" }
+                i { class: "bi bi-search bg-base-100/0 relative -right-0" }
             }
         }
         div {
@@ -100,6 +100,7 @@ pub fn QuizInspector() -> Element {
 
 #[component]
 fn RenderStudentItem(student: ReadOnlySignal<QuizRecordStudent>) -> Element {
+    let quiz = use_context::<Signal<QuizRecord>>();
     let student_guard = student.read();
     let mut active = use_context::<Signal<QuizRecordStudent>>();
     let is_active = student_guard.id == active.read().id;
@@ -107,16 +108,34 @@ fn RenderStudentItem(student: ReadOnlySignal<QuizRecordStudent>) -> Element {
     rsx! {
         li {
             class: format!(
-                "list-row rounded-none px-4 py-0 cursor-pointer hover:bg-base-200 {}",
-                if is_active { "bg-base-300" } else { "" }
+                "list-row rounded-none p-0 cursor-pointer hover:bg-base-200 {class} group",
+                class = if is_active { "bg-base-300" } else { "" }
             ),
             onclick: move |_| active.set(student()),
             div {
-                class: "list-col-grow flex flex-col justify-center my-3 gap-1",
+                class: "list-col-grow flex flex-col justify-center pl-4 my-3 gap-1",
                 div { class: "font-semibold", "{student_guard.name}" }
                 if let Some(rank) = student_guard.rank.clone() {
                     div { class: "text-xs text-base-content/60", "{rank}" }
                 }
+            }
+            div {
+                class: "hidden group-hover:flex items-center justify-center w-12 cursor-pointer text-xl",
+                class: "hover:bg-primary hover:text-primary-content",
+                onclick: move |_| {
+                    let quiz_guard = quiz.read();
+                    crate::windows::mock_window(
+                        format!(
+                            "{host}/{kind}/{workspace_id}/{quiz_id}/{student_id}",
+                            host = localhost(),
+                            kind = EntityKind::QuizRecord,
+                            workspace_id = quiz_guard.workspace,
+                            quiz_id = quiz_guard.id,
+                            student_id = student.read().id
+                        )
+                    )
+                },
+                i { class: "bi bi-phone" }
             }
         }
     }

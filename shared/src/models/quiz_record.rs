@@ -7,10 +7,12 @@ use ::std::collections::{HashMap, HashSet};
 pub struct QuizRecord {
     pub id: String,
     pub workspace: String,
+    pub quiz: String,
     pub name: String,
     pub node: String,
     pub path: String,
     pub duration: i64,
+    pub attempts: usize,
     pub grade: QuizGrade,
     #[serde(
         default,
@@ -34,8 +36,10 @@ impl QuizRecord {
         QuizRecord {
             id: self.id.clone(),
             workspace: self.workspace.clone(),
+            quiz: self.quiz.clone(),
             name: self.name.clone(),
             path: self.path.clone(),
+            attempts: self.attempts,
             duration: self.duration,
             students: self.students.clone(),
             results: self.results.clone(),

@@ -68,6 +68,7 @@ pub async fn create_survey_record(session: &Session, payload: CreateTaskPayload)
         SurveyRecord {
             id: safe_nanoid!(),
             workspace: session.workspace.clone(),
+            survey: survey_guard.id.clone(),
             name,
             node,
             path,
@@ -107,4 +108,22 @@ pub async fn get_survey_categories(session: &Session, id: impl Into<String>) -> 
     };
 
     Ok(categories)
+}
+
+pub async fn get_survey_activity_details(workspace: impl Into<String>, task_id: impl Into<String>) -> Result<Response> {
+    let ws_id = workspace.into();
+    let task_id = task_id.into();
+    
+    let survey_rec_arc = Store::find::<SurveyRecord>(&ws_id, task_id).await?;
+    let activity = {
+        let survey_record_guard = survey_rec_arc.read().await;
+        
+        SurveyActivityDetails {
+            workspace: survey_record_guard.workspace.clone(),
+            survey: survey_record_guard.survey.clone(),
+            survey_name: survey_record_guard.name.clone(),
+        }
+    };
+    
+    Ok(Json(activity).into_response())
 }

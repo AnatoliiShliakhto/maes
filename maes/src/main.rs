@@ -6,6 +6,7 @@ pub mod components;
 pub mod elements;
 pub mod pages;
 pub mod services;
+mod windows;
 
 pub mod prelude {
     pub use super::{
@@ -44,7 +45,7 @@ fn main() {
 
     let window = WindowBuilder::new()
         .with_resizable(true)
-        .with_maximized(config.main_window.maximized)
+        .with_maximized(config.windows.main.maximized)
         .with_transparent(false)
         .with_always_on_top(false)
         .with_decorations(false)
@@ -52,12 +53,12 @@ fn main() {
         .with_title(t!("app-title"))
         .with_window_icon(create_window_icon(include_bytes!("../assets/icon.png")))
         .with_position(LogicalPosition::new(
-            config.main_window.left,
-            config.main_window.top,
+            config.windows.main.left,
+            config.windows.main.top,
         ))
         .with_inner_size(LogicalSize::new(
-            config.main_window.width,
-            config.main_window.height,
+            config.windows.main.width,
+            config.windows.main.height,
         ))
         .with_min_inner_size(LogicalSize::new(800, 700));
 
