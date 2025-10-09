@@ -6,6 +6,7 @@ pub struct Claims {
     pub id: String,
     pub username: String,
     pub workspace: String,
+    pub version: String,
     pub node: String,
     pub role: WorkspaceRole,
     pub token: String,

@@ -38,9 +38,9 @@ pub fn QuizEditorQuiz() -> Element {
                 attempts: attempts.parse::<usize>().unwrap_or(0),
                 duration: duration.parse::<i64>().unwrap_or(0),
                 grade: QuizGrade {
-                    a: grade_a.parse::<u8>().unwrap_or(75),
-                    b: grade_b.parse::<u8>().unwrap_or(50),
-                    c: grade_c.parse::<u8>().unwrap_or(25),
+                    a: grade_a.parse::<usize>().unwrap_or(75),
+                    b: grade_b.parse::<usize>().unwrap_or(50),
+                    c: grade_c.parse::<usize>().unwrap_or(25),
                 },
                 categories: vec![],
             },
@@ -212,7 +212,7 @@ pub fn QuizEditorQuiz() -> Element {
                             max: 100,
                             step: 1,
                             initial_value: "{grade_a}",
-                            onchange: move |event| grade_a.set(event.value().parse::<u8>().unwrap_or_default())
+                            onchange: move |event| grade_a.set(event.value().parse::<usize>().unwrap_or_default())
                         }
                     }
                 }
@@ -232,7 +232,7 @@ pub fn QuizEditorQuiz() -> Element {
                             max: 100,
                             step: 1,
                             initial_value: "{grade_b}",
-                            onchange: move |event| grade_b.set(event.value().parse::<u8>().unwrap_or_default())
+                            onchange: move |event| grade_b.set(event.value().parse::<usize>().unwrap_or_default())
                         }
                     }
                 }
@@ -252,7 +252,7 @@ pub fn QuizEditorQuiz() -> Element {
                             max: 100,
                             step: 1,
                             initial_value: "{grade_c}",
-                            onchange: move |event| grade_c.set(event.value().parse::<u8>().unwrap_or_default())
+                            onchange: move |event| grade_c.set(event.value().parse::<usize>().unwrap_or_default())
                         }
                     }
                 }

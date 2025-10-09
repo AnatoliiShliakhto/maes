@@ -49,9 +49,9 @@ impl Quiz {
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct QuizGrade {
-    pub a: u8,
-    pub b: u8,
-    pub c: u8,
+    pub a: usize,
+    pub b: usize,
+    pub c: usize,
 }
 
 impl Default for QuizGrade {
@@ -65,8 +65,8 @@ impl Default for QuizGrade {
 }
 
 impl QuizGrade {
-    pub fn calc(&self, score: impl AsRef<u8>) -> u8 {
-        match *score.as_ref() {
+    pub fn calc(&self, score: usize) -> usize {
+        match score {
             s if s >= self.a => 5,
             s if s >= self.b => 4,
             s if s >= self.c => 3,

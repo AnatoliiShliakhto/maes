@@ -4,7 +4,7 @@ use ::std::sync::LazyLock;
 static DEFAULT_CATEGORY: LazyLock<QuizCategory> = LazyLock::new(QuizCategory::default);
 
 #[component]
-pub fn QuizEditorCategory(category_id: ReadOnlySignal<String>) -> Element {
+pub fn QuizEditorCategory(category_id: ReadSignal<String>) -> Element {
     let claims = AuthService::claims();
     let mut quiz = use_context::<Signal<Quiz>>();
     let quiz_guard = quiz.read();

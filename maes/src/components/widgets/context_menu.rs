@@ -1,18 +1,24 @@
 use crate::prelude::*;
+use ::dioxus::desktop::use_window;
 
 #[derive(Default, Copy, Clone)]
 pub struct ContextMenu {
+    items: Signal<Vec<ContextMenuItem>>,
     is_visible: Signal<bool>,
     position: Signal<(i32, i32)>,
-    items: Signal<Vec<ContextMenuItem>>,
+    raw_position: Signal<(i32, i32)>,
+    adjusted_position: Signal<(i32, i32)>,
+    needs_measure: Signal<bool>,
 }
 
 impl ContextMenu {
     pub fn open(&mut self, evt: MouseEvent, items: Vec<ContextMenuItem>) {
-        self.position.set((
-            evt.data.client_coordinates().x as i32,
-            evt.data.client_coordinates().y as i32,
-        ));
+        let x = evt.data.client_coordinates().x as i32;
+        let y = evt.data.client_coordinates().y as i32;
+        self.raw_position.set((x, y));
+        self.position.set((x, y));
+        self.adjusted_position.set((x, y));
+        self.needs_measure.set(true);
         self.items.set(items);
         self.is_visible.set(true);
     }
@@ -20,17 +26,55 @@ impl ContextMenu {
     pub fn close(&mut self) {
         self.is_visible.set(false);
     }
-    
+
     fn len(&self) -> usize {
         self.items.read().len()
     }
-    
+
+    fn needs_measure(&self) -> bool {
+        (self.needs_measure)()
+    }
+
+    fn is_visible(&self) -> bool {
+        (self.is_visible)()
+    }
+
     fn position_x(&self) -> i32 {
         self.position.read().0
     }
 
     fn position_y(&self) -> i32 {
         self.position.read().1
+    }
+
+    fn adjusted_x(&self) -> i32 {
+        self.adjusted_position.read().0
+    }
+
+    fn adjusted_y(&self) -> i32 {
+        self.adjusted_position.read().1
+    }
+
+    fn set_adjusted(&mut self, x: i32, y: i32) {
+        self.adjusted_position.set((x, y));
+        self.position.set((x, y));
+        self.needs_measure.set(false);
+    }
+
+    fn finish_measure(&mut self) {
+        let (x, y) = *self.position.read();
+        self.adjusted_position.set((x, y));
+        self.needs_measure.set(false);
+    }
+
+    #[allow(dead_code)]
+    fn raw_x(&self) -> i32 {
+        self.raw_position.read().0
+    }
+
+    #[allow(dead_code)]
+    fn raw_y(&self) -> i32 {
+        self.raw_position.read().1
     }
 }
 
@@ -71,13 +115,49 @@ pub fn ContextMenuContainer() -> Element {
     }
     let items = context_menu.items;
 
+    if context_menu.needs_measure() {
+        let window = use_window();
+        let size = window.inner_size();
+        let scale = window.scale_factor();
+        let vw = size.width as f64 / scale;
+        let vh = size.height as f64 / scale;
+
+        let estimated_w = 280.0_f64.clamp(192.0, 360.0);
+        let row_h = 36.0_f64;
+        let count = context_menu.len() as f64;
+        let mut estimated_h = (count * row_h).min(vh * 0.5);
+        if estimated_h < row_h + 8.0 {
+            estimated_h = row_h + 8.0;
+        }
+
+        let pad = 8.0;
+
+        let mut ax = context_menu.position_x() as f64;
+        let mut ay = context_menu.position_y() as f64;
+
+        if ax + estimated_w > vw - pad {
+            ax = (vw - estimated_w - pad).max(0.0);
+        }
+
+        if ay + estimated_h > vh - pad {
+            let up = ay - estimated_h;
+            if up >= pad {
+                ay = up;
+            } else {
+                ay = (vh - estimated_h - pad).max(0.0);
+            }
+        }
+
+        context_menu.set_adjusted(ax as i32, ay as i32);
+    }
+
     rsx! {
         div {
-            class: "fixed inset-0 z-50",
+            class: "fixed inset-0 z-[9999]",
             onclick: move |_| context_menu.close(),
             div {
-                class: "fixed bg-base-100 border border-base-300 rounded-lg shadow-lg py-1 min-w-48",
-                style: "left: {context_menu.position_x()}px; top: {context_menu.position_y()}px;",
+                class: "fixed bg-base-100 border border-base-300 rounded-lg shadow-lg py-1 min-w-48 max-h-[50vh] overflow-auto",
+                style: "left: {context_menu.adjusted_x()}px; top: {context_menu.adjusted_y()}px;",
 
                 for (index, item) in items().iter().enumerate() {
                     {

@@ -11,7 +11,7 @@ pub enum SurveyManagerAction {
 }
 
 #[component]
-pub fn SurveyManager(survey_id: ReadOnlySignal<String>) -> Element {
+pub fn SurveyManager(survey_id: ReadSignal<String>) -> Element {
     if !AuthService::claims().is_supervisor() {
         return rsx! {};
     }

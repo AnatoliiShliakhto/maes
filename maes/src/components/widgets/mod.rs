@@ -6,6 +6,7 @@ mod split_panel;
 mod context_menu;
 mod steps;
 mod progress_circle;
+mod rating;
 
 pub use self::{
     resizer::*,
@@ -16,4 +17,5 @@ pub use self::{
     context_menu::*,
     steps::*,
     progress_circle::*,
+    rating::*,
 };

@@ -41,7 +41,7 @@ pub fn AppHeader() -> Element {
                 span {
                     class: "font-normal",
                     if claims.is_authorized() {
-                        { t!("app-workspace-title", username = claims.username.clone()) }
+                        { t!("app-workspace-title", username = claims.username.clone(), version = claims.version.clone()) }
                     } else {
                         { t!("app-title") }
                     }

@@ -25,7 +25,7 @@ pub fn WorkspaceList() -> Element {
 }
 
 #[component]
-fn RenderListItemRow(item: ReadOnlySignal<Entity>) -> Element {
+fn RenderListItemRow(item: ReadSignal<Entity>) -> Element {
     let claims = AuthService::claims();
     let kind = use_context::<Signal<EntityKind>>();
     let mut list = use_context::<Signal<Vec<Entity>>>();
@@ -89,7 +89,7 @@ fn RenderListItemRow(item: ReadOnlySignal<Entity>) -> Element {
                 class: "flex items-center justify-center py-2 pl-4 text-xl text-base-content/60",
                 match kind() {
                     EntityKind::Quiz => rsx! { i { class: "bi bi-mortarboard" } },
-                    EntityKind::Survey => rsx! { i { class: "bi bi-patch-question" } },
+                    EntityKind::Survey => rsx! { i { class: "bi bi-incognito" } },
                     _ => rsx! {}
                 }
             }

@@ -1,5 +1,6 @@
 use ::std::str::FromStr;
 use ::dioxus::prelude::FormEvent;
+use ::dioxus::events::FormValue;
 
 #[inline]
 pub fn __fv_get_value(evt: &impl FormEventExt, name: &str) -> Option<String> {
@@ -60,21 +61,35 @@ impl FormEventExt for FormEvent {
     }
 
     fn get_value(&self, name: &str) -> Option<String> {
-        self.values().get(name).and_then(|v| v.first()).map(|s| s.trim().into())
+        self.get(name).first().and_then(|v| form_value_to_str(v).map(|s| s.trim().to_string()))
     }
 
     fn get_values(&self, name: &str) -> Option<Vec<String>> {
-        self.values().get(name).map(|v| v.0.iter().map(|s| s.trim().into()).collect())
+        self.get(name).iter().map(|v| form_value_to_str(v).map(|s| s.trim().to_string())).collect()
     }
 
     fn get_parsed_value<T: FromStr>(&self, name: &str) -> Option<T> {
-        match self.values().get(name).and_then(|v| v.first()).cloned() {
+        match self.get(name).first().and_then(|v| form_value_to_str(v).map(|s| s.trim())) {
             Some(v) => v.parse::<T>().ok(),
             None => None
         }
     }
 
     fn get_parsed_values<T: FromStr>(&self, name: &str) -> Option<Vec<T>> {
-        self.values().get(name).map(|v| v.0.iter().flat_map(|v| v.parse::<T>()).collect())
+        let results: Result<Vec<T>, <T as FromStr>::Err> = self
+            .get(name)
+            .iter()
+            .filter_map(|v| form_value_to_str(v))
+            .map(|s| s.trim().parse::<T>())
+            .collect();
+
+        results.ok()
+    }
+}
+
+fn form_value_to_str(value: &FormValue) -> Option<&String> {
+    match value {
+        FormValue::Text(s) => Some(s),
+        FormValue::File(_) => None,
     }
 }

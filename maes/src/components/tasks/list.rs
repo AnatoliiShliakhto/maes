@@ -48,7 +48,7 @@ pub fn TasksList() -> Element {
 }
 
 #[component]
-fn RenderTaskItem(task: ReadOnlySignal<Task>) -> Element {
+fn RenderTaskItem(task: ReadSignal<Task>) -> Element {
     let mut kind = use_context::<Signal<EntityKind>>();
     let mut selected = use_context::<Signal<SelectedItem>>();
     let mut tasks = use_context::<Signal<Vec<Task>>>();
@@ -104,7 +104,7 @@ fn RenderTaskItem(task: ReadOnlySignal<Task>) -> Element {
                 class: "flex text-base-content/70 text-xl items-center justify-center",
                 match task_guard.kind {
                     EntityKind::QuizRecord => rsx! { i { class: "bi bi-mortarboard" } },
-                    EntityKind::SurveyRecord => rsx! { i { class: "bi bi-patch-question" } },
+                    EntityKind::SurveyRecord => rsx! { i { class: "bi bi-incognito" } },
                     _ => rsx! { i { class: "bi bi-activity" } },
                 }
             }

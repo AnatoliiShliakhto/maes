@@ -15,7 +15,10 @@
 
 ## Build commands
 
-* Build and run application `cargo make app-dev`
-* Watch for changes and hotreload CSS `cargo make app-watch`
+>* Build client `cargo make client-dev`
+>* Build and run application `cargo make app-dev`
+
+>* Watch for changes and hotreload app `cargo make app-watch`
+>* Watch for changes and hotreload CSS `cargo make app-css-watch`
 
 ## Release commands

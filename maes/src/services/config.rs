@@ -5,6 +5,7 @@ use std::{
     path::{Path, PathBuf},
     sync::{Arc, LazyLock, RwLock},
 };
+use ::shared::common::Result as SharedResult;
 
 static CONFIG_STATE: LazyLock<Arc<RwLock<ConfigState>>> =
     LazyLock::new(|| Arc::new(RwLock::new(ConfigService::init_state())));
@@ -35,7 +36,7 @@ impl ConfigService {
         }
     }
 
-    pub fn with_mut<F, R>(f: F) -> Result<R>
+    pub fn with_mut<F, R>(f: F) -> SharedResult<R>
     where
         F: FnOnce(&mut Config) -> R,
     {
@@ -78,7 +79,7 @@ impl ConfigService {
         }
     }
 
-    fn load_file<P: AsRef<Path>>(path: P) -> Result<Config> {
+    fn load_file<P: AsRef<Path>>(path: P) -> SharedResult<Config> {
         let path = path.as_ref();
         if !path.exists() {
             return Err("Config path not exists".into());
@@ -88,7 +89,7 @@ impl ConfigService {
         Ok(config)
     }
 
-    fn save_file_atomic<P: AsRef<Path>>(config: &Config, path: P) -> Result<()> {
+    fn save_file_atomic<P: AsRef<Path>>(config: &Config, path: P) -> SharedResult<()> {
         let path = path.as_ref();
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent).map_err(|e| format!("{e}"))?;

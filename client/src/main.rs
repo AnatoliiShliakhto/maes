@@ -5,11 +5,12 @@ mod common;
 mod pages;
 mod services;
 mod utils;
+mod components;
 
 pub mod prelude {
     pub use crate::{common::*, api_call, api_fetch};
     pub use ::dioxus::prelude::*;
-    pub use ::shared::{common::*, models::*, payloads::*, services::*, t};
+    pub use ::shared::{models::*, payloads::*, services::*, t};
 }
 
 use ::web_sys::wasm_bindgen::prelude::*;

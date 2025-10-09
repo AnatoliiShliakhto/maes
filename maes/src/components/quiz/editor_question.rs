@@ -10,8 +10,8 @@ static DEFAULT_QUESTION: LazyLock<QuizQuestion> = LazyLock::new(QuizQuestion::de
 
 #[component]
 pub fn QuizEditorQuestion(
-    category_id: ReadOnlySignal<String>,
-    question_id: ReadOnlySignal<String>,
+    category_id: ReadSignal<String>,
+    question_id: ReadSignal<String>,
 ) -> Element {
     let claims = AuthService::claims();
     let mut quiz = use_context::<Signal<Quiz>>();

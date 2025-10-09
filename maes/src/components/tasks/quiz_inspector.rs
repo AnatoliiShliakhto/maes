@@ -1,5 +1,5 @@
 use super::cards::*;
-use crate::prelude::*;
+use crate::{prelude::*, components::widgets::*};
 use ::shared::models::*;
 use ::std::time::Duration;
 
@@ -99,7 +99,7 @@ pub fn QuizInspector() -> Element {
 }
 
 #[component]
-fn RenderStudentItem(student: ReadOnlySignal<QuizRecordStudent>) -> Element {
+fn RenderStudentItem(student: ReadSignal<QuizRecordStudent>) -> Element {
     let quiz = use_context::<Signal<QuizRecord>>();
     let student_guard = student.read();
     let mut active = use_context::<Signal<QuizRecordStudent>>();
@@ -118,6 +118,10 @@ fn RenderStudentItem(student: ReadOnlySignal<QuizRecordStudent>) -> Element {
                 if let Some(rank) = student_guard.rank.clone() {
                     div { class: "text-xs text-base-content/60", "{rank}" }
                 }
+            }
+            div {
+                class: "flex items-center justify-center",
+                Rating { grade: student_guard.grade }
             }
             div {
                 class: "hidden group-hover:flex items-center justify-center w-12 cursor-pointer text-xl",

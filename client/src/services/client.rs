@@ -2,7 +2,7 @@ use crate::{prelude::*, services::*};
 pub use ::reqwest::Method;
 use ::reqwest::{Client, Response, Url, header::*};
 use ::serde::{Serialize, de::DeserializeOwned};
-use ::shared::utils::*;
+use ::shared::{utils::*, common::{Error, Result as SharedResult}};
 use ::std::{string::ToString, sync::LazyLock};
 use ::web_sys::window;
 
@@ -49,10 +49,14 @@ impl Http {
 pub struct ClientService;
 
 impl ClientService {
+    pub fn base_url() -> Url {
+        HTTP.base.clone()
+    }
+
     async fn handle_response(
         response: std::result::Result<Response, reqwest::Error>,
-    ) -> Result<Response> {
-        let response = response.map_err(|_| "network-error")?;
+    ) -> SharedResult<Response> {
+        let response = response.map_err(|_| "network-error-announcement")?;
         if !response.status().is_success() {
             let status = response.status().as_u16();
             let message = if let Ok(text) = response.text().await
@@ -70,7 +74,7 @@ impl ClientService {
 
     async fn handle_json_response<T: DeserializeOwned>(
         response: std::result::Result<Response, reqwest::Error>,
-    ) -> Result<T> {
+    ) -> SharedResult<T> {
         let response = Self::handle_response(response).await?;
         response
             .json::<T>()
@@ -87,7 +91,7 @@ impl ClientService {
         method: Method,
         endpoint: impl AsRef<str>,
         payload: Option<impl Serialize>,
-    ) -> Result<()> {
+    ) -> SharedResult<()> {
         let (url, method) = Self::build_request(method, endpoint);
         let mut request = HTTP.client.request(method, url);
         if let Some(payload) = payload {
@@ -101,7 +105,7 @@ impl ClientService {
         method: Method,
         endpoint: impl AsRef<str>,
         payload: Option<impl Serialize>,
-    ) -> Result<T> {
+    ) -> SharedResult<T> {
         let (url, method) = Self::build_request(method, endpoint);
         let mut request = HTTP.client.request(method, url);
         if let Some(payload) = payload {

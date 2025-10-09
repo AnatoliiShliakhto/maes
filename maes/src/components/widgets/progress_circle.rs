@@ -1,7 +1,7 @@
 use crate::prelude::*;
 
 #[component]
-pub fn ProgressCircle(progress: ReadOnlySignal<usize>) -> Element {
+pub fn ProgressCircle(progress: ReadSignal<usize>) -> Element {
     rsx! {
         match progress() {
             0 => rsx! {

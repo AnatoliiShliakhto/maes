@@ -8,7 +8,7 @@ pub async fn authorize(
 ) -> Result<Json<Claims>> {
     connection.checked()?;
 
-    let (workspace, workspace_name, user, path) = {
+    let (workspace, workspace_name, workspace_version, user, path) = {
         let AuthPayload {
             workspace,
             login,
@@ -26,15 +26,17 @@ pub async fn authorize(
 
         let ws_id = ws_guard.id.clone();
         let ws_name = ws_guard.name.clone();
+        let ws_version = ws_guard.metadata.updated_at();
         let path = ws_guard.unit_tree.node_path(&user.node);
 
-        (ws_id, ws_name, user, path)
+        (ws_id, ws_name, ws_version, user, path)
     };
 
     let session = ClientSession {
         id: user.id,
         workspace,
         workspace_name,
+        workspace_version,
         username: user.username,
         node: user.node,
         path,

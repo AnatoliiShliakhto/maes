@@ -1,19 +1,21 @@
+use super::*;
 use crate::{prelude::*, services::*, utils::*};
 
 #[component]
 pub fn QuizDetails(
-    workspace: ReadOnlySignal<String>,
-    task: ReadOnlySignal<String>,
-    student: ReadOnlySignal<String>,
+    workspace: ReadSignal<String>,
+    task: ReadSignal<String>,
+    student: ReadSignal<String>,
 ) -> Element {
+    let navigator = use_navigator();
     let mut details = use_signal(QuizActivityDetails::default);
 
     use_effect(move || {
         api_fetch!(
             GET,
-            format!("/api/v1/activities/{workspace}/{task}/{student}"),
+            format!("/api/v1/activities/details/{workspace}/{task}/{student}"),
             on_success = move |body: QuizActivityDetails| details.set(body),
-            on_error = move |e: Error| ErrorService::show(t!(e.to_string()))
+            on_error = move |e: shared::common::Error| ErrorService::show(t!(e.to_string()))
         )
     });
 
@@ -85,12 +87,21 @@ pub fn QuizDetails(
                             button {
                                 class: "btn btn-primary",
                                 onclick: move |_| {
+                                    QUIZ.signal().set(QuizActivity::default());
+                                    CURRENT.signal().set(0);
+                                    TIMER.signal().set(0);
+                                    navigator.push(Route::QuizStart { workspace: workspace(), task: task(), student: student()});
                                 },
-                                { t!("begin") }
+                                if details.read().grade > 0 {
+                                    { t!("try-again") }
+                                } else {
+                                    { t!("begin") }
+                                }
+
                             }
                         } else {
                             button {
-                                class: "btn btn-neutral text-base-content/60 lowercase",
+                                class: "btn btn-neutral text-base-content/60",
                                 onclick: move |_| close_window(),
                                 { t!("acquainted") }
                             }

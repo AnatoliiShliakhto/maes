@@ -103,7 +103,7 @@ pub fn StudentsList() -> Element {
 }
 
 #[component]
-fn RenderStudentRow(student: ReadOnlySignal<Student>) -> Element {
+fn RenderStudentRow(student: ReadSignal<Student>) -> Element {
     let selected = use_context::<Signal<SelectedItem>>();
     let mut students = use_context::<Signal<Vec<Student>>>();
     let student_guard = student.read();

@@ -24,7 +24,7 @@ pub fn WorkspaceUsers() -> Element {
 }
 
 #[component]
-fn RenderUserRow(user: ReadOnlySignal<WorkspaceUser>) -> Element {
+fn RenderUserRow(user: ReadSignal<WorkspaceUser>) -> Element {
     let claims =  AuthService::claims();
 
     let mut users = use_context::<Signal<Vec<WorkspaceUser>>>();

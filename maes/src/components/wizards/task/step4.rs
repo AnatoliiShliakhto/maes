@@ -119,7 +119,7 @@ fn TaskWizardDetails() -> Element {
                     { t!("quiz") }
                 },
                 EntityKind::Survey => rsx! {
-                    i { class: "bi bi-patch-question" }
+                    i { class: "bi bi-incognito" }
                     { t!("survey") }
                 },
                 _ => rsx! {},

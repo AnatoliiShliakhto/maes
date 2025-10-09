@@ -4,14 +4,19 @@ use crate::{prelude::*, pages::{*, quiz::*, survey::*}, elements::*};
 #[rustfmt::skip]
 #[allow(clippy::enum_variant_names)]
 pub enum Route {
-    // #[layout(CleanLayout)]
-    // #[route("/login")]
-    // Login {},
-    // #[end_layout]
+    #[layout(CleanLayout)]
+    #[route("/quiz/take")]
+    QuizTake {},
+    #[end_layout]
     #[layout(ClientLayout)]
     
     #[route("/quiz/details/:workspace/:task/:student")]
     QuizDetails { workspace: String, task: String, student: String },
+    #[route("/quiz/start/:workspace/:task/:student")]
+    QuizStart { workspace: String, task: String, student: String },
+    #[route("/quiz/finish")]
+    QuizFinish {},
+
     #[route("/survey/details/:workspace/:task")]
     SurveyDetails { workspace: String, task: String },
     

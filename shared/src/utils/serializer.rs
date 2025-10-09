@@ -44,6 +44,14 @@ impl HasId<String> for SurveyRecordCategory {
     fn key(&self) -> String { self.id.clone() }
 }
 
+impl HasId<String> for QuizActivityAnswer {
+    fn key(&self) -> String { self.id.clone() }
+}
+
+impl HasId<String> for QuizActivityQuestion {
+    fn key(&self) -> String { self.id.clone() }
+}
+
 pub mod indexmap_as_vec {
     use super::HasId;
     use ::indexmap::IndexMap;

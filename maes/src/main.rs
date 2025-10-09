@@ -19,7 +19,7 @@ pub mod prelude {
     };
     pub use ::dioxus::prelude::*;
     pub use ::shared::{
-        common::*, form_values, models::*, payloads::*, safe_nanoid, services::*, t, utils::*,
+        form_values, models::*, payloads::*, safe_nanoid, services::*, t, utils::*,
     };
     pub use ::std::sync::{Arc, RwLock};
     pub use ::tracing::error;
@@ -94,7 +94,7 @@ fn main() {
                                     GET,
                                     "/health",
                                     on_success = move || app_state.set(AppState::Running),
-                                    on_error = move |e: Error| {
+                                    on_error = move |e: shared::common::Error| {
                                         if counter() < 5 {
                                             counter.set(counter() + 1)
                                         } else {

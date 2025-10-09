@@ -7,7 +7,7 @@ const SEGMENT_ICONS: &[(&str, &str)] = &[
     ("tasks", "bi bi-activity"),
     ("wizard", "bi bi-magic"),
     ("workspace", "bi bi-person-workspace"),
-    ("surveys", "bi bi-patch-question"),
+    ("surveys", "bi bi-incognito"),
     ("quizzes", "bi bi-mortarboard"),
     ("settings", "bi bi-gear"),
     ("students", "bi bi-people"),

@@ -38,7 +38,7 @@ pub fn SurveyTree() -> Element {
                         if claims.is_admin() { ctx_menu(evt) } else { evt.stop_propagation() }
                     },
                     onclick: move |_| selected.set(SurveyManagerAction::Survey),
-                    i { class: "bi bi-patch-question" }
+                    i { class: "bi bi-incognito" }
                     "{survey_guard.name}"
                 }
                 ul {
@@ -55,7 +55,7 @@ pub fn SurveyTree() -> Element {
 }
 
 #[component]
-fn RenderSurveyTreeCategory(category_id: ReadOnlySignal<String>) -> Element {
+fn RenderSurveyTreeCategory(category_id: ReadSignal<String>) -> Element {
     let claims = AuthService::claims();
     let mut survey = use_context::<Signal<Survey>>();
     let mut selected = use_context::<Signal<SurveyManagerAction>>();

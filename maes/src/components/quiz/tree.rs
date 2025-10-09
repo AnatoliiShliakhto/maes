@@ -94,7 +94,7 @@ pub fn QuizTree() -> Element {
 }
 
 #[component]
-fn RenderQuizTreeCategory(category_id: ReadOnlySignal<String>) -> Element {
+fn RenderQuizTreeCategory(category_id: ReadSignal<String>) -> Element {
     let claims = AuthService::claims();
     let mut quiz = use_context::<Signal<Quiz>>();
     let mut selected = use_context::<Signal<QuizManagerAction>>();
@@ -203,8 +203,8 @@ fn RenderQuizTreeCategory(category_id: ReadOnlySignal<String>) -> Element {
 
 #[component]
 fn RenderQuizTreeQuestion(
-    category_id: ReadOnlySignal<String>,
-    question_id: ReadOnlySignal<String>,
+    category_id: ReadSignal<String>,
+    question_id: ReadSignal<String>,
 ) -> Element {
     let claims = AuthService::claims();
     let mut quiz = use_context::<Signal<Quiz>>();

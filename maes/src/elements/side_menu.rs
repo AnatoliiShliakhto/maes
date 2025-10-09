@@ -44,7 +44,7 @@ pub fn SideMenu() -> Element {
                 }
                 MenuItem {
                     to: Route::WorkspaceSurveys {},
-                    icon: rsx! { i { class: "bi bi-patch-question text-2xl" } },
+                    icon: rsx! { i { class: "bi bi-incognito text-2xl" } },
                     label: t!("surveys")
                 }
             }

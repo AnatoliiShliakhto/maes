@@ -127,3 +127,8 @@ pub async fn get_survey_activity_details(workspace: impl Into<String>, task_id: 
     
     Ok(Json(activity).into_response())
 }
+
+pub async fn update_survey_activity(activity: SurveyActivity) -> Result<()> {
+    todo!();
+    Ok(())
+}

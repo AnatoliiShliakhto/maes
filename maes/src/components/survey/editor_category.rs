@@ -5,7 +5,7 @@ use ::std::sync::LazyLock;
 static DEFAULT_CATEGORY: LazyLock<SurveyCategory> = LazyLock::new(SurveyCategory::default);
 
 #[component]
-pub fn SurveyEditorCategory(category_id: ReadOnlySignal<String>) -> Element {
+pub fn SurveyEditorCategory(category_id: ReadSignal<String>) -> Element {
     let claims = AuthService::claims();
     let mut survey = use_context::<Signal<Survey>>();
     let mut selected = use_context::<Signal<SurveyManagerAction>>();
@@ -264,7 +264,7 @@ pub fn SurveyEditorCategory(category_id: ReadOnlySignal<String>) -> Element {
 
 #[component]
 fn RenderSurveyCategoryItem(
-    item: ReadOnlySignal<SurveyCategoryItem>,
+    item: ReadSignal<SurveyCategoryItem>,
     mut collection: Signal<IndexMap<String, SurveyCategoryItem>>,
     collection_name: String,
 ) -> Element {

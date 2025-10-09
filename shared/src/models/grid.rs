@@ -28,6 +28,12 @@ impl<T: Clone + 'static> Grid<T> {
         let idx = self.idx(row, col);
         self.data[idx] = val;
     }
+    
+    pub fn set_row(&mut self, row: usize, data: Vec<T>) {
+        for (col, val) in data.into_iter().enumerate() {
+            self.set(row, col, val);
+        }
+    }
 
     pub fn get_col(&self, col: usize) -> Vec<&T> {
         let mut col_data = Vec::with_capacity(self.rows);

@@ -66,7 +66,7 @@ pub fn TaskWizardStep1() -> Element {
                                 class: format!("text-6xl {class}",
                                     class = if is_survey { "text-accent" } else { "text-base-content/70" }
                                 ),
-                                i { class: "bi bi-patch-question" }
+                                i { class: "bi bi-incognito" }
                             }
                             div {
                                 class: format!("card-title justify-center font-semibold {class}",

@@ -8,7 +8,7 @@ pub enum QuizManagerAction {
 }
 
 #[component]
-pub fn QuizManager(quiz_id: ReadOnlySignal<String>) -> Element {
+pub fn QuizManager(quiz_id: ReadSignal<String>) -> Element {
     if !AuthService::claims().is_supervisor() { return rsx! {} }
     use_init_dialog();
     use_init_input_dialog();

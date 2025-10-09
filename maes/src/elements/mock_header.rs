@@ -46,6 +46,13 @@ pub fn MockHeader() -> Element {
                 }
             }
             div {
+                if cfg!(debug_assertions) {
+                    button {
+                        class: "btn btn-sm btn-square btn-ghost rounded-none hover:btn-secondary",
+                        onclick: move |_| use_window().devtool(),
+                        i { class: "bi bi-bug" }
+                    }
+                }
                 button {
                     class: "btn btn-sm btn-square btn-ghost rounded-none hover:btn-secondary",
                     onclick: move |_| use_window().set_minimized(true),

@@ -5,6 +5,7 @@ use ::reqwest::{
 };
 use ::serde::{Serialize, de::DeserializeOwned};
 use ::std::{string::ToString, sync::LazyLock, time::Duration};
+use ::shared::common::{Result as SharedResult, Error};
 pub use ::reqwest::Method;
 
 static HTTP: LazyLock<Http> = LazyLock::new(Http::new);
@@ -86,7 +87,7 @@ impl ClientService {
 
     async fn handle_response(
         response: std::result::Result<Response, reqwest::Error>,
-    ) -> Result<Response> {
+    ) -> SharedResult<Response> {
         let response = response.map_err(|_| "network-error")?;
         if !response.status().is_success() {
             let status = response.status().as_u16();
@@ -105,7 +106,7 @@ impl ClientService {
 
     async fn handle_json_response<T: DeserializeOwned>(
         response: std::result::Result<Response, reqwest::Error>,
-    ) -> Result<T> {
+    ) -> SharedResult<T> {
         let response = Self::handle_response(response).await?;
         response
             .json::<T>()
@@ -122,7 +123,7 @@ impl ClientService {
         method: Method,
         endpoint: impl AsRef<str>,
         payload: Option<impl Serialize>,
-    ) -> Result<()> {
+    ) -> SharedResult<()> {
         let (url, method) = Self::build_request(method, endpoint);
         let mut request = Self::request_with_headers(method, url);
         if let Some(payload) = payload {
@@ -136,7 +137,7 @@ impl ClientService {
         method: Method,
         endpoint: impl AsRef<str>,
         payload: Option<impl Serialize>,
-    ) -> Result<T> {
+    ) -> SharedResult<T> {
         let (url, method) = Self::build_request(method, endpoint);
         let mut request = Self::request_with_headers(method, url);
         if let Some(payload) = payload {

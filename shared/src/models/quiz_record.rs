@@ -27,7 +27,7 @@ pub struct QuizRecord {
     )]
     pub students: IndexMap<String, QuizRecordStudent>,
     pub answers: Grid<HashMap<String, HashSet<String>>>,
-    pub results: Grid<u8>,
+    pub results: Grid<usize>,
     pub metadata: Metadata,
 }
 
@@ -74,5 +74,5 @@ pub struct QuizRecordStudent {
     pub rank: Option<String>,
     pub name: String,
     pub attempts: usize,
-    pub grade: u8,
+    pub grade: usize,
 }

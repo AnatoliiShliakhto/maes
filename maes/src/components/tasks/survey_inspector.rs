@@ -37,7 +37,7 @@ pub fn SurveyInspector() -> Element {
                         div {
                             key: "ticket-{selected_guard.id}",
                             class: "card-body p-3 flex-fixed items-center justify-center gap-2",
-                            i { class: "bi bi-patch-question text-primary text-4xl" }
+                            i { class: "bi bi-incognito text-primary text-4xl" }
                             div { class: "text-2xl font-semibold text-base-content/70", { t!("survey") } }
                             div { class: "font-semibold", "{selected_guard.name}" }
                             div { class: "text-xs text-base-content/60", "{selected_guard.path}" }

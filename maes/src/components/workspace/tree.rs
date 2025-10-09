@@ -51,7 +51,7 @@ pub fn WorkspaceTree() -> Element {
                     match kind() {
                         EntityKind::Workspace => rsx! { i { class: "bi bi-person-workspace" } },
                         EntityKind::Quiz => rsx! { i { class: "bi bi-mortarboard" } },
-                        EntityKind::Survey => rsx! { i { class: "bi bi-patch-question" } },
+                        EntityKind::Survey => rsx! { i { class: "bi bi-incognito" } },
                         _ => rsx! {},
                     }
                     "{claims.workspace}"
@@ -79,7 +79,7 @@ pub fn WorkspaceTree() -> Element {
 }
 
 #[component]
-fn RenderTreeNode(node_id: ReadOnlySignal<String>) -> Element {
+fn RenderTreeNode(node_id: ReadSignal<String>) -> Element {
     let claims = AuthService::claims();
 
     let mut input_dialog = use_input_dialog();
@@ -187,7 +187,7 @@ fn RenderTreeNode(node_id: ReadOnlySignal<String>) -> Element {
         ),
         EntityKind::Survey => (
             "create-survey",
-            "bi bi-patch-question",
+            "bi bi-incognito",
             use_callback(move |_| {
                 let callback = use_callback(move |name: String| {
                     api_fetch!(

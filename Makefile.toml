@@ -38,28 +38,28 @@ npx @tailwindcss/cli -i ./client/tailwind.css -o ./client/assets/tailwind.css --
 dependencies = ["app-css"]
 script_runner = "@shell"
 script= '''
-dx serve --package maes --platform desktop --watch false --hot-reload false
+dx serve --package maes --watch false --hot-reload false
 '''
 
 [tasks.app-dev-watch]
 dependencies = ["app-css"]
 script_runner = "@shell"
 script= '''
-dx serve --package maes --platform desktop
+dx serve --package maes
 '''
 
 [tasks.app-bundle]
 dependencies = ["app-css"]
 script_runner = "@shell"
 script= '''
-dx bundle --release --package maes --platform desktop
+dx bundle --release --package maes
 '''
 
 [tasks.client-dev]
 dependencies = ["client-css"]
 script_runner = "@shell"
 script= '''
-dx bundle --release --package client --platform web --target wasm32-unknown-unknown
+dx bundle --release --package client --target wasm32-unknown-unknown
 xcopy /S /Y /I "target/dx/client/release/web/public" "%AppData%/maes/client"
 '''
 
@@ -67,5 +67,5 @@ xcopy /S /Y /I "target/dx/client/release/web/public" "%AppData%/maes/client"
 dependencies = ["client-css"]
 script_runner = "@shell"
 script= '''
-dx bundle --release --package client --platform web --target wasm32-unknown-unknown
+dx bundle --release --package client --target wasm32-unknown-unknown
 '''

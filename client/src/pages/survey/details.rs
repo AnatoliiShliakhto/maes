@@ -2,17 +2,17 @@ use crate::{prelude::*, services::*, utils::*};
 
 #[component]
 pub fn SurveyDetails(
-    workspace: ReadOnlySignal<String>,
-    task: ReadOnlySignal<String>,
+    workspace: ReadSignal<String>,
+    task: ReadSignal<String>,
 ) -> Element {
     let mut details = use_signal(SurveyActivityDetails::default);
 
     use_effect(move || {
         api_fetch!(
             GET,
-            format!("/api/v1/activities/{workspace}/{task}"),
+            format!("/api/v1/activities/details/{workspace}/{task}"),
             on_success = move |body: SurveyActivityDetails| details.set(body),
-            on_error = move |e: Error| ErrorService::show(t!(e.to_string()))
+            on_error = move |e: shared::common::Error| ErrorService::show(t!(e.to_string()))
         )
     });
     
@@ -25,7 +25,7 @@ pub fn SurveyDetails(
                     class: "card-body",
                     div {
                         class: "card-title flex text-primary text-xl gap-4 capitalize",
-                        i { class: "bi bi-patch-question"}
+                        i { class: "bi bi-incognito"}
                         { t!("survey") }
                     }
                     div {

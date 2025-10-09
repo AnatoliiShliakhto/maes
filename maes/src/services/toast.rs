@@ -113,11 +113,9 @@ fn ToastComponent(toast: Toast) -> Element {
         toast.created_at
     });
 
-    use_effect(move || {
-        spawn(async move {
-            tokio::time::sleep(Duration::from_millis(30)).await;
-            is_visible.set(true);
-        });
+    use_future(move || async move {
+        tokio::time::sleep(Duration::from_millis(30)).await;
+        is_visible.set(true);
     });
 
     let handle_remove = use_callback(move |_| {
@@ -151,16 +149,14 @@ fn ToastComponent(toast: Toast) -> Element {
 pub fn ToastContainer() -> Element {
     let toasts = use_memo(move || TOASTS.read().values().cloned().collect::<Vec<_>>())();
 
-    use_effect(move || {
-        spawn(async move {
-            loop {
-                tokio::time::sleep(Duration::from_millis(500)).await;
-                let now = chrono::Utc::now().timestamp_millis() as u64;
-                TOASTS
-                    .write()
-                    .retain(|_, t| now.saturating_sub(t.created_at) < t.duration);
-            }
-        });
+    use_future(move || async move {
+        loop {
+            tokio::time::sleep(Duration::from_millis(500)).await;
+            let now = chrono::Utc::now().timestamp_millis() as u64;
+            TOASTS
+                .write()
+                .retain(|_, t| now.saturating_sub(t.created_at) < t.duration);
+        }
     });
 
     rsx! {
