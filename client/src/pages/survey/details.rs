@@ -1,3 +1,4 @@
+use super::*;
 use crate::{prelude::*, services::*, utils::*};
 
 #[component]
@@ -5,6 +6,7 @@ pub fn SurveyDetails(
     workspace: ReadSignal<String>,
     task: ReadSignal<String>,
 ) -> Element {
+    let navigator = use_navigator();
     let mut details = use_signal(SurveyActivityDetails::default);
 
     use_effect(move || {
@@ -44,6 +46,8 @@ pub fn SurveyDetails(
                         button {
                             class: "btn btn-primary",
                             onclick: move |_| {
+                                SURVEY.signal().set(SurveyRecord::default());
+                                navigator.push(Route::SurveyStart { workspace: workspace(), task: task()});
                             },
                             { t!("begin") }
                         }

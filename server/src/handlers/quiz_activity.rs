@@ -12,18 +12,18 @@ use ::std::{
 };
 
 pub async fn get_quiz_record(session: &Session, id: impl Into<String>) -> Result<Response> {
-    let quiz_record_arc = Store::find::<QuizRecord>(&session.workspace, id).await?;
-    let quiz_record = { quiz_record_arc.read().await.clone() };
-    Ok(Json(quiz_record).into_response())
+    let quiz_rec_arc = Store::find::<QuizRecord>(&session.workspace, id).await?;
+    let quiz_rec = { quiz_rec_arc.read().await.clone() };
+    Ok(Json(quiz_rec).into_response())
 }
 
 pub async fn get_quiz_record_base(session: &Session, id: impl Into<String>) -> Result<Response> {
-    let quiz_record_arc = Store::find::<QuizRecord>(&session.workspace, id).await?;
-    let quiz_record_base = {
-        let quiz_record_guard = quiz_record_arc.read().await;
-        quiz_record_guard.to_base()
+    let quiz_rec_arc = Store::find::<QuizRecord>(&session.workspace, id).await?;
+    let quiz_rec_base = {
+        let quiz_rec_guard = quiz_rec_arc.read().await;
+        quiz_rec_guard.to_base()
     };
-    Ok(Json(quiz_record_base).into_response())
+    Ok(Json(quiz_rec_base).into_response())
 }
 
 pub async fn create_quiz_record(session: &Session, payload: CreateTaskPayload) -> Result<Task> {
@@ -154,6 +154,7 @@ pub async fn get_quiz_categories(
                 name: c.name.clone(),
                 count: c.count,
                 total: c.questions.len(),
+                checked: c.count > 0,
             })
             .collect::<Vec<_>>()
     };
@@ -170,29 +171,29 @@ pub async fn get_quiz_activity_details(
     let task_id = task_id.into();
     let student_id = student.into();
 
-    let quiz_record_arc = Store::find::<QuizRecord>(&ws_id, task_id).await?;
+    let quiz_rec_arc = Store::find::<QuizRecord>(&ws_id, task_id).await?;
     let activity = {
-        let quiz_record_guard = quiz_record_arc.read().await;
-        let student_idx = quiz_record_guard
+        let quiz_rec_guard = quiz_rec_arc.read().await;
+        let student_idx = quiz_rec_guard
             .students
             .get_index_of(&student_id)
             .ok_or((StatusCode::NOT_FOUND, "student-not-found"))?;
-        let scores = quiz_record_guard.results.get_row(student_idx);
+        let scores = quiz_rec_guard.results.get_row(student_idx);
         let score = if scores.is_empty() {
             0
         } else {
             let sum: i32 = scores.iter().map(|&&v| v as i32).sum();
             ((sum as f64) / (scores.len() as f64)).round() as usize
         };
-        let student = quiz_record_guard.students.index(student_idx);
+        let student = quiz_rec_guard.students.index(student_idx);
         let can_take =
-            quiz_record_guard.attempts == 0 || quiz_record_guard.attempts > student.attempts;
+            quiz_rec_guard.attempts == 0 || quiz_rec_guard.attempts > student.attempts;
 
         QuizActivityDetails {
-            workspace: quiz_record_guard.workspace.clone(),
-            quiz: quiz_record_guard.quiz.clone(),
-            quiz_name: quiz_record_guard.name.clone(),
-            duration: quiz_record_guard.duration,
+            workspace: quiz_rec_guard.workspace.clone(),
+            quiz: quiz_rec_guard.quiz.clone(),
+            quiz_name: quiz_rec_guard.name.clone(),
+            duration: quiz_rec_guard.duration,
             student: student.id.clone(),
             student_rank: student.rank.clone(),
             student_name: student.name.clone(),
@@ -214,19 +215,19 @@ pub async fn get_quiz_activity(
     let task_id = task_id.into();
     let student_id = student.into();
 
-    let quiz_record_arc = Store::find::<QuizRecord>(&ws_id, &task_id).await?;
+    let quiz_rec_arc = Store::find::<QuizRecord>(&ws_id, &task_id).await?;
     let (categories_map, quiz_id, duration) = {
-        let quiz_record_guard = quiz_record_arc.read().await;
-        if quiz_record_guard
+        let quiz_rec_guard = quiz_rec_arc.read().await;
+        if quiz_rec_guard
             .students
             .get(&student_id)
             .ok_or((StatusCode::NOT_FOUND, "student-not-found"))?
             .attempts
-            > quiz_record_guard.attempts
+            > quiz_rec_guard.attempts
         {
             Err("attempts-exceeded")?
         }
-        let map = quiz_record_guard
+        let map = quiz_rec_guard
             .categories
             .values()
             .map(|c| (c.id.clone(), c.count))
@@ -234,8 +235,8 @@ pub async fn get_quiz_activity(
 
         (
             map,
-            quiz_record_guard.quiz.clone(),
-            quiz_record_guard.duration,
+            quiz_rec_guard.quiz.clone(),
+            quiz_rec_guard.duration,
         )
     };
 
@@ -268,19 +269,19 @@ pub async fn get_quiz_activity(
 }
 
 pub async fn update_quiz_activity(activity: QuizActivity) -> Result<()> {
-    let quiz_record_arc = Store::find::<QuizRecord>(&activity.workspace, &activity.task).await?;
+    let quiz_rec_arc = Store::find::<QuizRecord>(&activity.workspace, &activity.task).await?;
     let (quiz_id, categories, student, student_idx) = {
-        let quiz_record_guard = quiz_record_arc.read().await;
-        let student_idx = quiz_record_guard
+        let quiz_rec_guard = quiz_rec_arc.read().await;
+        let student_idx = quiz_rec_guard
             .students
             .get_index_of(&activity.student)
             .ok_or((StatusCode::NOT_FOUND, "student-not-found"))?;
-        let student = quiz_record_guard.students.index(student_idx).clone();
-        if student.attempts >= quiz_record_guard.attempts {
+        let student = quiz_rec_guard.students.index(student_idx).clone();
+        if student.attempts >= quiz_rec_guard.attempts {
             Err("attempts-exceeded")?
         }
-        let quiz_id = quiz_record_guard.quiz.clone();
-        let categories = quiz_record_guard.categories.clone();
+        let quiz_id = quiz_rec_guard.quiz.clone();
+        let categories = quiz_rec_guard.categories.clone();
         (quiz_id, categories, student, student_idx)
     };
     let quiz = Store::find::<Quiz>(&activity.workspace, &quiz_id)
@@ -349,18 +350,18 @@ pub async fn update_quiz_activity(activity: QuizActivity) -> Result<()> {
     if student.grade > grade { return Ok(()) }
 
     let (snapshot, progress) = {
-        let mut quiz_record_guard = quiz_record_arc.write().await;
-        if let Some(student) = quiz_record_guard.students.get_mut(&student.id) {
+        let mut quiz_rec_guard = quiz_rec_arc.write().await;
+        if let Some(student) = quiz_rec_guard.students.get_mut(&student.id) {
             student.attempts += 1;
             student.grade = grade;
         }
-        quiz_record_guard.answers.set_row(student_idx, answers);
-        quiz_record_guard.results.set_row(student_idx, result);
+        quiz_rec_guard.answers.set_row(student_idx, answers);
+        quiz_rec_guard.results.set_row(student_idx, result);
 
-        let count = quiz_record_guard.students.values().filter(|s| s.grade > 0).count();
-        let progress = if quiz_record_guard.students.is_empty() { 0 } else { (count * 100) / quiz_record_guard.students.len() };
+        let count = quiz_rec_guard.students.values().filter(|s| s.grade > 0).count();
+        let progress = if quiz_rec_guard.students.is_empty() { 0 } else { (count * 100) / quiz_rec_guard.students.len() };
 
-        (quiz_record_guard.clone(), progress)
+        (quiz_rec_guard.clone(), progress)
     };
     Store::upsert(snapshot).await?;
 

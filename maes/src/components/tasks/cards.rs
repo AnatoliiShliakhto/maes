@@ -5,7 +5,8 @@ use ::shared::models::*;
 pub fn RenderWifiCard() -> Element {
     let config = ConfigService::read();
     let wifi_payload = format!(
-        "WIFI:S:{};T:WPA;P:{};;",
+        //"WIFI:S:{};T:WPA;P:{};;",
+        "WIFI:T:WPA;S:{};P:{};H:false;;",
         config.wifi.ssid, config.wifi.password
     );
 

@@ -39,6 +39,7 @@ impl Default for WindowsConfig {
 pub struct WiFiConfig {
     pub ssid: String,
     pub password: String,
+    pub direct: bool,
 }
 
 #[derive(Clone, Deserialize, Serialize)]

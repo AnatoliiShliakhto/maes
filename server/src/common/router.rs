@@ -158,7 +158,7 @@ fn activities_router() -> Router {
     Router::new()
         .route("/details/{workspace_id}/{task_id}", get(get_activity_details))
         .route("/details/{workspace_id}/{task_id}/{student_id}", get(get_activity_details_with_student))
-        .route("/{workspace_id}/{task_id}", get(get_activity_details))
+        .route("/{workspace_id}/{task_id}", get(get_activity))
         .route("/{workspace_id}/{task_id}/{student_id}", get(get_activity_with_student))
         .route("/", post(update_activity))
 }

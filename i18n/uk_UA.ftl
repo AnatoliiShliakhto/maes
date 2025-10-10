@@ -64,9 +64,15 @@ host = хост
 host-format-error = Невірний формат хосту
 hotspot-legacy-not-supported = WiFi контролер не підтримує режим точки доступу
 hotspot-start-failed = Помилка активіції точки доступу WiFi
-hotspot-started = Точка доступу WiFi активована
+hotspot-started = { $direct ->
+    [1] Пряме підключення WiFi активовано
+    *[other] Точка доступу WiFi активована
+}
+hotspot-stopped = { $direct ->
+    [1] Пряме підключення WiFi деактивовано
+    *[other] Точка доступу WiFi деактивована
+}
 hotspot-stop-failed = Помилка деактивації точки доступу WiFi
-hotspot-stopped = Точка доступу WiFi деактивована
 http-error = Помилка HTTP запиту
 http-error = Помилка запиту
 image-dialog-title = Оберіть зображення
@@ -92,6 +98,7 @@ network-error = Помилка зв'язку з сервером
 network-error-announcement = Не вдалося встановити зв'язок із сервером. Будь ласка, переконайтеся, що ваш пристрій підключено до відповідної мережі Wi-Fi, та повторіть спробу.
 next = Далі
 no = Ніяк ні!
+no-categories-selected = Не обрано жодної категорії
 no-question = Питання не знайдено
 no-students-found = Не визначено жодного курсанта у підрозділі
 ok = Прийнято
@@ -120,6 +127,7 @@ quizzes-navigator = Структура тестів
 rank = Звання
 reboot-tooltip = Для активації налаштувань потрібно перезаватижи додаток
 reports = Звіти
+retry = Повторити
 run = До виконання!
 save = Зберегти
 save-settings = Зберегти налаштування
@@ -141,6 +149,7 @@ supervisor = Керівник
 survey = Опитування
 survey-answers-settings = Відповіді
 survey-category-settings = Категорія
+survey-finished-announcement = Опитування пройдено! Дякуємо за надані відповіді.
 survey-navigator = Структура опитування
 survey-options-settings = Варіанти вибору
 survey-placeholder = Введіть назву опитування
@@ -203,8 +212,9 @@ users = Користувачі
 validate-images = Виправити
 warning = Попередження
 wifi = WiFi
-wifi-ap-active = Точка доступу WiFi
-wifi-ap-inactive = Точка доступу WiFi
+wifi-ap-active = Мережа WiFi
+wifi-ap-inactive = Мережа WiFi
+wifi-direct = Пряме підключення (WiFi Direct)
 wifi-password = пароль мережі
 wifi-qr-code = QR-код WiFi
 wifi-settings = Мережа WiFi

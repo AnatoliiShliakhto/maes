@@ -11,8 +11,8 @@ pub fn Settings() -> Element {
 
     let save_settings_action = move |evt: FormEvent| {
         evt.stop();
-        let (Some(host), Some(ident), Some(ssid), Some(password)) =
-            form_values!(evt, "host", "ident", "ssid", "password")
+        let (Some(host), Some(ident), Some(ssid), Some(password), direct) =
+            form_values!(evt, "host", "ident", "ssid", "password", "wifi-direct")
         else {
             ToastService::error(t!("missing-fields"));
             return;
@@ -26,6 +26,7 @@ pub fn Settings() -> Element {
             config.server.ident = ident;
             config.wifi.ssid = ssid;
             config.wifi.password = password;
+            config.wifi.direct = direct.is_some();
         }) {
             ToastService::error(t!(e.to_string()))
         } else {
@@ -115,6 +116,18 @@ pub fn Settings() -> Element {
                         }
                         div {
                             class: "card-body",
+                            label {
+                                input {
+                                    class: "toggle checked:toggle-accent",
+                                    name: "wifi-direct",
+                                    r#type: "checkbox",
+                                    initial_checked: config.wifi.direct
+                                }
+                                span {
+                                    class: "ml-2 text-base-content/70",
+                                    { t!("wifi-direct") }
+                                }
+                            }
                             label {
                                 class: "input validator",
                                 span { class: "label", i { class: "bi bi-wifi" } }

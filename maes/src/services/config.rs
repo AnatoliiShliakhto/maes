@@ -1,11 +1,11 @@
 use crate::prelude::*;
+use ::shared::common::Result as SharedResult;
 use std::{
     fs,
     io::Write,
     path::{Path, PathBuf},
     sync::{Arc, LazyLock, RwLock},
 };
-use ::shared::common::Result as SharedResult;
 
 static CONFIG_STATE: LazyLock<Arc<RwLock<ConfigState>>> =
     LazyLock::new(|| Arc::new(RwLock::new(ConfigService::init_state())));
@@ -22,10 +22,13 @@ impl ConfigService {
     fn init_state() -> ConfigState {
         let path = app_data_path().join("maes-config.json");
         let config = Self::load_file(&path).unwrap_or_else(|e| {
-                error!("{e}");
-                Self::default_config()
-            });
-        ConfigState { config: Arc::new(config), path }
+            error!("{e}");
+            Self::default_config()
+        });
+        ConfigState {
+            config: Arc::new(config),
+            path,
+        }
     }
 
     pub fn read() -> Arc<Config> {
@@ -64,7 +67,8 @@ impl ConfigService {
             },
             wifi: WiFiConfig {
                 ssid: format!("maes-{}", safe_nanoid!(4)),
-                password: safe_nanoid!(8),
+                password: "12345678".to_string(),
+                direct: false,
             },
             recent: RecentConfig {
                 workspace: "".to_string(),

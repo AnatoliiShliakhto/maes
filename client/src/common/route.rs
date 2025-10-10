@@ -7,6 +7,8 @@ pub enum Route {
     #[layout(CleanLayout)]
     #[route("/quiz/take")]
     QuizTake {},
+    #[route("/survey/take")]
+    SurveyTake {},
     #[end_layout]
     #[layout(ClientLayout)]
     
@@ -19,7 +21,13 @@ pub enum Route {
 
     #[route("/survey/details/:workspace/:task")]
     SurveyDetails { workspace: String, task: String },
-    
+    #[route("/survey/start/:workspace/:task")]
+    SurveyStart { workspace: String, task: String },
+    #[route("/survey/finish")]
+    SurveyFinish {},
+    #[route("/survey/retry")]
+    SurveyRetry {},
+
     #[route("/:kind/:workspace/:task/:..segments")]
     Initial { kind: String, workspace: String, task: String, segments: Vec<String> },
     #[route("/error")]

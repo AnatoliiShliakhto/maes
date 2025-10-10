@@ -78,6 +78,7 @@ pub fn QuizTake() -> Element {
         }
     }
 }
+
 #[component]
 fn RenderSingleKindQuestion(question: ReadSignal<QuizActivityQuestion>) -> Element {
     let quiz = QUIZ.signal();
@@ -95,9 +96,7 @@ fn RenderSingleKindQuestion(question: ReadSignal<QuizActivityQuestion>) -> Eleme
                         input {
                             key: "{answer.id}",
                             r#type: "radio",
-                            name: "answers",
                             class: "radio radio-lg checked:radio-success",
-                            value: "{answer.id}",
                             checked: question.read().answered.contains(&answer.id),
                             onchange: {
                                 let answer_id = answer.id.clone();
@@ -138,18 +137,16 @@ fn RenderMultipleKindQuestion(question: ReadSignal<QuizActivityQuestion>) -> Ele
     rsx! {
         for answer in question.read().answers.values() {
             li {
-                class: "list-row flex w-full rounded-none transition-colors",
+                class: "list-row flex w-full rounded-none transition-colors p-0",
                 class: "has-[input:checked]:bg-info/20 has-[input:checked]:ring-1 has-[input:checked]:ring-info/50",
                 label {
-                    class: "flex w-full cursor-pointer justify-start gap-2",
+                    class: "flex w-full cursor-pointer justify-start gap-2 p-4",
                     div {
                         class: "flex h-full items-center",
                         input {
                             key: "{answer.id}",
                             r#type: "checkbox",
-                            name: "answers",
                             class: "checkbox checkbox-lg rounded-lg checked:checkbox-info",
-                            value: "{answer.id}",
                             checked: question.read().answered.contains(&answer.id),
                             onchange: {
                                 let answer_id = answer.id.clone();

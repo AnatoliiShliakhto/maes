@@ -7,10 +7,11 @@ use ::windows::{
         WiFiDirectAdvertisementListenStateDiscoverability, WiFiDirectAdvertisementPublisher,
         WiFiDirectAdvertisementPublisherStatus,
         WiFiDirectAdvertisementPublisherStatusChangedEventArgs, WiFiDirectConnectionListener,
-        WiFiDirectConnectionRequest, WiFiDirectConnectionRequestedEventArgs,
+        WiFiDirectConnectionRequest, WiFiDirectConnectionRequestedEventArgs, WiFiDirectDevice,
     },
     Foundation::TypedEventHandler,
-    Security::Credentials::{PasswordCredential},
+    Security::Credentials::PasswordCredential,
+    Win32::System::Com::{COINIT_APARTMENTTHREADED, CoInitializeEx, CoUninitialize},
     core::{HSTRING, Result},
 };
 
@@ -31,14 +32,14 @@ pub enum HotspotMsg {
 pub struct HotspotService;
 
 impl HotspotService {
-    pub fn start(ssid: impl Into<String>, passphrase: impl Into<String>) {
+    pub fn start(ssid: impl Into<String>, passphrase: impl Into<String>, direct: bool) {
         if *HOTSPOT_MSG_CH.1.borrow() == HotspotMsg::Active {
             return;
         }
         let ssid = ssid.into();
         let passphrase = passphrase.into();
         tokio::spawn(async move {
-            if let Err(e) = HOTSPOT.write().await.start_hotspot(&ssid, &passphrase) {
+            if let Err(e) = HOTSPOT.write().await.start_hotspot(&ssid, &passphrase, direct) {
                 error!("hotspot start failed: {e:?}");
                 HOTSPOT_MSG_CH
                     .0
@@ -78,12 +79,14 @@ impl HotspotService {
                 }
                 match &*rx.borrow() {
                     HotspotMsg::Inactive => {
+                        let direct = if HOTSPOT.read().await.direct { 1 } else { 0 };
                         HOTSPOT_STATUS.with_mut(|s| *s = false);
-                        ToastService::warning(t!("hotspot-stopped"))
+                        ToastService::warning(t!("hotspot-stopped", direct = direct))
                     }
                     HotspotMsg::Active => {
+                        let direct = if HOTSPOT.read().await.direct { 1 } else { 0 };
                         HOTSPOT_STATUS.with_mut(|s| *s = true);
-                        ToastService::success(t!("hotspot-started"))
+                        ToastService::success(t!("hotspot-started", direct = direct))
                     }
                     HotspotMsg::Error(e) => {
                         HOTSPOT_STATUS.with_mut(|s| *s = false);
@@ -100,6 +103,7 @@ impl HotspotService {
 struct Hotspot {
     publisher: Option<WiFiDirectAdvertisementPublisher>,
     listener: Option<WiFiDirectConnectionListener>,
+    direct: bool,
 }
 
 impl Hotspot {
@@ -107,13 +111,18 @@ impl Hotspot {
         Self {
             publisher: None,
             listener: None,
+            direct: false,
         }
     }
 
-    fn start_hotspot(&mut self, ssid: &str, passphrase: &str) -> Result<()> {
+    fn start_hotspot(&mut self, ssid: &str, passphrase: &str, direct: bool) -> Result<()> {
+        self.direct = direct;
         let publisher = WiFiDirectAdvertisementPublisher::new()?;
         let advertisement = publisher.Advertisement()?;
-        advertisement.SetIsAutonomousGroupOwnerEnabled(true)?;
+        if !direct {
+            advertisement.SetIsAutonomousGroupOwnerEnabled(true)?;
+        }
+
         advertisement.SetListenStateDiscoverability(
             WiFiDirectAdvertisementListenStateDiscoverability::Normal,
         )?;
@@ -122,13 +131,11 @@ impl Hotspot {
             legacy.SetIsEnabled(true)?;
             legacy.SetSsid(&HSTRING::from(ssid))?;
 
-            if !passphrase.is_empty() {
-                let cred = PasswordCredential::new()?;
-                cred.SetResource(&HSTRING::from("WiFiDirectPassphrase"))?;
-                cred.SetUserName(&HSTRING::from("user"))?;
-                cred.SetPassword(&HSTRING::from(passphrase))?;
-                legacy.SetPassphrase(&cred)?;
-            }
+            let cred = PasswordCredential::new()?;
+            cred.SetResource(&HSTRING::from("WiFiDirectPassphrase"))?;
+            cred.SetUserName(&HSTRING::from("user"))?;
+            cred.SetPassword(&HSTRING::from(passphrase))?;
+            legacy.SetPassphrase(&cred)?;
         } else {
             HOTSPOT_MSG_CH
                 .0
@@ -206,12 +213,40 @@ impl Hotspot {
     }
 
     fn handle_connection_request(request: WiFiDirectConnectionRequest) -> Result<()> {
-        if let Ok(device_info) = request.DeviceInformation() {
-            let device = device_info
-                .Name()
-                .map(|n| n.to_string_lossy())
-                .unwrap_or_else(|_| "(unknown)".to_string());
-            info!("connection request from {device}");
+        if let Ok(device_info) = request.DeviceInformation()
+            && let Ok(id) = device_info.Id()
+        {
+            std::thread::spawn(move || {
+                unsafe {
+                    let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
+                }
+
+                let op = match WiFiDirectDevice::FromIdAsync(&id) {
+                    Ok(op) => op,
+                    Err(_) => {
+                        unsafe {
+                            CoUninitialize();
+                        }
+                        return;
+                    }
+                };
+
+                let wfd = loop {
+                    match op.GetResults() {
+                        Ok(wfd) => break Some(wfd),
+                        Err(_) => {
+                            std::thread::sleep(std::time::Duration::from_millis(10));
+                            continue;
+                        }
+                    }
+                };
+
+                drop(wfd);
+
+                unsafe {
+                    CoUninitialize();
+                }
+            });
         }
         Ok(())
     }

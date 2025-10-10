@@ -2,8 +2,7 @@ use crate::{components::widgets::*, elements::*, prelude::*, services::*};
 
 #[component]
 pub fn AppLayout() -> Element {
-    let claims = AuthService::claims();
-
+    
     rsx! {
         div {
             class: "flex flex-1 bg-base-200 min-h-0 overflow-hidden",

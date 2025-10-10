@@ -49,7 +49,7 @@ pub async fn get_activity_with_student(
 
     match kind {
         EntityKind::QuizRecord => get_quiz_activity(workspace, task_id, student_id).await,
-        EntityKind::SurveyRecord => get_survey_activity_details(workspace, task_id).await, //todo
+        EntityKind::SurveyRecord => get_survey_activity(workspace, task_id).await,
         _ => Err((StatusCode::NOT_FOUND, "task-not-found"))?,
     }
 }
@@ -59,7 +59,7 @@ pub async fn update_activity(Json(payload): Json<Value>) -> Result<()> {
     #[serde(untagged)]
     enum Variants {
         QuizActivity(QuizActivity),
-        SurveyActivity(SurveyActivity),
+        SurveyActivity(SurveyRecord),
     }
 
     let payload: Variants =

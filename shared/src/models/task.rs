@@ -64,6 +64,7 @@ impl Cachable for Tasks {
 pub struct TaskCategory {
     pub id: String,
     pub name: String,
+    pub checked: bool,
     pub count: usize,
     pub total: usize,
 }

@@ -150,7 +150,7 @@ fn HotspotMenuItem() -> Element {
                     class: "flex flex-nowrap w-12 group-hover:w-auto",
                     onclick: move |_| {
                         let config = ConfigService::read();
-                        HotspotService::start(&config.wifi.ssid, &config.wifi.password)
+                        HotspotService::start(&config.wifi.ssid, &config.wifi.password, config.wifi.direct);
                     },
                     div {
                         class: "indicator",

@@ -2,7 +2,10 @@ use crate::{prelude::*, services::*};
 pub use ::reqwest::Method;
 use ::reqwest::{Client, Response, Url, header::*};
 use ::serde::{Serialize, de::DeserializeOwned};
-use ::shared::{utils::*, common::{Error, Result as SharedResult}};
+use ::shared::{
+    common::{Error, Result as SharedResult},
+    utils::*,
+};
 use ::std::{string::ToString, sync::LazyLock};
 use ::web_sys::window;
 
@@ -156,8 +159,7 @@ impl ClientService {
 }
 
 pub fn api_error_handler(e: Error) {
-    //todo
-    //ToastService::error(t!(e.to_string()))
+    ErrorService::show(t!(e.to_string()))
 }
 
 #[macro_export]

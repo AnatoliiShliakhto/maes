@@ -28,12 +28,6 @@ impl<T: Clone + 'static> Grid<T> {
         let idx = self.idx(row, col);
         self.data[idx] = val;
     }
-    
-    pub fn set_row(&mut self, row: usize, data: Vec<T>) {
-        for (col, val) in data.into_iter().enumerate() {
-            self.set(row, col, val);
-        }
-    }
 
     pub fn get_col(&self, col: usize) -> Vec<&T> {
         let mut col_data = Vec::with_capacity(self.rows);
@@ -49,5 +43,36 @@ impl<T: Clone + 'static> Grid<T> {
             row_data.push(self.get(row, col));
         }
         row_data
+    }
+
+    pub fn set_row(&mut self, row: usize, data: Vec<T>) {
+        for (col, val) in data.into_iter().enumerate() {
+            self.set(row, col, val);
+        }
+    }
+
+    pub fn fill(&mut self, val: T) {
+        for row in 0..self.rows {
+            for col in 0..self.cols {
+                self.set(row, col, val.clone());
+            }
+        }
+    }
+
+    pub fn fill_row(&mut self, row: usize, val: T) {
+        for col in 0..self.cols {
+            self.set(row, col, val.clone());
+        }
+    }
+
+    pub fn concat(&mut self, other: &Self)
+    where T: std::ops::Add<Output = T> + Copy + 'static,
+    {
+        for row in 0..self.rows {
+            for col in 0..self.cols {
+                let sum = *self.get(row, col) + *other.get(row, col);
+                self.set(row, col, sum);
+            }
+        }
     }
 }

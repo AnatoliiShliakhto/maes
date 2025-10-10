@@ -120,7 +120,7 @@ fn RenderStudentItem(student: ReadSignal<QuizRecordStudent>) -> Element {
                 }
             }
             div {
-                class: "flex items-center justify-center",
+                class: "flex group-hover:hidden items-center justify-center pr-4",
                 Rating { grade: student_guard.grade }
             }
             div {

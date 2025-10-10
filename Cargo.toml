@@ -63,5 +63,8 @@ windows = { version = "0.62.2", features = [
     "Devices_Enumeration",
     "Storage_Streams",
     "Networking_Sockets",
-    "Security_Credentials"
+    "Security_Credentials",
+    "Win32",
+    "Win32_System",
+    "Win32_System_Com",
 ] }

@@ -6,8 +6,8 @@ pub fn close_window() {
     }
 
     spawn(async move {
-        gloo_timers::future::TimeoutFuture::new(100).await;
-        document::eval("window.parent.close();");
+        gloo_timers::future::TimeoutFuture::new(300).await;
+        document::eval("window.close();");
         document::eval("window.location.href = window.location.origin;");
     });
 }
