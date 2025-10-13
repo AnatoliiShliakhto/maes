@@ -1,5 +1,9 @@
 use crate::{middleware::*, repositories::*, services::*};
-use ::axum::{Json, extract::Path};
+use ::axum::{
+    Json,
+    extract::Path,
+    response::{IntoResponse, Response},
+};
 use ::shared::{common::*, models::*, utils::*};
 use ::std::str::FromStr;
 
@@ -35,8 +39,7 @@ pub async fn list_entities_by_node(
     }
 
     let entities =
-        EntityRepository::list_by_filter(&session.workspace, Some(vec![kind]), Some(nodes))
-            .await?;
+        EntityRepository::list_by_filter(&session.workspace, Some(vec![kind]), Some(nodes)).await?;
     Ok(Json(entities))
 }
 
@@ -48,12 +51,35 @@ pub async fn delete_entity(
     let _kind =
         EntityKind::from_str(&kind).map_err(|_| (StatusCode::BAD_REQUEST, "bad-request"))?;
 
-    EntityRepository::delete(
-        &session.workspace,
-        Some(entity_id.clone()),
-        None,
-    )
-    .await?;
+    EntityRepository::delete(&session.workspace, Some(entity_id.clone()), None).await?;
     Store::delete(&session.workspace, &entity_id).await?;
+    ImageService::remove_entities(&session.workspace, vec![entity_id.clone()]).await?;
     Ok(Json(entity_id))
+}
+
+pub async fn get_entity_payload(
+    session: Session,
+    Path((kind, id)): Path<(String, String)>,
+) -> Result<Response> {
+    let kind = EntityKind::from_str(&kind).map_err(|_| (StatusCode::BAD_REQUEST, "bad-request"))?;
+
+    match kind {
+        EntityKind::QuizRecord => {
+            let quiz_record = Store::find::<QuizRecord>(&session.workspace, id)
+                .await?
+                .read()
+                .await
+                .clone();
+            Ok(Json(quiz_record).into_response())
+        }
+        EntityKind::SurveyRecord => {
+            let survey_record = Store::find::<SurveyRecord>(&session.workspace, id)
+                .await?
+                .read()
+                .await
+                .clone();
+            Ok(Json(survey_record).into_response())
+        }
+        _ => Err((StatusCode::NOT_FOUND, "entity-not-found"))?,
+    }
 }

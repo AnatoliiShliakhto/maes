@@ -1,6 +1,7 @@
 use crate::{
     components::{dialogs::*, widgets::*},
     prelude::*,
+    window::*,
 };
 use ::std::time::Duration;
 
@@ -82,7 +83,50 @@ fn RenderTaskItem(task: ReadSignal<Task>) -> Element {
         })
     };
 
-    let ctx_menu = make_ctx_menu!([(t!("delete"), "bi bi-trash", delete_action),]);
+    let wifi_report_action = use_callback(move |_| {
+        WindowManager::open_window(t!("wifi-instruction"), WindowKind::WiFiInstruction)
+    });
+
+    let ctx_menu = match task.peek().kind {
+        EntityKind::QuizRecord => {
+            let tickets_report_action = use_callback(move |_| {
+                let task_guard = task.read();
+                WindowManager::open_window(
+                    t!("quiz-tickets-title"),
+                    WindowKind::QuizTickets {
+                        task: task_guard.id.clone(),
+                    },
+                )
+            });
+
+            make_ctx_menu!([
+                (t!("quiz-tickets"), "bi bi-ticket", tickets_report_action),
+                (t!("instruction"), "bi bi-wifi", wifi_report_action, false, true),
+                (t!("delete"), "bi bi-trash", delete_action),
+            ])
+        }
+        EntityKind::SurveyRecord => {
+            let tickets_report_action = use_callback(move |_| {
+                let task_guard = task.read();
+                WindowManager::open_window(
+                    t!("survey-tickets-title"),
+                    WindowKind::SurveyTickets {
+                        task: task_guard.id.clone(),
+                    },
+                )
+            });
+
+            make_ctx_menu!([
+                (t!("survey-tickets"), "bi bi-ticket", tickets_report_action),
+                (t!("instruction"), "bi bi-wifi", wifi_report_action, false, true),
+                (t!("delete"), "bi bi-trash", delete_action),
+            ])
+        }
+        _ => use_callback(move |evt: MouseEvent| {
+            evt.prevent_default();
+            evt.stop_propagation();
+        }),
+    };
 
     rsx! {
         li {
@@ -120,7 +164,8 @@ fn RenderTaskItem(task: ReadSignal<Task>) -> Element {
                         ProgressCircle { key: "progress-{task_guard.id}", progress: task_guard.progress }
                     },
                     EntityKind::SurveyRecord => rsx! {
-                        span { class: "text-lg text-base-content/60 font-semibold", "{task_guard.progress}" }
+                        div { class: "badge badge-lg", "{task_guard.progress}" }
+                        //span { class: "text-lg text-base-content/60 font-semibold", "{task_guard.progress}" }
                     },
                     _ => rsx! {},
                 }

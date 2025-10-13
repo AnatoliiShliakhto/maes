@@ -1,3 +1,4 @@
+use ::futures::{StreamExt, stream};
 use ::image::{DynamicImage, GenericImageView, ImageFormat, imageops::FilterType};
 use ::shared::common::*;
 use ::std::{
@@ -8,6 +9,7 @@ use ::std::{
     sync::Arc,
 };
 use ::tokio::{fs, sync::OnceCell, task};
+use ::tracing::error;
 
 const MAX_DIM: u32 = 300;
 static PATH: OnceCell<Arc<PathBuf>> = OnceCell::const_new();
@@ -60,6 +62,23 @@ impl ImageService {
         }
     }
 
+    pub async fn remove_entities(workspace: impl AsRef<Path>, entities: Vec<String>) -> Result<()> {
+        let base = Self::require_base_path()?.join(workspace.as_ref());
+        tokio::spawn(async move {
+            for entity in entities {
+                let dir = base.join(entity);
+                fs::remove_dir_all(dir).await.ok();
+            }
+        });
+        Ok(())
+    }
+
+    pub async fn remove_workspace(workspace: impl AsRef<str>) -> Result<()> {
+        let base = Self::require_base_path()?;
+        let dir = base.join(workspace.as_ref());
+        fs::remove_dir_all(dir).await.map_err(map_log_err)
+    }
+
     pub async fn batch_remove(
         workspace: impl Into<String>,
         entity: impl Into<String>,
@@ -79,6 +98,81 @@ impl ImageService {
                     let _ = Self::remove(&ws, &en, id).await;
                 });
             }
+        });
+        Ok(())
+    }
+
+    pub fn copy_images(
+        source_workspace: impl AsRef<Path>,
+        source_entity: impl AsRef<Path>,
+        destination_workspace: impl AsRef<Path>,
+        destination_entity: impl AsRef<Path>,
+    ) -> Result<()> {
+        let base_path = Self::require_base_path()?;
+        let src = base_path
+            .join(source_workspace.as_ref())
+            .join(source_entity.as_ref());
+        let dst = base_path
+            .join(destination_workspace.as_ref())
+            .join(destination_entity.as_ref());
+
+        task::spawn(async move {
+            if let Err(e) = fs::create_dir_all(&dst).await {
+                error!("create_dir_all error: {e}");
+                return;
+            }
+
+            let mut entries = match fs::read_dir(&src).await {
+                Ok(rd) => rd,
+                Err(e) => {
+                    error!("read_dir error: {e}");
+                    return;
+                }
+            };
+
+            let mut paths = Vec::new();
+            while let Ok(Some(ent)) = entries.next_entry().await {
+                let ft = match ent.file_type().await {
+                    Ok(ft) => ft,
+                    Err(e) => {
+                        eprintln!("file_type error: {e}");
+                        continue;
+                    }
+                };
+                if !ft.is_file() {
+                    continue;
+                }
+                paths.push(ent.path());
+            }
+
+            let sem = Arc::new(tokio::sync::Semaphore::new(8));
+            stream::iter(paths.into_iter())
+                .for_each_concurrent(8, |src_path| {
+                    let sem = sem.clone();
+                    let dst_path = dst.join(src_path.file_name().unwrap_or_default());
+                    async move {
+                        let _permit = sem.acquire().await;
+                        if fs::try_exists(&dst_path).await.unwrap_or(false) {
+                            return;
+                        }
+                        if let Some(parent) = dst_path.parent() {
+                            if let Err(e) = fs::create_dir_all(parent).await {
+                                error!("create parent error: {e}");
+                                return;
+                            }
+                        }
+                        if let Err(e) = fs::copy(&src_path, &dst_path).await {
+                            if e.kind() != std::io::ErrorKind::AlreadyExists {
+                                error!(
+                                    "copy error {} -> {}: {e}",
+                                    src_path.display(),
+                                    dst_path.display()
+                                );
+                            }
+                        }
+                    }
+                })
+                .await;
         });
         Ok(())
     }

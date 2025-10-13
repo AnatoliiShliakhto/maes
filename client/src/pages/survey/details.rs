@@ -9,7 +9,7 @@ pub fn SurveyDetails(
     let navigator = use_navigator();
     let mut details = use_signal(SurveyActivityDetails::default);
 
-    use_effect(move || {
+    use_hook(move || {
         api_fetch!(
             GET,
             format!("/api/v1/activities/details/{workspace}/{task}"),

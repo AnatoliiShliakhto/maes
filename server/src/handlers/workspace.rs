@@ -64,6 +64,7 @@ pub async fn delete_workspace(
 ) -> Result<Json<String>> {
     connection.checked()?;
     Store::remove_workspace(&id).await?;
+    ImageService::remove_workspace(&id).await?;
     Ok(Json(id))
 }
 
@@ -179,6 +180,7 @@ pub async fn delete_workspace_treenode(
     if kind != EntityKind::Workspace {
         let vec = nodes.into_iter().collect::<Vec<_>>();
         EntityRepository::batch_remove(&session.workspace, None, Some(vec.clone())).await?;
+        ImageService::remove_entities(&session.workspace, vec).await?;
     }
 
     Store::upsert(snapshot).await?;

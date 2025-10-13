@@ -14,7 +14,7 @@ pub fn WorkspaceTree() -> Element {
         ""
     };
 
-    use_effect(move || {
+    use_hook(move || {
         api_fetch!(
             GET,
             format!("/api/v1/workspaces/tree/{kind}"),

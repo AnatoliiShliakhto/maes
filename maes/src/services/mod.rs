@@ -9,5 +9,5 @@ pub use self::{
     hotspot::*,
     client::*,
     auth::*,
-    toast::*,   
+    toast::*,
 };

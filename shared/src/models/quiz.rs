@@ -123,3 +123,10 @@ pub struct QuizAnswer {
     pub img: bool,
     pub correct: bool,
 }
+
+#[derive(Debug, Default, Clone, PartialEq, Deserialize, Serialize)]
+pub struct QuizClipboard {
+    pub workspace: String,
+    pub quiz: String,
+    pub categories: Vec<QuizCategory>,
+}

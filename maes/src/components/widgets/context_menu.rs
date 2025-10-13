@@ -241,7 +241,7 @@ macro_rules! ctx_menu_item {
 #[macro_export]
 macro_rules! make_ctx_menu {
     ([ $( ( $($item:tt)+ ) ),* $(,)? ]) => {
-        move |evt: MouseEvent| {
+        use_callback(move |evt: MouseEvent| {
             evt.stop_propagation();
             evt.prevent_default();
             let items = vec![
@@ -250,6 +250,6 @@ macro_rules! make_ctx_menu {
                 ),*
             ];
             $crate::components::widgets::use_context_menu().open(evt, items)
-        }
+        })
     };
 }

@@ -1,5 +1,5 @@
 use super::cards::*;
-use crate::{prelude::*, components::widgets::*};
+use crate::{prelude::*, components::widgets::*, window::*};
 use ::shared::models::*;
 use ::std::time::Duration;
 
@@ -128,16 +128,15 @@ fn RenderStudentItem(student: ReadSignal<QuizRecordStudent>) -> Element {
                 class: "hover:bg-primary hover:text-primary-content",
                 onclick: move |_| {
                     let quiz_guard = quiz.read();
-                    crate::windows::mock_window(
-                        format!(
+                    let url = format!(
                             "{host}/{kind}/{workspace_id}/{quiz_id}/{student_id}",
                             host = localhost(),
                             kind = EntityKind::QuizRecord,
                             workspace_id = quiz_guard.workspace,
                             quiz_id = quiz_guard.id,
                             student_id = student.read().id
-                        )
-                    )
+                        );
+                    WindowManager::open_window(t!("mock-title"), WindowKind::Mock { url })
                 },
                 i { class: "bi bi-phone" }
             }

@@ -62,17 +62,17 @@ grade-c-settings = Задовільно: { $value }% вірних відпові
 grade-settings = Оцінювання
 host = хост
 host-format-error = Невірний формат хосту
-hotspot-legacy-not-supported = WiFi контролер не підтримує режим точки доступу
-hotspot-start-failed = Помилка активіції точки доступу WiFi
+hotspot-legacy-not-supported = Wi-Fi контролер не підтримує режим точки доступу
+hotspot-start-failed = Помилка активіції точки доступу Wi-Fi
 hotspot-started = { $direct ->
-    [1] Пряме підключення WiFi активовано
-    *[other] Точка доступу WiFi активована
+    [1] Пряме підключення Wi-Fi активовано
+    *[other] Точка доступу Wi-Fi активована
 }
 hotspot-stopped = { $direct ->
-    [1] Пряме підключення WiFi деактивовано
-    *[other] Точка доступу WiFi деактивована
+    [1] Пряме підключення Wi-Fi деактивовано
+    *[other] Точка доступу Wi-Fi деактивована
 }
-hotspot-stop-failed = Помилка деактивації точки доступу WiFi
+hotspot-stop-failed = Помилка деактивації точки доступу Wi-Fi
 http-error = Помилка HTTP запиту
 http-error = Помилка запиту
 image-dialog-title = Оберіть зображення
@@ -85,6 +85,7 @@ important-category = Важлива категорія!
 internal-server-error = Внутрішня помилка серверу
 invalid-credentials = Невірний пароль
 invalid-payload = Неприпустимий вміст
+instruction = Інструкція
 loading = Завантаження
 loading-resources = Завантаження ресурсів...
 login = логін
@@ -122,8 +123,11 @@ quiz-question-settings = Питання
 quiz-settings = Тест
 quiz-task = Тестування
 quiz-task-description = призначити тест підрозділу
+quiz-tickets = Білети
+quiz-tickets-title = Білети тестування
 quizzes = Тести
 quizzes-navigator = Структура тестів
+print = Друк
 rank = Звання
 reboot-tooltip = Для активації налаштувань потрібно перезаватижи додаток
 reports = Звіти
@@ -157,6 +161,8 @@ survey-questions-settings = Питання
 survey-settings = Опитування
 survey-task = Опитування
 survey-task-description = провести анонімне опитування
+survey-tickets = Білети
+survey-tickets-title = Білети анонімного опитування
 surveys = Опитування
 surveys-navigator = Структура опитувань
 task = Задача
@@ -211,13 +217,14 @@ username = прізвище ім'я та по-батькові
 users = Користувачі
 validate-images = Виправити
 warning = Попередження
-wifi = WiFi
-wifi-ap-active = Мережа WiFi
-wifi-ap-inactive = Мережа WiFi
-wifi-direct = Пряме підключення (WiFi Direct)
+wifi = Wi-Fi
+wifi-ap-active = Мережа Wi-Fi
+wifi-ap-inactive = Мережа Wi-Fi
+wifi-direct = Пряме підключення (Wi-Fi Direct)
+wifi-instruction = Інструкція з підключення до Wi-Fi
 wifi-password = пароль мережі
-wifi-qr-code = QR-код WiFi
-wifi-settings = Мережа WiFi
+wifi-qr-code = QR-код Wi-Fi
+wifi-settings = Мережа Wi-Fi
 wifi-ssid = назва мережі
 wizard = Майстер створення
 workspace = Робочій простір

@@ -41,3 +41,19 @@ pub async fn validate_images(
         _ => Err((StatusCode::BAD_REQUEST, "bad-request"))?,
     }
 }
+
+pub async fn copy_images(session: Session, Json(payload): Json<CopyImagesPayload>) -> Result<()> {
+    session.checked_admin()?;
+    let CopyImagesPayload {
+        source_workspace,
+        source_entity,
+        destination_workspace,
+        destination_entity,
+    } = payload;
+    ImageService::copy_images(
+        source_workspace,
+        source_entity,
+        destination_workspace,
+        destination_entity,
+    )
+}

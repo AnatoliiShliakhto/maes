@@ -39,7 +39,6 @@
     html, body {
         @apply h-full w-full overflow-hidden antialiased forced-color-adjust-none touch-manipulation select-none;
         @apply flex flex-1 flex-col min-h-0;
-        @apply print:overflow-y-auto print:h-auto print:forced-color-adjust-auto;
         font-family: uafsans, ui-sans-serif, system-ui, sans-serif;
     }
 
@@ -54,45 +53,6 @@
     .flex-scrollable {
         @apply flex flex-1 flex-col min-h-0 overflow-y-auto;
     }
-
-    /*input[type="date"]::-webkit-calendar-picker-indicator {*/
-    /*    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="%23374151" viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/></svg>');*/
-    /*    background-size: 16px 16px;*/
-    /*    background-repeat: no-repeat;*/
-    /*    background-position: center;*/
-    /*}*/
-
-    .tickets-grid {
-        @apply grid grid-cols-5 gap-0 overflow-y-auto p-5 print:px-1 bg-white;
-    }
-    .ticket {
-        @apply flex flex-1 flex-col text-center p-2 outline-dotted outline-1 outline-offset-0 outline-black;
-        @apply break-inside-avoid;
-    }
-    .ticket .rank {
-        @apply text-sm text-neutral-600;
-    }
-}
-
-@media print {
-    html, body {
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-        font-family: "Times New Roman", Times, serif !important;
-    }
-    .print-hidden {
-        @apply hidden;
-    }
-    .tickets-grid {
-        @apply gap-0 overflow-hidden;
-    }
-}
-
-@media print and (orientation: landscape) {
-    .tickets-grid { @apply grid-cols-6; }
-}
-@media print and (orientation: portrait) {
-    .tickets-grid { @apply grid-cols-4; }
 }
 
 @source "./maes/src/**/*.{rs,html,css},./client/src/**/*.{rs,html,css}";

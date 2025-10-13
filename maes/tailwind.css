@@ -39,14 +39,13 @@
     html, body {
         @apply h-full w-full overflow-hidden antialiased forced-color-adjust-none touch-manipulation select-none;
         @apply flex flex-1 flex-col min-h-0;
-        @apply print:overflow-y-auto print:h-auto print:forced-color-adjust-auto;
         font-family: uafsans, ui-sans-serif, system-ui, sans-serif;
     }
 
     .flex-fixed {
-        @apply flex flex-1 flex-col min-h-0;
+        @apply flex flex-1 flex-col min-h-0 overflow-hidden;
     }
-    
+
     .flex-scrollable {
         @apply flex flex-1 flex-col min-h-0 overflow-y-auto;
     }
@@ -57,30 +56,51 @@
     /*    background-repeat: no-repeat;*/
     /*    background-position: center;*/
     /*}*/
+    .print-area {
+        font-family: "Times New Roman", Times, serif !important;
+        @apply min-h-0 min-w-0 w-full h-auto;
+    }
 
     .tickets-grid {
-        @apply grid grid-cols-5 gap-0 overflow-y-auto p-5 print:px-1 bg-white;
+        @apply grid grid-cols-5 gap-0 p-5;
     }
+
     .ticket {
-        @apply flex flex-1 flex-col text-center p-2 outline-dotted outline-1 outline-offset-0 outline-black;
+        @apply flex flex-1 flex-col text-center m-0 p-2 outline outline-dotted -outline-offset-1 outline-base-content/50;
         @apply break-inside-avoid;
     }
+
     .ticket .rank {
-        @apply text-sm text-neutral-600;
+        @apply text-sm text-base-content/70;
     }
 }
 
 @media print {
+    :root {
+        color-scheme: light;
+    }
+    html[data-theme] {
+        --theme: lofi;
+    }
     html, body {
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
         font-family: "Times New Roman", Times, serif !important;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+        @apply min-h-0 min-w-0 w-auto h-auto forced-color-adjust-auto;
+    }
+    ::-webkit-scrollbar {
+        display: none;
     }
     .print-hidden {
         @apply hidden;
     }
-    .tickets-grid {
-        @apply gap-0 overflow-hidden;
+    /*.tickets-grid {*/
+    /*    @apply overflow-hidden;*/
+    /*}*/
+    html, body, div {
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
     }
 }
 

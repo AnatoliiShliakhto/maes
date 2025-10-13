@@ -179,7 +179,7 @@ fn RenderWorkspaces() -> Element {
     let mut workspaces = use_signal(Vec::<WorkspaceMetadata>::new);
     let mut dialog = use_dialog();
 
-    use_effect(move || {
+    use_hook(move || {
         api_fetch!(
             GET,
             "/api/v1/workspaces",

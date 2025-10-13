@@ -1,5 +1,5 @@
 use super::cards::*;
-use crate::{prelude::*, services::*};
+use crate::{prelude::*, services::*, window::*};
 use ::shared::models::*;
 
 #[component]
@@ -66,15 +66,14 @@ pub fn SurveyInspector() -> Element {
                 class: "hover:shadow-xl cursor-pointer",
                 onclick: move |_| {
                     let selected_guard = selected.read();
-                    crate::windows::mock_window(
-                        format!(
-                            "{host}/{kind}/{workspace_id}/{survey_id}",
-                            host = localhost(),
-                            kind = EntityKind::SurveyRecord,
-                            workspace_id = selected_guard.path,
-                            survey_id = selected_guard.id
-                        ),
-                    )
+                    let url = format!(
+                        "{host}/{kind}/{workspace_id}/{survey_id}",
+                        host = localhost(),
+                        kind = EntityKind::SurveyRecord,
+                        workspace_id = selected_guard.path,
+                        survey_id = selected_guard.id
+                    );
+                    WindowManager::open_window(t!("mock-title"), WindowKind::Mock { url })
                 },
                 src: survey_qr
             }

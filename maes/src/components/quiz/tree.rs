@@ -1,4 +1,4 @@
-use crate::{pages::*, prelude::*, services::*, components::dialogs::*};
+use crate::{components::dialogs::*, pages::*, prelude::*, services::*};
 
 #[component]
 pub fn QuizTree() -> Element {
@@ -20,8 +20,14 @@ pub fn QuizTree() -> Element {
         });
 
     let copy_categories_action = use_callback(move |_| {
-        let categories = quiz.read().categories.values().cloned().collect::<Vec<_>>();
-        if Clipboard::copy_json(categories).is_ok() {
+        let quiz_guard = quiz.read();
+        let categories = quiz_guard.categories.values().cloned().collect::<Vec<_>>();
+        let buffer = QuizClipboard {
+            workspace: quiz_guard.workspace.clone(),
+            quiz: quiz_guard.id.clone(),
+            categories,
+        };
+        if Clipboard::copy_json(buffer).is_ok() {
             ToastService::success(t!("copy-to-clipboard-success"))
         } else {
             ToastService::error(t!("copy-to-clipboard-error"))
@@ -30,10 +36,22 @@ pub fn QuizTree() -> Element {
 
     let paste_categories_action = use_callback(move |_| {
         let quiz_guard = quiz.read();
-        let Ok(categories) = Clipboard::paste_json::<Vec<QuizCategory>>() else {
+        let Ok(buffer) = Clipboard::paste_json::<QuizClipboard>() else {
             ToastService::error(t!("paste-from-clipboard-error"));
             return
         };
+        let mut categories = quiz_guard.categories.values().cloned().collect::<Vec<_>>();
+        categories.extend(buffer.categories.clone());
+        api_call!(
+            POST,
+            "/api/v1/manager/images/copy",
+            CopyImagesPayload {
+                source_workspace: buffer.workspace,
+                source_entity: buffer.quiz,
+                destination_workspace: quiz_guard.workspace.clone(),
+                destination_entity: quiz_guard.id.clone(),
+            },
+        );
         api_fetch!(
             PATCH,
             format!("/api/v1/manager/quizzes/{quiz_id}", quiz_id = quiz_guard.id),
@@ -47,7 +65,7 @@ pub fn QuizTree() -> Element {
             },
             on_success = move |_body: Quiz| {
                 quiz.with_mut(|q| {
-                    for category in categories {
+                    for category in buffer.categories {
                         q.categories.insert(category.id.clone(), category);
                     }
                 });
@@ -114,12 +132,19 @@ fn RenderQuizTreeCategory(category_id: ReadSignal<String>) -> Element {
     });
 
     let copy_category_action = use_callback(move |_| {
-        if let Some(category) = quiz.read().categories.get(&*category_id.read())
-            && Clipboard::copy_json(vec![category.clone()]).is_ok() {
-            ToastService::success(t!("copy-to-clipboard-success"))
-        } else {
-            ToastService::error(t!("copy-to-clipboard-error"))
+        let quiz_guard = quiz.read();
+        if let Some(category) = quiz_guard.categories.get(&*category_id.read()) {
+            let buffer = QuizClipboard {
+                workspace: quiz_guard.workspace.clone(),
+                quiz: quiz_guard.id.clone(),
+                categories: vec![category.clone()],
+            };
+            if Clipboard::copy_json(buffer).is_ok() {
+                ToastService::success(t!("copy-to-clipboard-success"));
+                return
+            }
         }
+        ToastService::error(t!("copy-to-clipboard-error"))
     });
 
     let delete_category_action = {
@@ -184,7 +209,11 @@ fn RenderQuizTreeCategory(category_id: ReadSignal<String>) -> Element {
                         onclick: select_action,
                         oncontextmenu: move |evt| if claims.is_admin() { ctx_menu(evt) } else { evt.stop_propagation() },
                         i { class: "bi bi-folder2-open text-base-content/70" }
-                        "{category.name} [{category.questions.len()}]"
+                        "{category.name}"
+                        div {
+                            class: "badge badge-xs ml-2",
+                             "{category.questions.len()}"
+                        }
                     }
                     ul {
                         for (question_id, _question) in category.questions.iter() {

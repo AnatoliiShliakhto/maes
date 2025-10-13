@@ -200,7 +200,7 @@ pub fn SurveyEditorCategory(category_id: ReadSignal<String>) -> Element {
                     { t!("survey-answers-settings") }
                     if is_admin {
                         button {
-                            class: format!("btn btn-xs ml-2 {class}", class = if answers.read().len() + category.answers.len() >= 5 { "disabled hidden" } else { "" }),
+                            class: format!("btn btn-xs ml-2 {class}", class = if answers.read().len() >= 5 { "disabled hidden" } else { "" }),
                             onclick: move |event| {
                                 event.stop_propagation();
                                 event.prevent_default();
@@ -236,7 +236,7 @@ pub fn SurveyEditorCategory(category_id: ReadSignal<String>) -> Element {
                     }
                     if is_admin {
                         button {
-                            class: format!("btn btn-xs ml-2 {class}", class = if questions.read().len() + category.questions.len() >= 30 { "disabled hidden" } else { "" }),
+                            class: format!("btn btn-xs ml-2 {class}", class = if questions.read().len() >= 30 { "disabled hidden" } else { "" }),
                             onclick: move |event| {
                                 event.stop_propagation();
                                 event.prevent_default();

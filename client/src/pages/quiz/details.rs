@@ -10,7 +10,7 @@ pub fn QuizDetails(
     let navigator = use_navigator();
     let mut details = use_signal(QuizActivityDetails::default);
 
-    use_effect(move || {
+    use_hook(move || {
         api_fetch!(
             GET,
             format!("/api/v1/activities/details/{workspace}/{task}/{student}"),

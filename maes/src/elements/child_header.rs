@@ -2,28 +2,33 @@ use crate::{prelude::*, services::*};
 use ::dioxus::desktop::use_window;
 
 #[component]
-pub fn MockHeader() -> Element {
+pub fn ChildHeader(title: ReadSignal<String>) -> Element {
     let mut pinned = use_signal(|| false);
 
     let close_window = move |_| {
         let window = use_window();
         let scale = use_window().window.scale_factor();
         ConfigService::with_mut(|config| {
-            if let Ok(position) = window.outer_position() {
-                config.windows.mock.left = (position.x as f64 / scale) as i32;
-                config.windows.mock.top = (position.y as f64 / scale) as i32;
+            if window.is_maximized() {
+                config.windows.child.maximized = true;
+            } else {
+                if let Ok(position) = window.outer_position() {
+                    config.windows.child.left = (position.x as f64 / scale) as i32;
+                    config.windows.child.top = (position.y as f64 / scale) as i32;
+                }
+                let size = window.inner_size();
+                config.windows.child.width = (size.width as f64 / scale) as i32;
+                config.windows.child.height = (size.height as f64 / scale) as i32;
+                config.windows.child.maximized = false;
             }
-            let size = window.inner_size();
-            config.windows.mock.width = (size.width as f64 / scale) as i32;
-            config.windows.mock.height = (size.height as f64 / scale) as i32;
         })
-        .ok();
+            .ok();
         window.close();
     };
 
     rsx! {
         nav {
-            class: "navbar bg-neutral text-neutral-content min-h-0 p-0 items-center",
+            class: "navbar flex shrink-0 w-full bg-neutral text-neutral-content min-h-0 p-0 items-center print:hidden",
             button {
                 class: "btn btn-sm btn-ghost btn-square rounded-none",
                 onclick: move |_| {
@@ -42,7 +47,7 @@ pub fn MockHeader() -> Element {
                 onmousedown: move |_| use_window().drag(),
                 span {
                     class: "font-normal text-sm",
-                    { t!("mock-title") }
+                    "{title}"
                 }
             }
             div {
@@ -57,6 +62,14 @@ pub fn MockHeader() -> Element {
                     class: "btn btn-sm btn-square btn-ghost rounded-none hover:btn-secondary",
                     onclick: move |_| use_window().set_minimized(true),
                     i { class: "bi bi-dash" }
+                }
+                button {
+                    class: "btn btn-sm btn-square btn-ghost rounded-none hover:btn-secondary",
+                    onclick: move |_| {
+                        let window = use_window();
+                        window.set_maximized(!window.is_maximized())
+                    },
+                    i { class: "bi bi-arrows-angle-expand" }
                 }
                 button {
                     class: "btn btn-sm btn-square btn-ghost hover:btn-error rounded-none",

@@ -1,4 +1,4 @@
-use crate::{services::*, prelude::*};
+use crate::{prelude::*, services::*};
 
 const _BOOTSTRAP_ICONS_WOFF2: Asset = asset!(
     "/assets/bootstrap-icons.woff2",
@@ -54,7 +54,7 @@ const MAIN_JS: Asset = asset!("/assets/main.js");
 const BOOTSTRAP_ICONS_CSS: Asset = asset!("/assets/bootstrap-icons.css");
 
 #[component]
-pub fn Head() -> Element {
+pub fn Head(is_main: bool) -> Element {
     let _ = (
         _OK_CHEVRON.resolve(),
         _BOOTSTRAP_ICONS_WOFF2.resolve(),
@@ -67,11 +67,15 @@ pub fn Head() -> Element {
     let config = ConfigService::read();
 
     rsx! {
-        document::Script {
-            r#"
-                document.documentElement.style.visibility='hidden';
-                document.documentElement.attributes.add('data-theme', '{config.theme}');
-            "#
+        if is_main {
+            document::Script { r#"document.documentElement.style.visibility='hidden';"#}
+        } else {
+            document::Script {
+                r#"
+                    document.documentElement.style.visibility='hidden';
+                    document.documentElement.setAttribute('data-theme', '{config.theme}');
+                "#
+            }
         }
         document::Script { src: MAIN_JS }
         document::Link { rel: "icon", href: APP_ICON }

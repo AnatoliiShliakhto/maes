@@ -6,7 +6,8 @@ pub mod components;
 pub mod elements;
 pub mod pages;
 pub mod services;
-mod windows;
+mod window;
+mod reports;
 
 pub mod prelude {
     pub use super::{
@@ -14,7 +15,7 @@ pub mod prelude {
         api_fetch,
         common::*,
         // api_call_async,
-        // api_fetch_async,
+        api_fetch_async,
         make_ctx_menu,
     };
     pub use ::dioxus::prelude::*;
@@ -82,7 +83,7 @@ fn main() {
                             evt.prevent_default();
                         }
                     },
-                    Head {}
+                    Head { is_main: true }
                     AppHeader {}
 
                     match app_state() {

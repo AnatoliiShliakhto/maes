@@ -65,6 +65,7 @@ fn api_v1_router() -> Router {
 
 fn entity_router() -> Router {
     Router::new()
+        .route("/payload/{kind}/{id}", get(get_entity_payload))
         .route(
             "/{kind}/{id}",
             get(list_entities_by_node).delete(delete_entity),
@@ -150,6 +151,7 @@ fn task_manager_router() -> Router {
 
 fn image_manager_router() -> Router {
     Router::new()
+        .route("/copy", post(copy_images))
         .route("/validate/{kind}/{entity_id}", get(validate_images))
         .route("/{entity_id}/{item_id}", post(add_image).delete(remove_image))
 }

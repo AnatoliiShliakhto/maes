@@ -3,7 +3,9 @@ use ::dioxus::desktop::{
     Config as LaunchBuilderConfig, LogicalPosition, LogicalSize, WindowBuilder, use_window
 };
 
-pub fn mock_window(url: String) {
+pub fn open_mock_window(title: impl Into<String>, url: impl Into<String>) {
+    let title = title.into();
+    let url = url.into();
     let config = ConfigService::read();
 
     use_window().new_window(
@@ -11,7 +13,7 @@ pub fn mock_window(url: String) {
         LaunchBuilderConfig::new()
             .with_window(
                 WindowBuilder::new()
-                    .with_title(t!("app-title"))
+                    .with_title(title)
                     .with_window_icon(create_window_icon(include_bytes!("../../assets/icon.png")))
                     .with_resizable(true)
                     .with_maximized(false)
@@ -42,7 +44,7 @@ fn MockWindow(url: String) -> Element{
     let url = url.clone();
 
     rsx! {
-        Head {}
+        Head { is_main: false }
         div {
             class: "flex-fixed h-dvh w-dvw min-h-screen",
             oncontextmenu: move |evt| evt.prevent_default(),
@@ -52,6 +54,7 @@ fn MockWindow(url: String) -> Element{
                 src: "{url}",
             }
         }
+        ToastContainer { key: "toast-container" }
         Resizer {}
     }
 }

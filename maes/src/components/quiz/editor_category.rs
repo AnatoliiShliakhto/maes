@@ -148,7 +148,7 @@ pub fn QuizEditorCategory(category_id: ReadSignal<String>) -> Element {
                         input {
                             r#type: "checkbox",
                             name: "important",
-                            class: "toggle toggle-error validator",
+                            class: "toggle checked:toggle-accent",
                             initial_checked: "{category.important}",
                         }
                     }

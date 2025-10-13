@@ -22,7 +22,7 @@ impl ConfigService {
     fn init_state() -> ConfigState {
         let path = app_data_path().join("maes-config.json");
         let config = Self::load_file(&path).unwrap_or_else(|e| {
-            error!("{e}");
+            warn!("{e}");
             Self::default_config()
         });
         ConfigState {

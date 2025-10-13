@@ -241,7 +241,7 @@ pub fn QuizEditorQuestion(
                     { t!("quiz-answers-settings") }
                     if is_admin {
                         button {
-                            class: format!("btn btn-xs ml-2 {class}", class = if answers.read().len() + question.answers.len() >= 10 { "disabled hidden" } else { "" }),
+                            class: format!("btn btn-xs ml-2 {class}", class = if answers.read().len() >= 10 { "disabled hidden" } else { "" }),
                             onclick: move |event| {
                                 event.stop_propagation();
                                 event.prevent_default();

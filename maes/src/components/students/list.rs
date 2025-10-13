@@ -56,10 +56,13 @@ pub fn StudentsList() -> Element {
             div {
                 class: "w-full",
                 { t!("students") }
-                " [{students.read().len()}]"
+                div {
+                    class: "badge badge-sm badge-info ml-2",
+                    "{students.read().len()}"
+                }
             }
             ul {
-                class: "menu menu-horizontal p-0 m-0 text-base-content flex-nowrap",
+                class: format!("menu menu-horizontal p-0 m-0 text-base-content flex-nowrap {class}", class = if selected.read().id.is_empty() { "hidden" } else { "" }),
                 li {
                     button {
                         class: "hover:text-success",
