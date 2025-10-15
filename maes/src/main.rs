@@ -1,13 +1,13 @@
 #![windows_subsystem = "windows"]
 #![allow(dead_code)]
 #![allow(unused_macros)]
+mod reports;
+mod window;
 pub mod common;
 pub mod components;
 pub mod elements;
 pub mod pages;
 pub mod services;
-mod window;
-mod reports;
 
 pub mod prelude {
     pub use super::{
@@ -15,7 +15,7 @@ pub mod prelude {
         api_fetch,
         common::*,
         // api_call_async,
-        api_fetch_async,
+        // api_fetch_async,
         make_ctx_menu,
     };
     pub use ::dioxus::prelude::*;
@@ -66,7 +66,7 @@ fn main() {
     let launch_builder_config = LaunchBuilderConfig::new()
         .with_resource_directory("assets")
         .with_data_directory(app_data_path)
-        .with_disable_context_menu(false)
+        .with_disable_context_menu(true)
         .with_window(window)
         .with_menu(None);
 
@@ -81,6 +81,7 @@ fn main() {
                     oncontextmenu: move |evt| {
                         if !cfg!(debug_assertions) {
                             evt.prevent_default();
+                            evt.stop_propagation();
                         }
                     },
                     Head { is_main: true }

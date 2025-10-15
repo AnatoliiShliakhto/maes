@@ -10,6 +10,12 @@ disabled = true
 [tasks.test]
 disabled = true
 
+[tasks.app-js]
+script_runner = "@shell"
+script= '''
+npm run build
+'''
+
 [tasks.app-css]
 script_runner = "@shell"
 script= '''
@@ -35,7 +41,7 @@ npx @tailwindcss/cli -i ./client/tailwind.css -o ./client/assets/tailwind.css --
 '''
 
 [tasks.app-dev]
-dependencies = ["app-css"]
+dependencies = ["app-js", "app-css"]
 script_runner = "@shell"
 script= '''
 dx serve --package maes --watch false --hot-reload false

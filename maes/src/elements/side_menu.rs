@@ -89,7 +89,7 @@ fn MenuItem(props: MenuItemProps) -> Element {
             if let Some(to) = props.to {
                 Link {
                     class: if to == use_route::<Route>() {
-                        "flex flex-nowrap bg-accent/30 w-12 group-hover:w-auto"
+                        "flex flex-nowrap bg-accent/30 text-secondary w-12 group-hover:w-auto"
                     } else {
                         "flex flex-nowrap w-12 group-hover:w-auto"
                     },
@@ -137,7 +137,7 @@ fn HotspotMenuItem() -> Element {
                     div {
                         class: "indicator",
                         span { class: "indicator-item indicator-bottom status status-success bottom-[8px]" }
-                        i { class: "bi bi-wifi text-2xl" }
+                        i { class: "bi bi-wifi text-2xl text-success" }
                     }
                     span {
                         class: "pl-1 inline-block whitespace-nowrap overflow-hidden",
@@ -155,7 +155,7 @@ fn HotspotMenuItem() -> Element {
                     div {
                         class: "indicator",
                         span { class: "indicator-item indicator-bottom status status-error bottom-[8px]" }
-                        i { class: "bi bi-wifi-off text-2xl" }
+                        i { class: "bi bi-wifi-off text-2xl text-error" }
                     }
                     span {
                         class: "pl-1 inline-block whitespace-nowrap overflow-hidden",

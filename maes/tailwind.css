@@ -45,7 +45,6 @@
     .flex-fixed {
         @apply flex flex-1 flex-col min-h-0 overflow-hidden;
     }
-
     .flex-scrollable {
         @apply flex flex-1 flex-col min-h-0 overflow-y-auto;
     }
@@ -64,14 +63,31 @@
     .tickets-grid {
         @apply grid grid-cols-5 gap-0 p-5;
     }
-
     .ticket {
         @apply flex flex-1 flex-col text-center m-0 p-2 outline outline-dotted -outline-offset-1 outline-base-content/50;
         @apply break-inside-avoid;
     }
-
     .ticket .rank {
         @apply text-sm text-base-content/70;
+    }
+
+    .quiz-report-table {
+        @apply table table-auto border-collapse box-border;
+    }
+    .quiz-report-table thead {
+        display: table-header-group;
+    }
+    .quiz-report-table tr {
+        @apply break-inside-avoid;
+    }
+    .quiz-report-table th {
+        @apply border-1 box-border font-semibold text-base-content p-1;
+    }
+    .quiz-report-table td {
+        @apply border-1 box-border text-base-content text-center p-1;
+    }
+    .quiz-report-table .rotated {
+        @apply w-min whitespace-nowrap [writing-mode:vertical-rl] [text-orientation:sideways] rotate-180;
     }
 }
 
@@ -101,14 +117,21 @@
         height: auto !important;
         min-height: 0 !important;
         overflow: visible !important;
+        box-sizing: border-box !important;
     }
 }
 
-@media print and (orientation: landscape) {
-    .tickets-grid { @apply grid-cols-6; }
-}
 @media print and (orientation: portrait) {
+    .print-area {
+        @apply max-w-[200mm];
+    }
     .tickets-grid { @apply grid-cols-4; }
+}
+@media print and (orientation: landscape) {
+    .print-area {
+        @apply max-w-[287mm];
+    }
+    .tickets-grid { @apply grid-cols-6; }
 }
 
 @source "./maes/src/**/*.{rs,html,css},./client/src/**/*.{rs,html,css}";

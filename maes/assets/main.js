@@ -1,3 +1,5 @@
+import ApexCharts from 'apexcharts'
+
 window.splitterContainer = null;
 window.isDragging = false;
 document.addEventListener('mousemove', (e) => {

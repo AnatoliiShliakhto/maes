@@ -6,7 +6,7 @@
 /.env
 /data
 
+/maes/assets/main.bundle.js
+/maes/assets/main.bundle.js.LICENSE.txt
 /maes/assets/tailwind.css
-/maes/syncfusion.license.js
-/maes/assets/syncfusion.bundle.js
 /client/assets/tailwind.css

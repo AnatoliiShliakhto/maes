@@ -4,17 +4,15 @@
     "dev": "webpack --watch"
   },
   "devDependencies": {
-    "css-loader": "^7.1.2",
-    "daisyui": "^5.1.27",
-    "style-loader": "^4.0.0",
-    "webpack": "^5.102.0",
-    "webpack-cli": "^6.0.1",
-    "@syncfusion/ej2": "^31.1.22",
-    "@syncfusion/ej2-base": "^31.1.22",
-    "@syncfusion/ej2-charts": "^31.1.22",
     "@tailwindcss/cli": "^4.1.14",
-    "tailwindcss": "^4.1.14"
+    "webpack-cli": "^6.0.1",
+    "css-loader": "^7.1.2",
+    "style-loader": "^4.0.0"
   },
   "dependencies": {
+    "tailwindcss": "^4.1.14",
+    "daisyui": "^5.1.27",
+    "apexcharts": "^5.3.5",
+    "webpack": "^5.102.0"
   }
 }

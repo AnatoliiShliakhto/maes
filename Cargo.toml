@@ -28,7 +28,7 @@ dirs = { version = "6.0.0" }
 dotenvy = { version = "0.15.7" }
 fluent-bundle = { version = "0.16.0" }
 futures = { version = "0.3.31" }
-getrandom = { version = "0.3.3" }
+getrandom = { version = "0.3.4" }
 gloo-timers = { version = "0.3.0" }
 image = { version = "0.25.8", features = ["jpeg", "png", "webp", "bmp", "gif"] }
 indexmap = { version = "2.11.4", features = ["serde"] }
@@ -38,14 +38,14 @@ nanoid = { version = "0.4.0" }
 pbkdf2 = { version = "0.13.0-rc.1" }
 qrcode-generator = { version = "5.0.0" }
 rand = { version = "0.10.0-rc.0" }
-reqwest = { version = "0.12.23", features = ["json"] }
+reqwest = { version = "0.12.24", features = ["json"] }
 rfd = { version = "0.15.4" }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = { version = "1.0.145" }
 serde_repr = { version = "0.1.20" }
 sha2 = { version = "0.11.0-rc.2" }
 subtle = { version = "2.6.1" }
-tokio = { version = "1.47.1", features = ["full"] }
+tokio = { version = "1.48.0", features = ["full"] }
 tower = { version = "0.5.2" }
 tower-http = { version = "0.6.6", features = ["fs", "cors"] }
 tracing = { version = "0.1.41" }

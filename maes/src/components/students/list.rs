@@ -56,9 +56,11 @@ pub fn StudentsList() -> Element {
             div {
                 class: "w-full",
                 { t!("students") }
-                div {
-                    class: "badge badge-sm badge-info ml-2",
-                    "{students.read().len()}"
+                if !students.read().is_empty() {
+                    div {
+                        class: "badge badge-sm badge-info ml-2",
+                        "{students.read().len()}"
+                    }
                 }
             }
             ul {

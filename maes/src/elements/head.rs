@@ -50,7 +50,7 @@ const _OK_CHEVRON: Asset = asset!(
 );
 const _FAVICON: Asset = asset!("/assets/favicon.ico");
 const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
-const MAIN_JS: Asset = asset!("/assets/main.js");
+const MAIN_JS: Asset = asset!("/assets/main.bundle.js");
 const BOOTSTRAP_ICONS_CSS: Asset = asset!("/assets/bootstrap-icons.css");
 
 #[component]

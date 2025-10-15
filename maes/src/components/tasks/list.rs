@@ -89,6 +89,16 @@ fn RenderTaskItem(task: ReadSignal<Task>) -> Element {
 
     let ctx_menu = match task.peek().kind {
         EntityKind::QuizRecord => {
+            let report_action = use_callback(move |_| {
+                let task_guard = task.read();
+                WindowManager::open_window(
+                    t!("quiz-report-title"),
+                    WindowKind::QuizReport {
+                        entity: task_guard.id.clone(),
+                    },
+                )
+            });
+
             let tickets_report_action = use_callback(move |_| {
                 let task_guard = task.read();
                 WindowManager::open_window(
@@ -100,12 +110,23 @@ fn RenderTaskItem(task: ReadSignal<Task>) -> Element {
             });
 
             make_ctx_menu!([
+                (t!("report"), "bi bi-journal-text", report_action),
                 (t!("quiz-tickets"), "bi bi-ticket", tickets_report_action),
                 (t!("instruction"), "bi bi-wifi", wifi_report_action, false, true),
                 (t!("delete"), "bi bi-trash", delete_action),
             ])
         }
         EntityKind::SurveyRecord => {
+            let report_action = use_callback(move |_| {
+                let task_guard = task.read();
+                WindowManager::open_window(
+                    t!("survey-report-title"),
+                    WindowKind::SurveyReport {
+                        entity: task_guard.id.clone(),
+                    },
+                )
+            });
+
             let tickets_report_action = use_callback(move |_| {
                 let task_guard = task.read();
                 WindowManager::open_window(
@@ -117,6 +138,7 @@ fn RenderTaskItem(task: ReadSignal<Task>) -> Element {
             });
 
             make_ctx_menu!([
+                (t!("report"), "bi bi-journal-text", report_action),
                 (t!("survey-tickets"), "bi bi-ticket", tickets_report_action),
                 (t!("instruction"), "bi bi-wifi", wifi_report_action, false, true),
                 (t!("delete"), "bi bi-trash", delete_action),

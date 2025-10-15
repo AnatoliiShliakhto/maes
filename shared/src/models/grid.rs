@@ -1,3 +1,4 @@
+use crate::models::QuizGrade;
 use ::serde::{Deserialize, Serialize};
 
 #[derive(Debug, Default, Clone, PartialEq, Deserialize, Serialize)]
@@ -27,6 +28,14 @@ impl<T: Clone + 'static> Grid<T> {
     pub fn set(&mut self, row: usize, col: usize, val: T) {
         let idx = self.idx(row, col);
         self.data[idx] = val;
+    }
+
+    pub fn add_value(&mut self, row: usize, col: usize, val: T)
+    where
+        T: std::ops::AddAssign + Copy + 'static,
+    {
+        let idx = self.idx(row, col);
+        self.data[idx] += val;
     }
 
     pub fn get_col(&self, col: usize) -> Vec<&T> {
@@ -66,7 +75,8 @@ impl<T: Clone + 'static> Grid<T> {
     }
 
     pub fn concat(&mut self, other: &Self)
-    where T: std::ops::Add<Output = T> + Copy + 'static,
+    where
+        T: std::ops::Add<Output = T> + Copy + 'static,
     {
         for row in 0..self.rows {
             for col in 0..self.cols {
@@ -74,5 +84,49 @@ impl<T: Clone + 'static> Grid<T> {
                 self.set(row, col, sum);
             }
         }
+    }
+
+    pub fn calc_col_average(&self, col: usize) -> f64
+    where
+        T: Copy + Into<usize>,
+    {
+        let mut sum = 0_usize;
+        for row in 0..self.rows {
+            sum += (*self.get(row, col)).into();
+        }
+        sum as f64 / self.rows as f64
+    }
+
+    pub fn calc_row_average(&self, row: usize) -> f64
+    where
+        T: Copy + Into<usize>,
+    {
+        let mut sum = 0_usize;
+        for col in 0..self.cols {
+            sum += (*self.get(row, col)).into();
+        }
+        sum as f64 / self.cols as f64
+    }
+
+    pub fn calc_col_average_grade(&self, col: usize, grade: &QuizGrade) -> f64
+    where
+        T: Copy + Into<usize>,
+    {
+        let mut sum = 0_usize;
+        for row in 0..self.rows {
+            sum += grade.calc((*self.get(row, col)).into());
+        }
+        sum as f64 / self.rows as f64
+    }
+
+    pub fn calc_row_average_grade(&self, row: usize, grade: &QuizGrade) -> f64
+    where
+        T: Copy + Into<usize>,
+    {
+        let mut sum = 0_usize;
+        for col in 0..self.cols {
+            sum += grade.calc((*self.get(row, col)).into());
+        }
+        sum as f64 / self.cols as f64
     }
 }

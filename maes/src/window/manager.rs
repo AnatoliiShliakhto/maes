@@ -1,3 +1,4 @@
+use crate::services::*;
 use super::{child::*, mock::*};
 
 #[derive(Clone, PartialEq)]
@@ -15,12 +16,14 @@ pub struct WindowManager;
 
 impl WindowManager {
     pub fn open_window(title: impl Into<String>, kind: WindowKind) {
+        let claims = AuthService::claims();
         match &kind {
             WindowKind::Mock { url } => open_mock_window(title, url.clone()),
-            WindowKind::WiFiInstruction => open_child_window(title, kind),
+            WindowKind::WiFiInstruction |
             WindowKind::QuizTickets { .. } |
-            WindowKind::SurveyTickets { .. } => open_child_window(title, kind),
-            _ => ()  // TODO 
+            WindowKind::SurveyTickets { .. } |
+            WindowKind::QuizReport { .. } |
+            WindowKind::SurveyReport { .. } => open_child_window(title, kind, claims),
         }
     }
 }

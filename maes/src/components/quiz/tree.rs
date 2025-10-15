@@ -86,7 +86,7 @@ pub fn QuizTree() -> Element {
 
     rsx! {
         ul {
-            class: "menu flex-wrap",
+            class: "menu w-full flex-wrap",
             li {
                 key: "{quiz_guard.id}",
                 div {

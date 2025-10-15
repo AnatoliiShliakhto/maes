@@ -345,7 +345,7 @@ pub async fn update_quiz_activity(activity: QuizActivity) -> Result<()> {
     );
 
     let categories_count = if !categories.is_empty() { categories.len() } else { 1 };
-    let grade = if !fail_important { ((total_grade as f64) / (categories_count as f64)) as usize } else { 2 };
+    let grade = if !fail_important { ((total_grade as f64) / (categories_count as f64) + 0.5).floor() as usize } else { 2 };
 
     if student.grade > grade { return Ok(()) }
 

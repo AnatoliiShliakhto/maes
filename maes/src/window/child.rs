@@ -4,12 +4,12 @@ use ::dioxus::desktop::{
     Config as LaunchBuilderConfig, LogicalPosition, LogicalSize, WindowBuilder, use_window
 };
 
-pub fn open_child_window(title: impl Into<String>, kind: WindowKind) {
+pub fn open_child_window(title: impl Into<String>, kind: WindowKind, claims: Arc<Claims>) {
     let title = title.into();
     let config = ConfigService::read();
 
     use_window().new_window(
-        VirtualDom::new_with_props(ChildWindow, ChildWindowProps { title: title.clone(), kind }),
+        VirtualDom::new_with_props(ChildWindow, ChildWindowProps { title: title.clone(), kind, claims }),
         LaunchBuilderConfig::new()
             .with_window(
                 WindowBuilder::new()
@@ -39,8 +39,9 @@ pub fn open_child_window(title: impl Into<String>, kind: WindowKind) {
 }
 
 #[component]
-fn ChildWindow(title: String, kind: WindowKind) -> Element{
-
+fn ChildWindow(title: String, kind: WindowKind, claims: Arc<Claims>) -> Element{
+    use_context_provider(|| claims);
+    
     let set_title_eval = format!(r#"document.title = "{title}";"#);
     use_hook(move || {
         to_owned![set_title_eval];
@@ -57,6 +58,7 @@ fn ChildWindow(title: String, kind: WindowKind) -> Element{
                 WindowKind::WiFiInstruction => rsx! { WiFiInstruction {} },
                 WindowKind::QuizTickets { task } => rsx! { QuizTickets { task } },
                 WindowKind::SurveyTickets { task } => rsx! { SurveyTickets { task } },
+                WindowKind::QuizReport { entity } => rsx! { QuizReport { entity } },
                 _ => rsx! {},
             }
         }
