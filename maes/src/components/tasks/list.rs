@@ -109,8 +109,9 @@ fn RenderTaskItem(task: ReadSignal<Task>) -> Element {
                 )
             });
 
+            let disabled = task.peek().progress == 0;
             make_ctx_menu!([
-                (t!("report"), "bi bi-journal-text", report_action),
+                (t!("report"), "bi bi-file-earmark-text", report_action, disabled),
                 (t!("quiz-tickets"), "bi bi-ticket", tickets_report_action),
                 (t!("instruction"), "bi bi-wifi", wifi_report_action, false, true),
                 (t!("delete"), "bi bi-trash", delete_action),
@@ -137,8 +138,9 @@ fn RenderTaskItem(task: ReadSignal<Task>) -> Element {
                 )
             });
 
+            let disabled = task.peek().progress == 0;
             make_ctx_menu!([
-                (t!("report"), "bi bi-journal-text", report_action),
+                (t!("report"), "bi bi-file-earmark-text", report_action, disabled),
                 (t!("survey-tickets"), "bi bi-ticket", tickets_report_action),
                 (t!("instruction"), "bi bi-wifi", wifi_report_action, false, true),
                 (t!("delete"), "bi bi-trash", delete_action),

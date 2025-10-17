@@ -1,10 +1,11 @@
+use crate::services::Store;
 use ::axum::{
     extract::FromRequestParts,
     http::{header::AUTHORIZATION, request::Parts},
 };
 use ::dashmap::{DashMap, DashSet};
 use ::serde::{Deserialize, Serialize};
-use ::shared::{common::*, models::*};
+use ::shared::{common::*, models::*, utils::*};
 use ::std::sync::{Arc, LazyLock};
 
 static SESSIONS: LazyLock<DashMap<String, Arc<ClientSession>>> = LazyLock::new(DashMap::new);
@@ -90,13 +91,27 @@ impl Session {
             Ok(())
         }
     }
-    
+
     pub fn checked_supervisor(&self) -> Result<()> {
         if self.role == WorkspaceRole::Admin || self.role == WorkspaceRole::Supervisor {
             Ok(())
         } else {
             Err((StatusCode::FORBIDDEN, "forbidden"))?
         }
+    }
+
+    pub async fn nodes(&self) -> Result<Option<Vec<String>>> {
+        if self.node.is_empty() {
+            return Ok(None);
+        }
+
+        let nodes = Store::find::<Workspace>(&self.workspace, &self.workspace)
+            .await?
+            .read()
+            .await
+            .unit_tree
+            .node_descendants(&self.node);
+        Ok(Some(nodes))
     }
 }
 
@@ -129,7 +144,7 @@ where
             .ok_or((StatusCode::UNAUTHORIZED, "unauthorized"))?
             .trim()
             .to_string();
-        
+
         let session = SessionService::get_session(&token)
             .await
             .ok_or((StatusCode::UNAUTHORIZED, "unauthorized"))?;

@@ -6,8 +6,6 @@ use crate::{
 };
 use ::std::sync::LazyLock;
 
-static DEFAULT_QUESTION: LazyLock<QuizQuestion> = LazyLock::new(QuizQuestion::default);
-
 #[component]
 pub fn QuizEditorQuestion(
     category_id: ReadSignal<String>,
@@ -21,11 +19,15 @@ pub fn QuizEditorQuestion(
     let category_id_val = category_id.read().to_string();
     let question_id_val = question_id.read().to_string();
 
+    let default_question = QuizQuestion {
+        id: question_id(),
+        ..Default::default()
+    };
     let question = quiz_guard
         .categories
         .get(&category_id_val)
         .and_then(|c| c.questions.get(&question_id_val))
-        .unwrap_or(&DEFAULT_QUESTION);
+        .unwrap_or(&default_question);
 
     let mut answers = use_signal(|| question.answers.clone());
     let mut has_img = use_signal(|| question.img);
@@ -111,15 +113,13 @@ pub fn QuizEditorQuestion(
                 let Some(category) = q.categories.get_mut(&*category_id_guard) else {
                     return;
                 };
-                if question_id_guard.is_empty() {
-                    selected.set(QuizManagerAction::Question(category_id(), body.id.clone()));
-                    category.questions.insert(body.id.clone(), body);
-                    return;
-                }
                 if let Some(question) = category.questions.get_mut(&*question_id_guard) {
                     question.name = body.name;
                     question.img = body.img;
                     question.answers = body.answers;
+                } else {
+                    selected.set(QuizManagerAction::Question(category_id(), body.id.clone()));
+                    category.questions.insert(body.id.clone(), body);
                 }
             });
             ToastService::success(t!("saved"));
@@ -215,19 +215,22 @@ pub fn QuizEditorQuestion(
                         initial_value: "{question.name}",
                     }
                     if is_admin {
-                        button {
-                            class: if has_img() { "hidden group-hover:btn hover:btn-error btn-square mt-1" } else { "hidden group-hover:btn hover:btn-info btn-square mt-1" },
-                            onclick: move |evt| {
-                                evt.prevent_default();
-                                if has_img() {
-                                    let on_success = use_callback(move |_| has_img.set(false));
-                                    remove_image_action.call((question_id(), on_success));
-                                } else {
-                                    let on_success = use_callback(move |_| has_img.set(true));
-                                    add_image_action.call((question_id(), on_success));
-                                }
-                            },
-                            i { class: "bi bi-image text-lg" }
+                        div {
+                            class: "hidden h-full group-hover:flex",
+                            button {
+                                class: if has_img() { "btn hover:btn-error btn-square mt-1" } else { "btn hover:btn-info btn-square mt-1" },
+                                onclick: move |evt| {
+                                    evt.prevent_default();
+                                    if has_img() {
+                                        let on_success = use_callback(move |_| has_img.set(false));
+                                        remove_image_action.call((question_id(), on_success));
+                                    } else {
+                                        let on_success = use_callback(move |_| has_img.set(true));
+                                        add_image_action.call((question_id(), on_success));
+                                    }
+                                },
+                                i { class: "bi bi-image text-lg" }
+                            }
                         }
                     }
                 }
@@ -258,11 +261,11 @@ pub fn QuizEditorQuestion(
                             key: "{id}",
                             class: "list-row rounded-none px-0 py-1 group",
                             div {
-                                class: "flex flex-col shrink-0 items-center",
+                                class: "flex flex-col shrink-0 items-center justify-center",
                             input { r#type: "hidden", name: "answer_id", value: "{id}" }
                                 input {
                                     r#type: "checkbox",
-                                    class: "checkbox checked:checkbox-success mt-2.5 rounded-sm",
+                                    class: "checkbox checked:checkbox-success rounded-sm",
                                     name: "answer_correct",
                                     value: true,
                                     initial_checked: answer.correct

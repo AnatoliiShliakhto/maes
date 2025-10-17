@@ -1,4 +1,14 @@
 use crate::prelude::*;
+use ::std::collections::{HashMap, HashSet};
+
+#[derive(Default, Clone, PartialEq)]
+struct QuizReportState {
+    pub is_supervisor: bool,
+    pub as_percentage: bool,
+    pub students_details: bool,
+    pub stats: bool,
+    pub active_student: Option<String>,
+}
 
 #[component]
 pub fn QuizReport(entity: ReadSignal<String>) -> Element {
@@ -6,9 +16,13 @@ pub fn QuizReport(entity: ReadSignal<String>) -> Element {
     let mut quiz = use_context_provider(|| Signal::new(Quiz::default()));
     let mut quiz_rec = use_context_provider(|| Signal::new(QuizRecord::default()));
     let quiz_rec_guard = quiz_rec.read();
-    let mut show_percentage = use_signal(|| false);
-    let mut show_students_details = use_signal(|| false);
-    let mut show_stats = use_signal(|| true);
+    let mut state = use_context_provider(|| {
+        Signal::new(QuizReportState {
+            is_supervisor,
+            stats: true,
+            ..Default::default()
+        })
+    });
 
     use_effect(move || {
         api_fetch!(
@@ -35,9 +49,6 @@ pub fn QuizReport(entity: ReadSignal<String>) -> Element {
         return rsx! {};
     }
 
-    let has_ranks = quiz_rec_guard.students.values().any(|s| s.rank.is_some());
-    let result_cols = quiz_rec_guard.categories.len();
-
     rsx! {
         div {
             class: "flex shrink-0 w-full min-h-0 print:hidden p-1",
@@ -61,8 +72,8 @@ pub fn QuizReport(entity: ReadSignal<String>) -> Element {
                     "data-tip": t!("absent-uncertified-students"),
                     li {
                         button {
-                            class: if show_students_details() { "bg-secondary/30 text-secondary" } else { "" },
-                            onclick: move |_| show_students_details.set(!show_students_details()),
+                            class: if state.read().students_details { "bg-secondary/30 text-secondary" } else { "" },
+                            onclick: move |_| state.with_mut(|s| s.students_details = !s.students_details),
                             i { class: "bi bi-person-lines-fill" }
                         }
                     }
@@ -73,8 +84,8 @@ pub fn QuizReport(entity: ReadSignal<String>) -> Element {
                     "data-tip": t!("stats"),
                     li {
                         button {
-                            class: if show_stats() { "bg-secondary/30 text-secondary" } else { "" },
-                            onclick: move |_| show_stats.set(!show_stats()),
+                            class: if state.read().stats { "bg-secondary/30 text-secondary" } else { "" },
+                            onclick: move |_| state.with_mut(|s| s.stats = !s.stats),
                             i { class: "bi bi-graph-up-arrow" }
                         }
                     }
@@ -88,10 +99,20 @@ pub fn QuizReport(entity: ReadSignal<String>) -> Element {
                             class: "swap swap-rotate text-sm",
                             input {
                                 r#type: "checkbox",
-                                onchange: move |evt| show_percentage.set(evt.checked())
+                                onchange: move |evt| state.with_mut(|s| s.as_percentage = evt.checked())
                             }
                             i { class: "bi bi-percent swap-on" }
                             i { class: "bi bi-star-half swap-off" }
+                        }
+                    }
+                }
+                if state.read().active_student.is_some() {
+                    div { class: "divider divider-horizontal m-0 w-1" }
+                    li {
+                        button {
+                            onclick: move |_| state.with_mut(|s| s.active_student = None),
+                            i { class: "bi bi-file-earmark-text" }
+                            { t!("report") }
                         }
                     }
                 }
@@ -100,98 +121,126 @@ pub fn QuizReport(entity: ReadSignal<String>) -> Element {
         div {
             class: "flex flex-1 flex-col print-area overflow-auto px-5 print:px-1",
             "data-theme": "lofi",
-            div {
-                class: "flex flex-col w-full items-center gap-0.25 pt-5",
-                div {
-                    class: "text-lg font-semibold",
-                    "{quiz_rec_guard.name}"
-                }
-                div { "{quiz_rec_guard.path}" }
-                div { class: "flex w-full justify-end", { t!("date-stamp", date = quiz_rec_guard.metadata.updated_at()) } }
-            }
-
-            div {
-                class: "flex w-full h-min-0 w-min-0",
-                table {
-                    class: "quiz-report-table table-zebra",
-                    thead {
-                        tr {
-                            if has_ranks {
-                                th { class: "w-min text-center", { t!("rank") } }
-                            }
-                            th { class: "max-w-none text-center", { t!("fullname") } }
-                            if result_cols > 1 {
-                                for category in quiz_rec_guard.categories.values() {
-                                    th { class: "rotated", "{category.name}" }
-                                }
-                            }
-                            th { class: "rotated font-bold", { t!("total-grade") } }
-                        }
-                    }
-                    tbody {
-                        for (student_idx, student) in quiz_rec_guard.students.values().enumerate() {
-                            tr {
-                                class: if is_supervisor && student.grade > 0 {
-                                    "cursor-pointer hover:bg-base-300"
-                                } else { "" },
-                                if has_ranks && let Some(rank) = &student.rank {
-                                    td { class: "text-left", "{rank}" }
-                                }
-                                td { class: "text-left", "{student.name}" }
-                                if student.grade == 0 {
-                                    for _ in 0..result_cols {
-                                        td { { t!("uncertified-placeholder") } }
-                                    }
-                                    if result_cols > 1 {
-                                        td { { t!("uncertified-placeholder") } }
-                                    }
-                                } else if result_cols > 1 {
-                                    for i in 0..result_cols {
-                                        td {
-                                            {if show_percentage() {
-                                                quiz_rec_guard.results.get(student_idx, i).to_string()
-                                            } else {
-                                                quiz_rec_guard.grade.calc(*quiz_rec_guard.results.get(student_idx, i)).to_string()
-                                            }}
-                                        }
-                                    }
-                                    td {
-                                        class: "font-semibold",
-                                        {if show_percentage() {
-                                            format!("{:.0}", quiz_rec_guard.results.calc_row_average(student_idx))
-                                        } else {
-                                            student.grade.to_string()
-                                        }}
-                                    }
-                                } else {
-                                    td {
-                                        class: "font-semibold",
-                                        {if show_percentage() {
-                                            format!("{:.0}", quiz_rec_guard.results.calc_row_average(student_idx))
-                                        } else {
-                                            student.grade.to_string()
-                                        }}
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            if show_students_details() {
-                StudentsReport {}
-            }
-
-            if show_stats() {
-                StatsReport {}
-            }
-
-            div {
-                class: "flex flex-nowrap w-auto py-5",
-                span { { t!("supervisor") } ": _____________________________________________________" }
+            if state.read().active_student.is_some() {
+                RenderStudentReport {}
+            } else {
+                RenderQuizReport {}
             }
         }
+    }
+}
+
+#[component]
+fn RenderQuizReport() -> Element {
+    let mut state = use_context::<Signal<QuizReportState>>();
+    let quiz_rec = use_context::<Signal<QuizRecord>>();
+    let quiz_rec_guard = quiz_rec.read();
+
+    let has_ranks = quiz_rec_guard.students.values().any(|s| s.rank.is_some());
+    let result_cols = quiz_rec_guard.categories.len();
+
+    rsx! {
+        div {
+            class: "flex flex-col w-full items-center gap-0.25 pt-5",
+            div {
+                class: "text-lg font-semibold",
+                "{quiz_rec_guard.name}"
+            }
+            div { "{quiz_rec_guard.path}" }
+            div { class: "flex w-full justify-end", { t!("date-stamp", date = quiz_rec_guard.metadata.updated_at()) } }
+        }
+
+        div {
+            class: "flex w-full h-min-0 w-min-0",
+            table {
+                class: "quiz-report-table table-zebra",
+                thead {
+                    tr {
+                        if has_ranks {
+                            th { class: "w-min text-center", { t!("rank") } }
+                        }
+                        th { class: "max-w-none text-center", { t!("fullname") } }
+                        if result_cols > 1 {
+                            for category in quiz_rec_guard.categories.values() {
+                                th { class: "rotated", "{category.name}" }
+                            }
+                        }
+                        th { class: "rotated font-bold", { t!("total-grade") } }
+                    }
+                }
+                tbody {
+                    for (student_idx, student) in quiz_rec_guard.students.values().enumerate() {
+                        tr {
+                            class: if state.peek().is_supervisor && student.grade > 0 {
+                                "cursor-pointer hover:bg-base-300"
+                            } else { "" },
+                            onclick: {
+                                let student_id = student.id.clone();
+                                let student_grade = student.grade;
+                                move |_| {
+                                    if state.peek().is_supervisor && student_grade > 0 {
+                                        state.with_mut(|s| s.active_student = Some(student_id.clone()))
+                                    }
+                                }
+                            },
+                            if has_ranks && let Some(rank) = &student.rank {
+                                td { class: "text-left", "{rank}" }
+                            }
+                            td { class: "text-left", "{student.name}" }
+                            if student.grade == 0 {
+                                for _ in 0..result_cols {
+                                    td { { t!("uncertified-placeholder") } }
+                                }
+                                if result_cols > 1 {
+                                    td { { t!("uncertified-placeholder") } }
+                                }
+                            } else if result_cols > 1 {
+                                for i in 0..result_cols {
+                                    td {
+                                        {if state.read().as_percentage {
+                                            quiz_rec_guard.results.get(student_idx, i).to_string()
+                                        } else {
+                                            quiz_rec_guard.grade.calc(*quiz_rec_guard.results.get(student_idx, i)).to_string()
+                                        }}
+                                    }
+                                }
+                                td {
+                                    class: "font-semibold",
+                                    {if state.read().as_percentage {
+                                        format!("{:.0}", quiz_rec_guard.results.calc_row_average(student_idx))
+                                    } else {
+                                        student.grade.to_string()
+                                    }}
+                                }
+                            } else {
+                                td {
+                                    class: "font-semibold",
+                                    {if state.read().as_percentage{
+                                        format!("{:.0}", quiz_rec_guard.results.calc_row_average(student_idx))
+                                    } else {
+                                        student.grade.to_string()
+                                    }}
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if state.read().students_details {
+            StudentsReport {}
+        }
+
+        if state.read().stats {
+            StatsReport {}
+        }
+
+        div {
+            class: "flex flex-nowrap w-auto py-5",
+            span { { t!("supervisor-sign") } }
+        }
+
     }
 }
 
@@ -288,7 +337,7 @@ fn StatsReport() -> Element {
                 }
                 tbody {
                     tr {
-                        td { class: "font-semibold", { t!("grade-d") } }
+                        td { class: "font-semibold text-left px-2", { t!("grade-d") } }
                         for cat in res.iter() {
                             td { "{cat.grade_d}" }
                         }
@@ -297,7 +346,7 @@ fn StatsReport() -> Element {
                         }
                     }
                     tr {
-                        td { class: "font-semibold", { t!("grade-c") } }
+                        td { class: "font-semibold text-left px-2", { t!("grade-c") } }
                         for cat in res.iter() {
                             td { "{cat.grade_c}" }
                         }
@@ -306,7 +355,7 @@ fn StatsReport() -> Element {
                         }
                     }
                     tr {
-                        td { class: "font-semibold", { t!("grade-b") } }
+                        td { class: "font-semibold text-left px-2", { t!("grade-b") } }
                         for cat in res.iter() {
                             td { "{cat.grade_b}" }
                         }
@@ -315,7 +364,7 @@ fn StatsReport() -> Element {
                         }
                     }
                     tr {
-                        td { class: "font-semibold", { t!("grade-a") } }
+                        td { class: "font-semibold text-left px-2", { t!("grade-a") } }
                         for cat in res.iter() {
                             td { "{cat.grade_a}" }
                         }
@@ -324,7 +373,7 @@ fn StatsReport() -> Element {
                         }
                     }
                     tr {
-                        td { class: "font-semibold", { t!("grade-average") } }
+                        td { class: "font-semibold text-left px-2", { t!("grade-average") } }
                         for cat in res.iter() {
                             td { class: "font-semibold", { format!("{:.1}", cat.average) } }
                         }
@@ -338,16 +387,16 @@ fn StatsReport() -> Element {
         div {
             class: "flex pt-5",
             table {
-                class: "table table-auto w-auto inline-table",
+                class: "table table-auto w-auto inline-table text-base",
                 tr {
                     td { class: "p-1", { t!("stat-total") } }
-                    td { class: "p-1 font-semibold underline", "{total_students}" }
-                    td { class: "p-1", { t!("stat-in-fact") } }
-                    td { class: "p-1 font-semibold underline", "{total}" }
-                    td { class: "p-1", { t!("stat-certified") } }
-                    td { class: "p-1 font-semibold underline", "{total - total_grade_d}" }
-                    td { class: "p-1", { t!("stat-uncertified") } }
-                    td { class: "p-1 font-semibold underline", "{total_grade_d}" }
+                    td { class: "p-1 font-semibold border-1 px-2", "{total_students}" }
+                    td { class: "p-1 pl-3", { t!("stat-in-fact") } }
+                    td { class: "p-1 font-semibold border-1 px-2", "{total}" }
+                    td { class: "p-1 pl-3", { t!("stat-certified") } }
+                    td { class: "p-1 font-semibold border-1 px-2", "{total - total_grade_d}" }
+                    td { class: "p-1 pl-3", { t!("stat-uncertified") } }
+                    td { class: "p-1 font-semibold border-1 px-2", "{total_grade_d}" }
                 }
             }
         }
@@ -399,9 +448,21 @@ fn StatsReport() -> Element {
 #[component]
 fn StudentsReport() -> Element {
     let quiz_rec = use_context::<Signal<QuizRecord>>();
-    let absent_students = quiz_rec.read().students.values().filter(|s| s.grade == 0).cloned().collect::<Vec<_>>();
+    let absent_students = quiz_rec
+        .read()
+        .students
+        .values()
+        .filter(|s| s.grade == 0)
+        .cloned()
+        .collect::<Vec<_>>();
     let absent_total = absent_students.len();
-    let uncertified_students = quiz_rec.read().students.values().filter(|s| s.grade == 2).cloned().collect::<Vec<_>>();
+    let uncertified_students = quiz_rec
+        .read()
+        .students
+        .values()
+        .filter(|s| s.grade == 2)
+        .cloned()
+        .collect::<Vec<_>>();
     let uncertified_total = uncertified_students.len();
 
     rsx! {
@@ -446,6 +507,173 @@ fn StudentsReport() -> Element {
                             ", "
                         } else {
                             "."
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+#[component]
+fn RenderStudentReport() -> Element {
+    let mut state = use_context::<Signal<QuizReportState>>();
+    // let quiz = use_context::<Signal<Quiz>>();
+    // let quiz_guard = quiz.read();
+    let quiz_rec = use_context::<Signal<QuizRecord>>();
+    let quiz_rec_guard = quiz_rec.read();
+    let mut student = use_signal(QuizRecordStudent::default);
+    let mut answered = use_context_provider(|| Signal::new(Vec::new()));
+
+    use_hook(move || {
+        if let Some(student_id) = &state.read().active_student
+            && let Some(student_rec) = quiz_rec.read().students.get(student_id)
+        {
+            let quiz_rec_guard = quiz_rec.read();
+            student.set(student_rec.clone());
+            let student_idx = quiz_rec_guard
+                .students
+                .iter()
+                .position(|(id, _)| id == &student_rec.id)
+                .unwrap_or_default();
+            let answers = quiz_rec_guard
+                .answers
+                .get_row(student_idx)
+                .iter()
+                .map(|&a| a.clone())
+                .collect::<Vec<_>>();
+            answered.set(answers)
+        } else {
+            state.with_mut(|s| s.active_student = None);
+        }
+    });
+
+    if student.read().id.is_empty() {
+        return rsx! {};
+    }
+
+    rsx! {
+        div {
+            class: "flex flex-col w-full items-center gap-0.25 pt-5",
+            div {
+                class: "text-lg font-semibold",
+                "{quiz_rec_guard.name}"
+            }
+            div {
+                if let Some(rank) = &student.read().rank {
+                    "{rank} {student.read().name}"
+                } else {
+                    "{student.read().name}"
+                }
+            }
+            div { class: "flex w-full justify-end", { t!("date-stamp", date = quiz_rec_guard.metadata.updated_at()) } }
+        }
+
+        for (idx, category) in quiz_rec_guard.categories.values().enumerate() {
+            RenderStudentCategoryReport{ category_idx: idx, category_id: category.id.clone()}
+        }
+    }
+}
+
+#[component]
+fn RenderStudentCategoryReport(category_idx: usize, category_id: String) -> Element {
+    let quiz = use_context::<Signal<Quiz>>();
+    let quiz_guard = quiz.read();
+    let answered = use_context::<Signal<Vec<HashMap<String, HashSet<String>>>>>();
+
+    let Some(category) = quiz_guard.categories.get(&category_id) else {
+        return rsx! {};
+    };
+    let Some(answered_questions) = answered.read().get(category_idx).cloned() else {
+        return rsx! {};
+    };
+
+    rsx! {
+        div {
+            class: "flex flex-col w-full items-center gap-0.25 pt-5 pb-1",
+            div {
+                class: "text-lg font-semibold",
+                "{category.name}"
+            }
+        }
+        div {
+            class: "flex flex-col",
+            for (question_id, answers_ids) in answered_questions.iter() {
+                if let Some(question) = category.questions.get(question_id) {
+                    RenderStudentQuestionReport { question: question.clone(), answers_ids: answers_ids.clone() }
+                }
+            }
+        }
+    }
+}
+
+#[component]
+fn RenderStudentQuestionReport(question: QuizQuestion, answers_ids: HashSet<String>) -> Element {
+    let quiz = use_context::<Signal<Quiz>>();
+    let quiz_guard = quiz.read();
+    let img_base_url = format!(
+        "{}/images/{}/{}/",
+        localhost(),
+        quiz_guard.workspace,
+        quiz_guard.id
+    );
+
+    let is_correct = question
+        .answers
+        .values()
+        .filter(|a| a.correct)
+        .map(|a| a.id.clone())
+        .collect::<HashSet<String>>()
+        == answers_ids;
+
+    rsx! {
+        div {
+            class: "flex flex-col",
+            div {
+                class: "flex gap-2",
+                div {
+                    class: "flex items-center justify-center",
+                    if is_correct {
+                        i { class: "bi bi-check-square text-green-700" }
+                    } else {
+                        i { class: "bi bi-x-square text-red-700" }
+                    }
+                }
+                div {
+                    class: "flex flex-col",
+                    if question.img {
+                        div {
+                            class: "max-w-30 w-full p-2",
+                            img { class: "w-full h-auto object-contain", src: format!("{img_base_url}/{id}.webp", id = question.id) }
+                        }
+                    }
+                    "{question.name}"
+                }
+            }
+            ol {
+                class: "**list-inside** space-y-0.5 pl-4 pt-1 pb-3",
+                for answer in question.answers.values() {
+                    li {
+                        class: "flex gap-2",
+                        div {
+                            class: "flex items-center justify-center w-6",
+                            if answers_ids.contains(&answer.id) && answer.correct {
+                                i { class: "bi bi-check-circle text-green-700" }
+                            } else if answers_ids.contains(&answer.id) && !answer.correct {
+                                i { class: "bi bi-check text-red-700" }
+                            } else if answer.correct {
+                                i { class: "bi bi-circle text-red-700" }
+                            }
+                        }
+                        div {
+                            class: "flex flex-col",
+                            if answer.img {
+                                div {
+                                    class: "max-w-30 w-full p-2",
+                                    img { class: "w-full h-auto object-contain", src: format!("{img_base_url}/{id}.webp", id = answer.id) }
+                                }
+                            }
+                            "{answer.name}"
                         }
                     }
                 }

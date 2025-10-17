@@ -20,7 +20,7 @@ pub struct ConfigService;
 
 impl ConfigService {
     fn init_state() -> ConfigState {
-        let path = app_data_path().join("maes-config.json");
+        let path = app_data_path().join("1config.json");
         let config = Self::load_file(&path).unwrap_or_else(|e| {
             warn!("{e}");
             Self::default_config()

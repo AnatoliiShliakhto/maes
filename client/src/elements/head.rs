@@ -45,6 +45,7 @@ const APP_ICON: Asset = asset!(
 const _FAVICON: Asset = asset!("/assets/favicon.ico");
 const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
 const BOOTSTRAP_ICONS_CSS: Asset = asset!("/assets/bootstrap-icons.css");
+const MAIN_JS: Asset = asset!("/assets/main.js");
 
 #[component]
 pub fn Head() -> Element {
@@ -63,6 +64,7 @@ pub fn Head() -> Element {
                 document.documentElement.style.visibility='hidden';
             "#
         }
+        document::Script { src: MAIN_JS }
         document::Link { rel: "icon", href: APP_ICON }
         document::Link { rel: "stylesheet", href: BOOTSTRAP_ICONS_CSS }
         document::Link {

@@ -4,7 +4,8 @@ use ::shared::{common::*, models::*, payloads::*};
 use ::std::str::FromStr;
 
 pub async fn list_tasks(session: Session) -> Result<Json<Vec<Task>>> {
-    let tasks = TaskRepository::list_by_filter(&session.workspace, None, None).await?;
+    let nodes = session.nodes().await?;
+    let tasks = TaskRepository::list_by_filter(&session.workspace, None, nodes).await?;
     Ok(Json(tasks))
 }
 
@@ -25,7 +26,6 @@ pub async fn create_task(
     Path(kind): Path<String>,
     Json(payload): Json<CreateTaskPayload>,
 ) -> Result<Json<Task>> {
-    session.checked_admin()?;
     let kind = EntityKind::from_str(&kind).map_err(|_| (StatusCode::BAD_REQUEST, "bad-request"))?;
 
     let task = match kind {

@@ -108,7 +108,7 @@ fn RenderSurveyTreeCategory(category_id: ReadSignal<String>) -> Element {
                 class: "{node_class}",
                 onclick: select_action,
                 oncontextmenu: move |evt| if claims.is_admin() { ctx_menu(evt) } else { evt.stop_propagation() },
-                i { class: "bi bi-folder text-base-content/70" }
+                i { class: "bi bi-ui-checks text-base-content/70" }
                 "{category.name}"
             }
         }        

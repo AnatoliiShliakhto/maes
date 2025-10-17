@@ -167,12 +167,11 @@ pub fn ContextMenuContainer() -> Element {
                         let label = item.label.clone();
                         let separator_after = item.separator_after;
 
-                        if disabled { return rsx! { div { key: "ctx_menu_{index}" } } }
                         rsx! {
                             button {
                                 key: "ctx_menu_{index}",
                                 class: "w-full px-4 py-2 text-left hover:bg-base-200 flex items-center gap-2 text-sm lowercase",
-                                class: if disabled { "opacity-50 cursor-not-allowed" } else { "cursor-pointer" },
+                                class: if disabled { "opacity-50" } else { "cursor-pointer" },
                                 disabled: disabled,
                                 onclick: move |_| {
                                     if !disabled {
@@ -189,6 +188,8 @@ pub fn ContextMenuContainer() -> Element {
                             }
                             if separator_after && index < context_menu.len() - 1 {
                                 div { class: "border-t border-base-300 my-1" }
+                            } else {
+                                div { class: "hidden" }
                             }
                         }
                     }

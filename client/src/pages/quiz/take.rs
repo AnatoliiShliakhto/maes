@@ -42,6 +42,7 @@ pub fn QuizTake() -> Element {
             }
             div {
                 key: "{question.id}",
+                id: "scroll-container",
                 class: "flex-scrollable bg-base-100 w-full h-full pb-16",
                 ul {
                     class: "list w-full",
@@ -200,13 +201,19 @@ fn RenderControls() -> Element {
             class: "flex shrink-0 w-full items-center justify-between px-8 pt-10",
             button {
                 class: format!("btn btn-lg btn-primary {class}" , class = if current() == 0 { "btn-disabled" } else { "" }),
-                onclick: move |_| if current() > 0 { current.set(current() - 1) },
+                onclick: move |_| if current() > 0 {
+                    current.set(current() - 1);
+                    document::eval(r#"window.scrollToTop();"#);
+                },
                 { t!("previous") }
             }
             if current() + 1 < questions_count {
                 button {
                     class: format!("btn btn-lg btn-primary {class}", class = if !has_answered { "btn-disabled" } else { "" }),
-                    onclick: move |_| if has_answered { current.set(current() + 1) },
+                    onclick: move |_| if has_answered {
+                        current.set(current() + 1);
+                        document::eval(r#"window.scrollToTop();"#);
+                    },
                     { t!("next") }
                 }
             } else {

@@ -22,7 +22,7 @@ pub fn SideMenu() -> Element {
             }
             MenuItem {
                 to: Route::Reports {},
-                icon: rsx! { i { class: "bi bi-journal-text text-2xl" } },
+                icon: rsx! { i { class: "bi bi-file-earmark-text text-2xl" } },
                 label: t!("reports")
             }
             MenuItem {

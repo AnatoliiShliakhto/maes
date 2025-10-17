@@ -29,7 +29,7 @@ impl<T: Clone + 'static> Grid<T> {
         let idx = self.idx(row, col);
         self.data[idx] = val;
     }
-
+    
     pub fn add_value(&mut self, row: usize, col: usize, val: T)
     where
         T: std::ops::AddAssign + Copy + 'static,

@@ -3,7 +3,7 @@ use ::std::collections::HashMap;
 
 const SEGMENT_ICONS: &[(&str, &str)] = &[
     ("about", "bi bi-info-circle"),
-    ("reports", "bi bi-journal-text"),
+    ("reports", "bi bi-file-earmark-text"),
     ("tasks", "bi bi-activity"),
     ("wizard", "bi bi-magic"),
     ("workspace", "bi bi-person-workspace"),

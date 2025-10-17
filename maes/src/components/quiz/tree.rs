@@ -128,7 +128,7 @@ fn RenderQuizTreeCategory(category_id: ReadSignal<String>) -> Element {
 
     let create_question_action = use_callback(move |_| {
         ToastService::info(t!("fill-form-message"));
-        selected.set(QuizManagerAction::Question(category_id(), "".to_string()))
+        selected.set(QuizManagerAction::Question(category_id(), safe_nanoid!()))
     });
 
     let copy_category_action = use_callback(move |_| {

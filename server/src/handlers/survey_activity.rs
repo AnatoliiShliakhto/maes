@@ -45,11 +45,11 @@ pub async fn create_survey_record(session: &Session, payload: CreateTaskPayload)
                 continue;
             };
 
-            if c.questions.is_empty() {
+            if c.questions.is_empty() && c.answers.is_empty() {
                 continue;
             }
 
-            let questions_count = c.questions.len();
+            let questions_count = c.questions.len().max(1);
             let answers_count = c.answers.len().max(1);
 
             let category_id = c.id.clone();

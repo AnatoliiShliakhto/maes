@@ -223,7 +223,7 @@ pub async fn get_quiz_activity(
             .get(&student_id)
             .ok_or((StatusCode::NOT_FOUND, "student-not-found"))?
             .attempts
-            > quiz_rec_guard.attempts
+            > quiz_rec_guard.attempts && quiz_rec_guard.attempts > 0
         {
             Err("attempts-exceeded")?
         }
@@ -277,7 +277,7 @@ pub async fn update_quiz_activity(activity: QuizActivity) -> Result<()> {
             .get_index_of(&activity.student)
             .ok_or((StatusCode::NOT_FOUND, "student-not-found"))?;
         let student = quiz_rec_guard.students.index(student_idx).clone();
-        if student.attempts >= quiz_rec_guard.attempts {
+        if quiz_rec_guard.attempts > 0 && student.attempts >= quiz_rec_guard.attempts {
             Err("attempts-exceeded")?
         }
         let quiz_id = quiz_rec_guard.quiz.clone();

@@ -38,13 +38,19 @@ pub fn SurveyTake() -> Element {
             }
             div {
                 key: "{category.id}",
+                id: "scroll-container",
                 class: "flex-scrollable bg-base-100 w-full h-full pb-16",
                 div {
                     class: "flex w-full bg-base-200 rounded-none flex-wrap font-medium text-pretty items-center px-4 pb-4",
                     "{category.name}"
                 }
-                if category.answers.is_empty() {
-                    RenderChooseCategory {
+                if category.questions.is_empty() {
+                    RenderSingleCategory {
+                        key: "{category.id}{current}",
+                        category: category.clone(),
+                    }
+                } else if category.answers.is_empty() {
+                    RenderMultiplyCategory {
                         key: "{category.id}{current}",
                         category: category.clone(),
                     }
@@ -61,7 +67,51 @@ pub fn SurveyTake() -> Element {
 }
 
 #[component]
-fn RenderChooseCategory(category: ReadSignal<SurveyRecordCategory>) -> Element {
+fn RenderSingleCategory(category: ReadSignal<SurveyRecordCategory>) -> Element {
+    rsx! {
+        ul {
+            class: "list w-full",
+            for (idx, (_id, answer)) in category.read().answers.iter().enumerate() {
+                li {
+                    class: "list-row flex w-full rounded-none transition-colors p-0",
+                    class: "has-[input:checked]:bg-info/20 has-[input:checked]:ring-1 has-[input:checked]:ring-info/50",
+                    label {
+                        class: "flex w-full cursor-pointer justify-start gap-2 p-4",
+                        div {
+                            class: "flex h-full items-center",
+                            input {
+                                key: "{_id}",
+                                r#type: "radio",
+                                class: "radio radio-lg checked:radio-success",
+                                checked: *category.read().results.get(0, idx) > 0,
+                                onclick: {
+                                    to_owned![idx];
+                                    move |_| {
+                                        to_owned![idx];
+                                        SURVEY.with_mut(|survey| {
+                                            if let Some(cat) = survey.categories.get_mut(&category.read().id) {
+                                                cat.results.fill_row(0, 0);
+                                                cat.results.set(0, idx, 1)
+                                            }
+                                        })
+                                    }
+                                }
+                            }
+                        }
+                        div {
+                            class: "flex w-full text-pretty items-center",
+                            "{answer.name}"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+#[component]
+fn RenderMultiplyCategory(category: ReadSignal<SurveyRecordCategory>) -> Element {
     rsx! {
         ul {
             class: "list w-full",
@@ -164,13 +214,19 @@ fn RenderControls() -> Element {
             class: "flex shrink-0 w-full items-center justify-between px-8 pt-10",
             button {
                 class: format!("btn btn-lg btn-primary {class}" , class = if current() == 0 { "btn-disabled" } else { "" }),
-                onclick: move |_| if current() > 0 { current.set(current() - 1) },
+                onclick: move |_| if current() > 0 {
+                    current.set(current() - 1);
+                        document::eval(r#"window.scrollToTop();"#);
+                },
                 { t!("previous") }
             }
             if current() + 1 < category_count {
                 button {
                     class: "btn btn-lg btn-primary",
-                    onclick: move |_| current.set(current() + 1),
+                    onclick: move |_| {
+                        current.set(current() + 1);
+                        document::eval(r#"window.scrollToTop();"#);
+                    },
                     { t!("next") }
                 }
             } else {

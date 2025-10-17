@@ -59,6 +59,9 @@
         font-family: "Times New Roman", Times, serif !important;
         @apply min-h-0 min-w-0 w-full h-auto;
     }
+    .print-area div {
+        @apply text-pretty;
+    }
 
     .tickets-grid {
         @apply grid grid-cols-5 gap-0 p-5;
@@ -72,23 +75,23 @@
     }
 
     .quiz-report-table {
-        @apply table table-auto border-collapse box-border;
-    }
-    .quiz-report-table thead {
-        display: table-header-group;
+        @apply table table-auto border-collapse border-spacing-0;
     }
     .quiz-report-table tr {
         @apply break-inside-avoid;
     }
     .quiz-report-table th {
-        @apply border-1 box-border font-semibold text-base-content p-1;
+        @apply border-1 font-semibold text-base-content px-2 py-1;
     }
     .quiz-report-table td {
-        @apply border-1 box-border text-base-content text-center p-1;
+        @apply border-1 text-base-content text-center p-1;
     }
     .quiz-report-table .rotated {
         @apply w-min whitespace-nowrap [writing-mode:vertical-rl] [text-orientation:sideways] rotate-180;
     }
+
+    .apexcharts-canvas { pointer-events: none !important; }
+    .apexcharts-legend { pointer-events: none !important; }
 }
 
 @media print {

@@ -80,11 +80,6 @@ pub fn SurveyEditorCategory(category_id: ReadSignal<String>) -> Element {
             .map(|(id, name)| SurveyCategoryItem { id, name })
             .collect::<Vec<_>>();
 
-        if questions.is_empty() {
-            ToastService::error(t!("questions-count-error"));
-            return;
-        }
-
         let category_id_guard = category_id.read();
         let survey_id = survey.read().id.clone();
         let endpoint = format!("/api/v1/manager/surveys/{}/{}", survey_id, category_id_guard);
@@ -120,10 +115,6 @@ pub fn SurveyEditorCategory(category_id: ReadSignal<String>) -> Element {
             api_fetch!(PATCH, endpoint, payload, on_success = on_success)
         };
     };
-
-    if questions.read().is_empty() {
-        create_question_action.call(())
-    }
 
     let is_admin = claims.is_admin();
 
@@ -227,13 +218,8 @@ pub fn SurveyEditorCategory(category_id: ReadSignal<String>) -> Element {
                 class: "fieldset p-2",
                 legend {
                     class: "fieldset-legend text-sm text-primary",
-                    if answers.read().is_empty() {
-                        i { class: "bi bi-list-check" }
-                        { t!("survey-options-settings") }
-                    } else {
-                        i { class: "bi bi-question-circle" }
-                        { t!("survey-questions-settings") }
-                    }
+                    i { class: "bi bi-list-check" }
+                    { t!("survey-options-settings") }
                     if is_admin {
                         button {
                             class: format!("btn btn-xs ml-2 {class}", class = if questions.read().len() >= 30 { "disabled hidden" } else { "" }),
@@ -266,14 +252,14 @@ pub fn SurveyEditorCategory(category_id: ReadSignal<String>) -> Element {
 fn RenderSurveyCategoryItem(
     item: ReadSignal<SurveyCategoryItem>,
     mut collection: Signal<IndexMap<String, SurveyCategoryItem>>,
-    collection_name: String,
+    collection_name: ReadSignal<String>,
 ) -> Element {
     let claims = AuthService::claims();
     let item_guard = item.read();
 
     let delete_action = use_callback(move |id: String| {
         collection.with_mut(|c| {
-            if c.len() == 2 {
+            if c.len() == 2 && collection_name.read().eq("answer") {
                 c.clear()
             } else {
                 c.shift_remove(&id);
@@ -292,21 +278,24 @@ fn RenderSurveyCategoryItem(
                     name: "{collection_name}_name",
                     required: true,
                     minlength: 1,
-                    placeholder: if collection_name == "answer" { t!("answer-placeholder") } else { t!("question-or-option-placeholder") },
+                    placeholder: if collection_name.read().eq("answer") { t!("answer-placeholder") } else { t!("question-or-option-placeholder") },
                     initial_value: "{item_guard.name}",
                 }
             }
             if claims.is_admin() {
-                button {
-                    class: "hidden group-hover:btn hover:btn-error btn-square mt-1",
-                    onclick: {
-                        let id = item_guard.id.clone();
-                        move |evt| {
-                            evt.prevent_default();
-                            delete_action.call(id.clone())
-                        }
-                    },
-                    i { class: "bi bi-trash text-lg" }
+                div {
+                    class: "hidden group-hover:flex h-full items-center justify-center",
+                    button {
+                        class: "btn hover:btn-error btn-square",
+                        onclick: {
+                            let id = item_guard.id.clone();
+                            move |evt| {
+                                evt.prevent_default();
+                                delete_action.call(id.clone())
+                            }
+                        },
+                        i { class: "bi bi-trash text-lg" }
+                    }
                 }
             }
         }

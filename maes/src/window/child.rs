@@ -59,6 +59,7 @@ fn ChildWindow(title: String, kind: WindowKind, claims: Arc<Claims>) -> Element{
                 WindowKind::QuizTickets { task } => rsx! { QuizTickets { task } },
                 WindowKind::SurveyTickets { task } => rsx! { SurveyTickets { task } },
                 WindowKind::QuizReport { entity } => rsx! { QuizReport { entity } },
+                WindowKind::SurveyReport { entity } => rsx! { SurveyReport { entity } },
                 _ => rsx! {},
             }
         }

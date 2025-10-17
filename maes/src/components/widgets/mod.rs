@@ -7,6 +7,7 @@ mod context_menu;
 mod steps;
 mod progress_circle;
 mod rating;
+mod charts;
 
 pub use self::{
     resizer::*,
@@ -18,4 +19,5 @@ pub use self::{
     steps::*,
     progress_circle::*,
     rating::*,
+    charts::*
 };
