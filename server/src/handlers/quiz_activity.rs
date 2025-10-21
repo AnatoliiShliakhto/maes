@@ -73,13 +73,13 @@ pub async fn create_quiz_record(session: &Session, payload: CreateTaskPayload) -
         let mut task_categories =
             IndexMap::<String, QuizRecordCategory>::with_capacity(categories.len());
         let mut total_count = 0_i64;
-        let max_count = quiz_guard.categories.len();
 
         for category_req in categories {
             let Some(category) = quiz_guard.categories.get(&category_req.id) else {
                 continue;
             };
-            let count = category_req.count.min(max_count);
+
+            let count = category_req.count.min(category.questions.len());
             if count == 0 {
                 continue;
             }
@@ -301,7 +301,7 @@ pub async fn update_quiz_activity(activity: QuizActivity) -> Result<()> {
             let (correct_questions, student_answers) =
                 activity_questions
                     .iter()
-                    .fold((0, HashMap::<String, HashSet<String>>::new()), |(mut correct, mut answers), (question_id, question)| {
+                    .fold((0, HashMap::<String, HashSet<String>>::new()), |(mut correct, mut answers), (_question_id, question)| {
                         let Some(quiz_question) = quiz
                             .categories
                             .get(&category.id)

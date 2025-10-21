@@ -1,6 +1,7 @@
 use crate::{middleware::*, repositories::*, services::*};
 use ::axum::{Json, extract::Path};
-use ::shared::{common::*, models::*, payloads::*, utils::*};
+use ::indexmap::IndexMap;
+use ::shared::{common::*, models::*, payloads::*};
 
 pub async fn get_survey(session: Session, Path(survey_id): Path<String>) -> Result<Json<Survey>> {
     session.checked_supervisor()?;
@@ -36,12 +37,23 @@ pub async fn update_survey(
     Json(payload): Json<UpdateSurveyPayload>,
 ) -> Result<Json<Survey>> {
     session.checked_admin()?;
-    let UpdateSurveyPayload { name, node } = payload;
-    let mut survey_arc = Store::find::<Survey>(&session.workspace, survey_id).await?;
+    let UpdateSurveyPayload {
+        name,
+        node,
+        categories,
+    } = payload;
+    let survey_arc = Store::find::<Survey>(&session.workspace, survey_id).await?;
     let snapshot = {
         let mut survey_guard = survey_arc.write().await;
         survey_guard.name = name;
         survey_guard.node = node;
+        if !categories.is_empty() {
+            let categories = categories
+                .into_iter()
+                .map(|c| (c.id.clone(), c))
+                .collect::<IndexMap<String, SurveyCategory>>();
+            survey_guard.categories.extend(categories);
+        }
         survey_guard.metadata.update(&session.username);
 
         survey_guard.clone()
@@ -63,12 +75,7 @@ pub async fn delete_survey(
         Err((StatusCode::FORBIDDEN, "forbidden"))?
     }
 
-    EntityRepository::delete(
-        &session.workspace,
-        Some(survey_id.to_string()),
-        None,
-    )
-    .await?;
+    EntityRepository::delete(&session.workspace, Some(survey_id.to_string()), None).await?;
     Store::delete(&session.workspace, &survey_id).await?;
     Ok(Json(survey_id))
 }

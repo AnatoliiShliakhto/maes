@@ -1,5 +1,5 @@
 fn main() {
-    use ::std::env::var;
+    // use ::std::env::var;
     dotenvy::from_path("../.env").ok();
 
 

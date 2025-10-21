@@ -3,6 +3,7 @@ use super::{child::*, mock::*};
 
 #[derive(Clone, PartialEq)]
 pub enum WindowKind {
+    About,
     Mock { url: String },
     WiFiInstruction,
     QuizTickets { task: String },
@@ -18,6 +19,7 @@ impl WindowManager {
     pub fn open_window(title: impl Into<String>, kind: WindowKind) {
         let claims = AuthService::claims();
         match &kind {
+            WindowKind::About => open_child_window(title, kind, claims),
             WindowKind::Mock { url } => open_mock_window(title, url.clone()),
             WindowKind::WiFiInstruction |
             WindowKind::QuizTickets { .. } |

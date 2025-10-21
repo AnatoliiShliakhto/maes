@@ -5,7 +5,6 @@ use crate::{
 
 #[component]
 pub fn TaskWizard() -> Element {
-    use_init_dialog();
     use_init_input_dialog();
     use_init_create_user_dialog();
     use_init_add_student_dialog();
@@ -32,7 +31,6 @@ pub fn TaskWizard() -> Element {
             }
         }
 
-        DialogContainer { key: "wizard-dialog" }
         InputDialogContainer { key: "wizard-quiz-input-dialog" }
         CreateUserDialogContainer { key: "wizard-create-user-dialog" }
         AddStudentDialogContainer { key: "wizard-add-student-dialog" }

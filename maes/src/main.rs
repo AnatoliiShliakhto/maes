@@ -1,13 +1,13 @@
 #![windows_subsystem = "windows"]
 #![allow(dead_code)]
 #![allow(unused_macros)]
-mod reports;
-mod window;
 pub mod common;
 pub mod components;
 pub mod elements;
 pub mod pages;
+mod reports;
 pub mod services;
+mod window;
 
 pub mod prelude {
     pub use super::{
@@ -29,20 +29,26 @@ pub mod prelude {
 use ::dioxus::desktop::{
     Config as LaunchBuilderConfig, LogicalPosition, LogicalSize, WindowBuilder,
 };
-use components::widgets::*;
+use components::{widgets::*, dialogs::*};
 use elements::*;
 use pages::*;
 use prelude::*;
 use services::*;
+use ::single_instance::SingleInstance;
 
 fn main() {
+    if let Ok(instance) = SingleInstance::new(env!("CARGO_PKG_NAME"))
+        && !instance.is_single()
+    {
+        return;
+    }
     let app_data_path = app_data_path();
     let _log_guard = init_file_logger(
         env!("CARGO_PKG_NAME"),
         &app_data_path.join("logs").to_string_lossy(),
     );
     let config = ConfigService::read();
-    let server_handle = server::launch_server(config.server.clone(), app_data_path.clone());
+    let server_handle = server::launch_server(config.server.clone(), dispatcher().clone());
 
     let window = WindowBuilder::new()
         .with_resizable(true)
@@ -74,6 +80,18 @@ fn main() {
         .with_cfg(launch_builder_config)
         .launch(|| {
             let mut app_state = use_app_state();
+            let _ = bind_msg_dispatcher();
+            let mut dialog = use_init_dialog();
+
+            let download_url_sig = use_signal(|| "".to_string());
+            let update_action = use_callback(move |_| UpdateService::update(download_url_sig()));
+            use_effect(move || {
+                if download_url_sig.read().is_empty() { return }
+                dialog.info(t!("new-version-available"), Some(update_action));
+            });
+            use_effect(move || {
+                UpdateService::check_latest_release(download_url_sig);
+            });
 
             rsx! {
                 div {
@@ -127,6 +145,7 @@ fn main() {
                         AppState::Authorized => rsx! { Router::<Route> {} },
                     }
 
+                    DialogContainer { key: "dialog-container" }
                     ToastContainer { key: "toast-container" }
                     Resizer { key: "resizer" }
                 }

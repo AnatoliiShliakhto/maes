@@ -2,7 +2,6 @@ use crate::{prelude::*, components::{widgets::*, workspace::*, dialogs::*, stude
 
 #[component]
 pub fn Students() -> Element {
-    use_init_dialog();
     use_init_input_dialog();
     use_init_create_user_dialog();
     use_init_add_student_dialog();
@@ -30,7 +29,6 @@ pub fn Students() -> Element {
                 }
             }
         }
-        DialogContainer { key: "students-dialog" }
         InputDialogContainer { key: "students-input-dialog" }
         CreateUserDialogContainer { key: "students-create-user-dialog" }
         AddStudentDialogContainer { key: "students-add-student-dialog" }

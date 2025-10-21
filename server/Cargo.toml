@@ -14,6 +14,7 @@ shared = { path = "../shared", features = ["server"] }
 axum = { workspace = true }
 axum-server = { workspace = true }
 dashmap = { workspace = true }
+dirs = { workspace = true }
 indexmap = { workspace = true }
 futures = { workspace = true }
 moka = { workspace = true }
@@ -25,6 +26,8 @@ tower = { workspace = true }
 tower-http = { workspace = true }
 tracing = { workspace = true }
 image = { workspace = true }
+walkdir = { workspace = true }
+zip = { workspace = true }
 
 [build-dependencies]
 dotenvy = { workspace = true }

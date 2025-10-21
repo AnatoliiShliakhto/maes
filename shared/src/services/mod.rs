@@ -16,6 +16,8 @@ mod form_event;
 mod clipboard;
 #[cfg(feature = "desktop")]
 mod qr_generator;
+#[cfg(any(feature = "desktop", feature = "server"))]
+pub mod dispatcher;
 
 #[cfg(feature = "server")]
 pub use self::crypto::*;

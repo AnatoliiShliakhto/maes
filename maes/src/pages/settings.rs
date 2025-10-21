@@ -7,7 +7,6 @@ use crate::{
 #[component]
 pub fn Settings() -> Element {
     let config = ConfigService::read();
-    use_init_dialog();
 
     let save_settings_action = move |evt: FormEvent| {
         evt.stop();
@@ -170,7 +169,6 @@ pub fn Settings() -> Element {
                 }
             }
         }
-        DialogContainer { key: "settings-dialog-container" }
     }
 }
 

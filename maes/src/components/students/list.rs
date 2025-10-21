@@ -89,7 +89,7 @@ pub fn StudentsList() -> Element {
                     button {
                         class: "hover:text-error",
                         onclick: clear_action,
-                        i { class: "bi bi-eraser" }
+                        i { class: "bi bi-eraser-fill" }
                     }
                 }
             }

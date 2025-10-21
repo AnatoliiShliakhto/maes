@@ -10,6 +10,18 @@ disabled = true
 [tasks.test]
 disabled = true
 
+[tasks.dioxus-cli]
+script_runner = "@shell"
+script= '''
+cargo install --git https://github.com/DioxusLabs/dioxus dioxus-cli
+'''
+
+[tasks.delete-artifacts]
+script_runner = "@shell"
+script= '''
+rm -rf "target/dx"
+'''
+
 [tasks.app-js]
 script_runner = "@shell"
 script= '''
@@ -55,9 +67,10 @@ dx serve --package maes
 '''
 
 [tasks.app-bundle]
-dependencies = ["app-css"]
+dependencies = ["delete-artifacts", "client", "app-js", "app-css"]
 script_runner = "@shell"
 script= '''
+xcopy /S /Y /I "target/dx/client/release/web/public" "target/dx/client/release/bundle/client"
 dx bundle --release --package maes
 '''
 
@@ -66,7 +79,6 @@ dependencies = ["client-css"]
 script_runner = "@shell"
 script= '''
 dx bundle --release --package client --target wasm32-unknown-unknown
-xcopy /S /Y /I "target/dx/client/release/web/public" "%AppData%/maes/client"
 '''
 
 [tasks.client]

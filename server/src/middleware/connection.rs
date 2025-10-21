@@ -27,7 +27,7 @@ impl Connection {
     }
 
     pub fn is_app(&self) -> bool {
-        self.user_agent == IDENT.get().cloned()
+        self.user_agent.as_deref() == Some(State::ident())
     }
 
     pub fn checked_local(&self) -> Result<()> {

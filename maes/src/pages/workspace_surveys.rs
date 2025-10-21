@@ -9,7 +9,6 @@ pub fn WorkspaceSurveys() -> Element {
     if !AuthService::claims().is_supervisor() {
         return rsx! {};
     }
-    use_init_dialog();
     use_init_input_dialog();
     use_init_context_menu();
 
@@ -36,7 +35,6 @@ pub fn WorkspaceSurveys() -> Element {
                 }
             }
         }
-        DialogContainer { key: "ws-survey-dialog" }
         InputDialogContainer { key: "ws-survey-input-dialog" }
         ContextMenuContainer { key: "ws-survey-ctx-menu" }
     }

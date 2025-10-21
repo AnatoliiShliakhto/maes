@@ -49,14 +49,11 @@ pub fn SideMenu() -> Element {
                 }
             }
             li { class: "mx-0" }
-            MenuItem {
-                icon: rsx! { i { class: "bi bi-dropbox text-2xl" } },
-                label: t!("import")
-            }
             if claims.is_admin() {
                 MenuItem {
                     icon: rsx! { i { class: "bi bi-box-seam text-2xl" } },
-                    label: t!("export")
+                    label: t!("export"),
+                    onclick: move |_| Exchange::export(vec![])
                 }
             }
             MenuItem {
@@ -64,7 +61,6 @@ pub fn SideMenu() -> Element {
                 icon: rsx! { i { class: "bi bi-gear text-2xl" } },
                 label: t!("settings")
             }
-            li { class: "mx-0" }
             MenuItem {
                 icon: rsx! { i { class: "bi bi-box-arrow-right text-2xl" } },
                 label: t!("sign-out"),

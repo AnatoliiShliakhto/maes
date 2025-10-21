@@ -7,13 +7,17 @@ pub struct TaskRepository;
 impl TaskRepository {
     pub async fn init(workspace: impl AsRef<str>) -> Result<()> {
         let ws_id = workspace.as_ref();
-        if let Ok(path) = Store::get_path(ws_id, TASKS)
-            && !path.exists()
-        {
+        if !Store::get_path(ws_id, TASKS).exists() {
             let tasks = Tasks::new(ws_id);
             Store::upsert(tasks).await?;
         };
         Ok(())
+    }
+
+    pub async fn get(workspace: impl Into<String>, task_id: impl Into<String>) -> Result<Task> {
+        let tasks_arc = Store::find::<Tasks>(workspace, TASKS).await?;
+        let task = tasks_arc.read().await.get(&task_id.into()).cloned();
+        task.ok_or_else(|| (StatusCode::NOT_FOUND, "not-found").into())
     }
 
     pub async fn list_by_filter(

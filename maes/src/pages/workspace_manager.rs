@@ -9,7 +9,6 @@ pub fn WorkspaceManager() -> Element {
     if !AuthService::claims().is_supervisor() {
         return rsx! {};
     }
-    use_init_dialog();
     use_init_input_dialog();
     use_init_create_user_dialog();
     use_init_context_menu();
@@ -36,7 +35,6 @@ pub fn WorkspaceManager() -> Element {
                 }
             }
         }
-        DialogContainer { key: "ws-dialog" }
         InputDialogContainer { key: "ws-input-dialog" }
         CreateUserDialogContainer { key: "ws-create-user-dialog" }
         ContextMenuContainer { key: "ws-ctx-menu" }

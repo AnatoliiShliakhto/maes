@@ -6,9 +6,7 @@ pub struct EntityRepository;
 
 impl EntityRepository {
     pub async fn init(workspace: Entity) -> Result<()> {
-        if let Ok(path) = Store::get_path(&workspace.id, ENTITIES)
-            && !path.exists()
-        {
+        if !Store::get_path(&workspace.id, ENTITIES).exists() {
             let entities = Entities::new(workspace);
             Store::upsert(entities).await?;
         };
@@ -18,11 +16,13 @@ impl EntityRepository {
     pub async fn list_by_filter(
         workspace: impl Into<String>,
         kind: Option<Vec<EntityKind>>,
+        ids: Option<Vec<String>>,
         nodes: Option<Vec<String>>,
     ) -> Result<Vec<Entity>> {
         let entities_arc = Store::find::<Entities>(workspace, ENTITIES).await?;
 
         let kinds = kind.map(|vec| vec.into_iter().collect::<HashSet<EntityKind>>());
+        let ids = ids.map(|vec| vec.into_iter().collect::<HashSet<String>>());
         let nodes = nodes.map(|vec| vec.into_iter().collect::<HashSet<String>>());
 
         let mut entities = {
@@ -30,6 +30,7 @@ impl EntityRepository {
             let mut out = Vec::with_capacity(entities_guard.len());
             for e in entities_guard.values() {
                 if kinds.as_ref().map_or(true, |set| set.contains(&e.kind))
+                    && ids.as_ref().map_or(true, |set| set.contains(&e.id))
                     && nodes.as_ref().map_or(true, |set| set.contains(&e.node))
                 {
                     out.push(e.clone());

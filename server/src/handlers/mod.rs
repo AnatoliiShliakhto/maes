@@ -11,8 +11,9 @@ mod workspace_users;
 mod survey_activity;
 mod image;
 mod activity;
+mod exchange;
 
 pub use self::{
     auth::*, entity::*, health::*, quiz_manager::*, quiz_activity::*, students::*, survey_manager::*,
-    task::*, workspace::*, workspace_users::*, survey_activity::*, image::*, activity::*,
+    task::*, workspace::*, workspace_users::*, survey_activity::*, image::*, activity::*, exchange::*,
 };

@@ -1,13 +1,16 @@
-use crate::prelude::*;
+use crate::{services::*, prelude::*};
 use ::std::{path::PathBuf, sync::LazyLock};
-use crate::services::ConfigService;
+use ::shared::services::dispatcher::*;
 
 static DATA_PATH: LazyLock<PathBuf> = LazyLock::new(|| {
     dirs::data_dir()
         .unwrap()
-        .join(env!("CARGO_PKG_NAME"))
-        .canonicalize()
-        .unwrap()
+        .join("maes")
+    // dirs::data_dir()
+    //     .unwrap()
+    //     .join(env!("CARGO_PKG_NAME"))
+    //     .canonicalize()
+    //     .unwrap()
 });
 
 pub fn app_data_path() -> PathBuf {
@@ -34,4 +37,10 @@ pub enum AppState {
     Started,
     Running,
     Authorized,
+}
+
+static DISPATCHER: LazyLock<Dispatcher> = LazyLock::new(Dispatcher::new);
+
+pub fn dispatcher() -> &'static Dispatcher {
+    &DISPATCHER
 }

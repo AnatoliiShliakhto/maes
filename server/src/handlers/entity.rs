@@ -7,13 +7,39 @@ use ::axum::{
 use ::shared::{common::*, models::*, utils::*};
 use ::std::str::FromStr;
 
+pub async fn list_reports(session: Session) -> Result<Json<Vec<Entity>>> {
+    let kinds = vec![
+        EntityKind::QuizRecord,
+        EntityKind::SurveyRecord,
+    ];
+    let nodes = session.nodes().await?;
+
+    let entities =
+        EntityRepository::list_by_filter(&session.workspace, Some(kinds), None,  nodes).await?;
+
+    Ok(Json(entities))
+}
+
+pub async fn delete_entities(
+    session: Session,
+    Json(entities): Json<Vec<String>>,
+) -> Result<()> {
+    //todo: check entities kinds
+    EntityRepository::batch_remove(&session.workspace, Some(entities), None).await?;
+    Ok(())
+}
+
 pub async fn list_entities(
     session: Session,
     Path(kind): Path<String>,
 ) -> Result<Json<Vec<Entity>>> {
     let kind = EntityKind::from_str(&kind).map_err(|_| (StatusCode::BAD_REQUEST, "bad-request"))?;
-    let entities =
-        EntityRepository::list_by_filter(&session.workspace, Some(vec![kind]), None).await?;
+    let entities = if kind == EntityKind::Workspace {
+        EntityRepository::list_by_filter(&session.workspace, Some(vec![kind]), None, None).await?
+    } else {
+        let nodes = session.nodes().await?;
+        EntityRepository::list_by_filter(&session.workspace, Some(vec![kind]), None, nodes).await?
+    };
 
     Ok(Json(entities))
 }
@@ -39,7 +65,7 @@ pub async fn list_entities_by_node(
     }
 
     let entities =
-        EntityRepository::list_by_filter(&session.workspace, Some(vec![kind]), Some(nodes)).await?;
+        EntityRepository::list_by_filter(&session.workspace, Some(vec![kind]), None, Some(nodes)).await?;
     Ok(Json(entities))
 }
 

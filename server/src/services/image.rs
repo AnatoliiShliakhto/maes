@@ -1,30 +1,23 @@
+use crate::common::*;
 use ::futures::{StreamExt, stream};
-use ::image::{DynamicImage, GenericImageView, ImageFormat, imageops::FilterType};
+use ::image::{DynamicImage, ImageFormat, imageops::FilterType};
 use ::shared::common::*;
 use ::std::{
     collections::HashSet,
     fs::File,
     io::{BufWriter, Write},
-    path::{Path, PathBuf},
+    path::Path,
     sync::Arc,
 };
-use ::tokio::{fs, sync::OnceCell, task};
+use ::tokio::{fs, task};
 use ::tracing::error;
 
 const MAX_DIM: u32 = 300;
-static PATH: OnceCell<Arc<PathBuf>> = OnceCell::const_new();
 
 #[derive(Copy, Clone)]
 pub struct ImageService;
 
 impl ImageService {
-    pub async fn init(path: impl Into<PathBuf>) -> Result<()> {
-        let path = path.into().join("client").join("images");
-        fs::create_dir_all(&path).await.map_err(map_log_err)?;
-        PATH.set(Arc::new(path)).map_err(map_log_err)?;
-        Ok(())
-    }
-
     pub async fn convert_and_save(
         input_path: impl AsRef<Path>,
         workspace: impl AsRef<str>,
@@ -32,10 +25,13 @@ impl ImageService {
         id: impl AsRef<str>,
     ) -> Result<()> {
         let input_path = input_path.as_ref().to_owned();
-        let base = Self::require_base_path()?;
-        let dir = base.join(workspace.as_ref()).join(entity.as_ref());
+        let dir = State::path().join(format!(
+            "assets/{workspace}/{entity}",
+            workspace = workspace.as_ref(),
+            entity = entity.as_ref()
+        ));
         fs::create_dir_all(&dir).await.map_err(map_log_err)?;
-        let output_path = dir.join(format!("{}.webp", id.as_ref()));
+        let output_path = dir.join(format!("{id}.webp", id = id.as_ref()));
 
         task::spawn_blocking(move || {
             Self::resize_and_convert_to_webp(&input_path, &output_path, MAX_DIM)
@@ -49,11 +45,12 @@ impl ImageService {
         entity: impl AsRef<str>,
         id: impl AsRef<str>,
     ) -> Result<()> {
-        let base = Self::require_base_path()?;
-        let path = base
-            .join(workspace.as_ref())
-            .join(entity.as_ref())
-            .join(format!("{}.webp", id.as_ref()));
+        let path = State::path().join(format!(
+            "assets/{workspace}/{entity}/{id}.webp",
+            workspace = workspace.as_ref(),
+            entity = entity.as_ref(),
+            id = id.as_ref()
+        ));
 
         match fs::remove_file(path).await {
             Ok(()) => Ok(()),
@@ -63,7 +60,7 @@ impl ImageService {
     }
 
     pub async fn remove_entities(workspace: impl AsRef<Path>, entities: Vec<String>) -> Result<()> {
-        let base = Self::require_base_path()?.join(workspace.as_ref());
+        let base = State::path().join("assets").join(workspace.as_ref());
         tokio::spawn(async move {
             for entity in entities {
                 let dir = base.join(entity);
@@ -74,8 +71,7 @@ impl ImageService {
     }
 
     pub async fn remove_workspace(workspace: impl AsRef<str>) -> Result<()> {
-        let base = Self::require_base_path()?;
-        let dir = base.join(workspace.as_ref());
+        let dir = State::path().join("assets").join(workspace.as_ref());
         fs::remove_dir_all(dir).await.map_err(map_log_err)
     }
 
@@ -108,13 +104,14 @@ impl ImageService {
         destination_workspace: impl AsRef<Path>,
         destination_entity: impl AsRef<Path>,
     ) -> Result<()> {
-        let base_path = Self::require_base_path()?;
-        let src = base_path
-            .join(source_workspace.as_ref())
-            .join(source_entity.as_ref());
-        let dst = base_path
-            .join(destination_workspace.as_ref())
-            .join(destination_entity.as_ref());
+        let src = State::path()
+            .join("assets")
+            .join(source_workspace)
+            .join(source_entity);
+        let dst = State::path()
+            .join("assets")
+            .join(destination_workspace)
+            .join(destination_entity);
 
         task::spawn(async move {
             if let Err(e) = fs::create_dir_all(&dst).await {
@@ -208,8 +205,11 @@ impl ImageService {
         workspace: impl AsRef<str>,
         entity: impl AsRef<str>,
     ) -> Result<HashSet<String>> {
-        let base = Self::require_base_path()?;
-        let dir = base.join(workspace.as_ref()).join(entity.as_ref());
+        let dir = State::path().join(format!(
+            "assets/{workspace}/{entity}",
+            workspace = workspace.as_ref(),
+            entity = entity.as_ref()
+        ));
 
         match fs::read_dir(&dir).await {
             Ok(mut rd) => {
@@ -231,15 +231,5 @@ impl ImageService {
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(HashSet::new()),
             Err(e) => Err(map_log_err(e)),
         }
-    }
-
-    #[inline]
-    fn require_base_path() -> Result<Arc<PathBuf>> {
-        PATH.get().cloned().ok_or_else(|| {
-            map_log_err(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                "images path is not initialized",
-            ))
-        })
     }
 }

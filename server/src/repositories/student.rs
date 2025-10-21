@@ -7,9 +7,7 @@ pub struct StudentRepository;
 impl StudentRepository {
     pub async fn init(workspace: impl AsRef<str>) -> Result<()> {
         let ws_id = workspace.as_ref();
-        if let Ok(path) = Store::get_path(ws_id, STUDENTS)
-            && !path.exists()
-        {
+        if !Store::get_path(ws_id, STUDENTS).exists() {
             let students = Students::new(ws_id);
             Store::upsert(students).await?;
         };

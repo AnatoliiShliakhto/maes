@@ -2,7 +2,7 @@
 name = "maes"
 tailwind_input = "maes/tailwind.css"
 tailwind_output = "maes/assets/tailwind.css"
-asset_dir = "maes/assets"
+#static_dir = "maes/assets"
 default_platform = "desktop"
 
 [web.app]
@@ -34,7 +34,7 @@ copyright = "Copyright 2025 Anatolii Shliakhto"
 category = "Utility"
 short_description = "MAES"
 long_description = "Military Aptitude & Evaluation System"
-resources = ["target/dx/client/release/web"]
+resources = ["target/dx/client/release/bundle"]
 icon = ["maes/assets/icon.ico"]
 
 [bundle.windows]
@@ -46,8 +46,6 @@ tsp = true
 allow_downgrades = false
 internal_name = "MAES"
 original_filename = "maes.exe"
-
-
 
 [bundle.windows.webview_install_mode.DownloadBootstrapper]
 silent = true

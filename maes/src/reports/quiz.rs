@@ -66,7 +66,7 @@ pub fn QuizReport(entity: ReadSignal<String>) -> Element {
                         { t!("print") }
                     }
                 }
-                div { class: "divider divider-horizontal m-0 w-1" }
+                div { class: "divider divider-horizontal m-1 w-1" }
                 div {
                     class: "tooltip tooltip-bottom",
                     "data-tip": t!("absent-uncertified-students"),
@@ -78,7 +78,7 @@ pub fn QuizReport(entity: ReadSignal<String>) -> Element {
                         }
                     }
                 }
-                li { class: "m-0 w-1" }
+                div { class: "m-0 w-1" }
                 div {
                     class: "tooltip tooltip-bottom",
                     "data-tip": t!("stats"),
@@ -90,7 +90,7 @@ pub fn QuizReport(entity: ReadSignal<String>) -> Element {
                         }
                     }
                 }
-                div { class: "divider divider-horizontal m-0 w-1" }
+                div { class: "divider divider-horizontal m-1 w-1" }
                 div {
                     class: "tooltip tooltip-bottom",
                     "data-tip": t!("grade-or-percentage"),
@@ -107,7 +107,7 @@ pub fn QuizReport(entity: ReadSignal<String>) -> Element {
                     }
                 }
                 if state.read().active_student.is_some() {
-                    div { class: "divider divider-horizontal m-0 w-1" }
+                    div { class: "divider divider-horizontal m-1 w-1" }
                     li {
                         button {
                             onclick: move |_| state.with_mut(|s| s.active_student = None),

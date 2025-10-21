@@ -1,4 +1,4 @@
-use crate::services::*;
+use crate::{common::*};
 use ::moka::future::Cache;
 use ::serde::{Deserialize, Serialize};
 use ::shared::{common::*, services::*, utils::*};
@@ -8,17 +8,11 @@ use ::std::{
     path::{Path, PathBuf},
     sync::{Arc, LazyLock},
 };
-use ::tokio::{
-    fs,
-    io::AsyncWriteExt,
-    sync::{OnceCell, RwLock},
-    task::spawn_blocking,
-};
+use ::tokio::{fs, io::AsyncWriteExt, sync::RwLock, task::spawn_blocking};
 
 static CIPHER: LazyLock<Arc<Cipher>> = LazyLock::new(|| {
     Arc::new(Cipher::init().unwrap_or_else(|e| panic!("Cipher init failed: {e}")))
 });
-static PATH: OnceCell<Arc<PathBuf>> = OnceCell::const_new();
 static CACHE: LazyLock<Cache<String, Arc<dyn Any + Send + Sync>>> =
     LazyLock::new(|| Cache::builder().max_capacity(1_000).build());
 
@@ -26,13 +20,6 @@ static CACHE: LazyLock<Cache<String, Arc<dyn Any + Send + Sync>>> =
 pub struct Store;
 
 impl Store {
-    pub async fn init(path: impl Into<PathBuf>) -> Result<()> {
-        let path = path.into().join("workspaces");
-        fs::create_dir_all(&path).await.map_err(map_log_err)?;
-        PATH.set(Arc::new(path.clone())).map_err(map_log_err)?;
-        Ok(())
-    }
-
     pub async fn find<T: Cachable + for<'de> Deserialize<'de> + 'static>(
         workspace: impl Into<String>,
         id: impl Into<String>,
@@ -47,7 +34,7 @@ impl Store {
             return Ok(arc.clone());
         }
 
-        let path = Self::get_path(&ws_id, &id).map_err(map_log_err)?;
+        let path = Self::get_path(&ws_id, &id);
 
         let erased = CACHE
             .try_get_with(cache_id.clone(), async move {
@@ -58,7 +45,8 @@ impl Store {
                 let arc: Arc<Arc<RwLock<T>>> = Arc::new(Arc::new(RwLock::new(val)));
                 Ok::<Arc<dyn Any + Send + Sync>, Error>(arc)
             })
-            .await.map_err(|_| (StatusCode::NOT_FOUND, "file-not-found"))?;
+            .await
+            .map_err(|_| (StatusCode::NOT_FOUND, "file-not-found"))?;
 
         let arc = erased
             .downcast_ref::<Arc<RwLock<T>>>()
@@ -74,7 +62,7 @@ impl Store {
         let ws_id = payload.get_ws();
         let id = payload.get_id();
         let cache_id = format!("{ws_id}{id}");
-        let path = Self::get_path(&ws_id, &id)?;
+        let path = Self::get_path(&ws_id, &id);
 
         if !CACHE.contains_key(&cache_id) {
             put_cached(cache_id, payload.clone()).await;
@@ -95,10 +83,7 @@ impl Store {
         let ws_id = workspace.as_ref();
         let id = id.as_ref();
         let cache_id = format!("{ws_id}{id}");
-
-        if let Ok(path) = Self::get_path(ws_id, id) {
-            fs::remove_file(path).await.ok();
-        }
+        fs::remove_file(Self::get_path(ws_id, id)).await.ok();
         pop_cached(cache_id).await;
         Ok(())
     }
@@ -118,15 +103,23 @@ impl Store {
     pub async fn remove_workspace(workspace: impl Into<String>) -> Result<()> {
         let ws_id = workspace.into();
         tokio::spawn(async move {
-            if let Some(path) = PATH.get().map(|p| p.join(&ws_id)) && path.exists() {
-                if let Ok(mut dir) = fs::read_dir(&path).await {
-                    while let Ok(Some(entry)) = dir.next_entry().await {
-                        let Ok(filename) = entry.file_name().into_string() else { continue };
-                        pop_cached(format!("{ws_id}{id}", id = filename.trim_end_matches(".bin"))).await;
-                    };
-                }
-                fs::remove_dir_all(path).await.map_err(map_log_err).ok();
+            let path = State::path().join(format!("workspaces/{ws_id}"));
+            if !path.exists() {
+                return;
             }
+            if let Ok(mut dir) = fs::read_dir(&path).await {
+                while let Ok(Some(entry)) = dir.next_entry().await {
+                    let Ok(filename) = entry.file_name().into_string() else {
+                        continue;
+                    };
+                    pop_cached(format!(
+                        "{ws_id}{id}",
+                        id = filename.trim_end_matches(".bin")
+                    ))
+                    .await;
+                }
+            }
+            fs::remove_dir_all(path).await.map_err(map_log_err).ok();
             pop_cached(&ws_id).await;
         });
         Ok(())
@@ -137,9 +130,7 @@ impl Store {
         data: T,
     ) -> Result<String> {
         let ws_id = workspace.into();
-        spawn_blocking(move || -> Result<String> {
-            CIPHER.get(ws_id)?.encrypt_json::<T>(data)
-        })
+        spawn_blocking(move || -> Result<String> { CIPHER.get(ws_id)?.encrypt_json::<T>(data) })
             .await
             .map_err(map_log_err)?
     }
@@ -153,8 +144,8 @@ impl Store {
         spawn_blocking(move || -> Result<Vec<u8>> {
             CIPHER.get(ws_id)?.encrypt_binary::<T>(data, compress)
         })
-            .await
-            .map_err(map_log_err)?
+        .await
+        .map_err(map_log_err)?
     }
 
     pub async fn decrypt_json<T: for<'de> Deserialize<'de> + Send + 'static>(
@@ -162,9 +153,7 @@ impl Store {
         encrypted_data: String,
     ) -> Result<T> {
         let ws_id = workspace.into();
-        spawn_blocking(move || -> Result<T> {
-            CIPHER.get(ws_id)?.decrypt_json(encrypted_data)
-        })
+        spawn_blocking(move || -> Result<T> { CIPHER.get(ws_id)?.decrypt_json(encrypted_data) })
             .await
             .map_err(map_log_err)?
     }
@@ -176,25 +165,16 @@ impl Store {
     ) -> Result<T> {
         let ws_id = workspace.into();
         spawn_blocking(move || -> Result<T> {
-            CIPHER.get(ws_id)?.decrypt_binary(&encrypted_data, compressed)
+            CIPHER
+                .get(ws_id)?
+                .decrypt_binary(&encrypted_data, compressed)
         })
-            .await
-            .map_err(map_log_err)?
+        .await
+        .map_err(map_log_err)?
     }
 
-    pub fn base_path() -> Option<Arc<PathBuf>> {
-        PATH.get().map(|p| p.clone())
-    }
-
-    pub fn get_path(workspace: impl AsRef<str>, id: impl AsRef<str>) -> Result<PathBuf> {
-        let ws_id = workspace.as_ref();
-        let id = id.as_ref();
-
-        if let Some(path) = PATH.get().map(|p| p.join(ws_id).join(format!("{id}.bin"))) {
-            Ok(path)
-        } else {
-            Err((StatusCode::NOT_FOUND, "path-not-found"))?
-        }
+    pub fn get_path(workspace: impl AsRef<str>, id: impl AsRef<str>) -> PathBuf {
+        State::path().join(format!("workspaces/{workspace}/{id}.bin", workspace = workspace.as_ref(), id = id.as_ref()))
     }
 }
 

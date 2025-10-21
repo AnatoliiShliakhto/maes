@@ -145,6 +145,15 @@ impl Entities {
             inner: entities,
         }
     }
+
+    pub fn new_with_id(workspace_id: impl Into<String>) -> Self {
+        let ws_id = workspace_id.into();
+        let entities = HashMap::<String, Entity>::new();
+        Self {
+            workspace: ws_id,
+            inner: entities,
+        }
+    }
 }
 
 impl Deref for Entities {

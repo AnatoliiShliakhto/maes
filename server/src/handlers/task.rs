@@ -65,3 +65,27 @@ pub async fn get_task_categories(
 
     Ok(Json(categories))
 }
+
+pub async fn finish_task(session: Session, Path(task_id): Path<String>) -> Result<Json<String>> {
+    let task = TaskRepository::get(&session.workspace, &task_id).await?;
+    if task.kind != EntityKind::QuizRecord && task.kind != EntityKind::SurveyRecord {
+        Err((StatusCode::BAD_REQUEST, "bad-request"))?
+    }
+    let mut metadata = task.metadata;
+    metadata.update(&session.username);
+    let entity = match task.kind {
+        EntityKind::QuizRecord |
+        EntityKind::SurveyRecord => Entity {
+            id: task.id,
+            name: task.name,
+            kind: task.kind,
+            node: task.node,
+            path: task.path,
+            metadata,
+        },
+        _ => Err((StatusCode::BAD_REQUEST, "not-found"))?,
+    };
+    TaskRepository::delete(&session.workspace, Some(task_id.clone()), None).await?;
+    EntityRepository::upsert(&session.workspace, entity).await?;
+    Ok(Json(task_id))
+}

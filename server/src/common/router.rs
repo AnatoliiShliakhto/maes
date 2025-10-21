@@ -6,13 +6,20 @@ use ::axum::{
 };
 use ::shared::{models::ServerConfig, utils::parse_scheme_host_port};
 use ::std::path::PathBuf;
+use std::env;
 use ::tower_http::{
     cors::CorsLayer,
     services::{ServeDir, ServeFile},
 };
 use ::tower::ServiceBuilder;
 
-pub fn init_router(path: PathBuf, config: &ServerConfig) -> Router {
+pub fn init_router(data_path: PathBuf, config: &ServerConfig) -> Router {
+    let client_path =
+        if cfg!(debug_assertions) {
+            env::current_exe().unwrap().parent().unwrap().join("../../../../client/release/web/public")
+        } else {
+            env::current_exe().unwrap().parent().unwrap().join("client")
+        };
     let (scheme, host, port) = parse_scheme_host_port(config.host.as_str()).unwrap();
     let cors = CorsLayer::new()
         .allow_origin([
@@ -33,8 +40,9 @@ pub fn init_router(path: PathBuf, config: &ServerConfig) -> Router {
 
     Router::new()
         .fallback_service(
-            ServeDir::new(path.join("client")).fallback(ServeFile::new(path.join("client").join("index.html"))),
+            ServeDir::new(&client_path).fallback(ServeFile::new(client_path.join("index.html"))),
         )
+        .nest_service("/images", ServeDir::new(data_path.join("assets")))
         .route("/health", get(liveness))
         .nest("/api/v1", api_v1_router())
         .layer(
@@ -61,6 +69,8 @@ fn api_v1_router() -> Router {
         .nest("/manager/quizzes", quiz_manager_router())
         .nest("/manager/surveys", survey_manager_router())
         .nest("/manager/images", image_manager_router())
+        .nest("/reports", reports_router())
+        .nest("/exchange", exchange_router())
 }
 
 fn entity_router() -> Router {
@@ -143,6 +153,7 @@ fn students_manager_router() -> Router {
 
 fn task_manager_router() -> Router {
     Router::new()
+        .route("/finish/{id}", post(finish_task))
         .route("/categories/{kind}/{id}", get(get_task_categories))
         .route("/{kind}/{task_id}", get(get_task).delete(delete_task))
         .route("/{kind}", post(create_task))
@@ -163,4 +174,15 @@ fn activities_router() -> Router {
         .route("/{workspace_id}/{task_id}", get(get_activity))
         .route("/{workspace_id}/{task_id}/{student_id}", get(get_activity_with_student))
         .route("/", post(update_activity))
+}
+
+fn reports_router() -> Router {
+    Router::new()
+        .route("/", get(list_reports).delete(delete_entities))
+}
+
+fn exchange_router() -> Router {
+    Router::new()
+        .route("/export", post(export))
+        .route("/import", post(import))
 }

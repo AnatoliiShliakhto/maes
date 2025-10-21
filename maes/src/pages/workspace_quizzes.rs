@@ -9,7 +9,6 @@ pub fn WorkspaceQuizzes() -> Element {
     if !AuthService::claims().is_supervisor() {
         return rsx! {};
     }
-    use_init_dialog();
     use_init_input_dialog();
     use_init_context_menu();
 
@@ -36,7 +35,6 @@ pub fn WorkspaceQuizzes() -> Element {
                 }
             }
         }
-        DialogContainer { key: "ws-quiz-dialog" }
         InputDialogContainer { key: "ws-quiz-input-dialog" }
         ContextMenuContainer { key: "ws-quiz-ctx-menu" }
     }

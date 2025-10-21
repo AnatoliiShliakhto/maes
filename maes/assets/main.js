@@ -1,3 +1,4 @@
+import "cally";
 import ApexCharts from 'apexcharts';
 window.ApexCharts = ApexCharts;
 

@@ -91,4 +91,6 @@ impl From<String> for WorkspaceRole {
 pub struct WorkspaceMetadata {
     pub id: String,
     pub name: String,
+    #[serde(default)]
+    pub version: i64,
 }

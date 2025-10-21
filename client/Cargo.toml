@@ -11,7 +11,6 @@ license.workspace = true
 
 [dependencies]
 shared = { path = "../shared", features = ["wasm"] }
-chrono = { workspace = true }
 dioxus = { workspace = true, features = ["web", "logger", "router"] }
 gloo-timers = { workspace = true }
 reqwest = { workspace = true }

@@ -8,6 +8,7 @@ mod steps;
 mod progress_circle;
 mod rating;
 mod charts;
+mod calendar;
 
 pub use self::{
     resizer::*,
@@ -19,5 +20,6 @@ pub use self::{
     steps::*,
     progress_circle::*,
     rating::*,
-    charts::*
+    charts::*,
+    calendar::*,
 };

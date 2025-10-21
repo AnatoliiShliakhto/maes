@@ -2,7 +2,7 @@
 name = "maes"
 tailwind_input = "client/tailwind.css"
 tailwind_output = "client/assets/tailwind.css"
-asset_dir = "client/assets"
+#static_dir = "client/assets"
 default_platform = "web"
 
 [web.app]

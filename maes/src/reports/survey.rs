@@ -44,7 +44,7 @@ pub fn SurveyReport(entity: ReadSignal<String>) -> Element {
                         { t!("print") }
                     }
                 }
-                div { class: "divider divider-horizontal m-0 w-1" }
+                div { class: "divider divider-horizontal m-1 w-1" }
                 div {
                     class: "tooltip tooltip-bottom",
                     "data-tip": t!("extended"),

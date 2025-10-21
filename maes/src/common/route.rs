@@ -22,8 +22,6 @@ pub enum Route {
     WorkspaceSurveys {},
     #[route("/settings")]
     Settings {},
-    #[route("/about")]
-    About {},
     #[route("/reports")]
     Reports {},
     #[route("/students")]

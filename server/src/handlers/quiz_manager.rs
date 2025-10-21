@@ -50,7 +50,7 @@ pub async fn update_quiz(
         grade,
         categories,
     } = payload;
-    let mut quiz_arc = Store::find::<Quiz>(&session.workspace, quiz_id).await?;
+    let quiz_arc = Store::find::<Quiz>(&session.workspace, quiz_id).await?;
     let snapshot = {
         let mut quiz_guard = quiz_arc.write().await;
         quiz_guard.name = name;

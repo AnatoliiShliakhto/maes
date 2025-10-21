@@ -9,7 +9,7 @@ pub async fn liveness(connection: Connection) -> StatusCode {
         .parse()
         .unwrap_or_else(|_| SocketAddr::from(([127, 0, 0, 1], 54583)));
 
-    if let Ok(sock) = UdpSocket::bind(("0.0.0.0", 0)).await {
+    if let Ok(sock) = UdpSocket::bind(("0.0.0.0", 54584)).await {
         let _ = sock.send_to(b"pong", target).await;
     }
 

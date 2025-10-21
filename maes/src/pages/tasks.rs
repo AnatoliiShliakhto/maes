@@ -1,8 +1,7 @@
-use crate::{prelude::*, components::{widgets::*, tasks::*, dialogs::*}};
+use crate::{prelude::*, components::{widgets::*, tasks::*}};
 
 #[component]
 pub fn Tasks() -> Element {
-    use_init_dialog();
     use_init_context_menu();
 
     use_context_provider(|| Signal::new(SelectedItem::default()));
@@ -25,7 +24,6 @@ pub fn Tasks() -> Element {
             }
         }
         
-        DialogContainer { key: "tasks-dialog" }
         ContextMenuContainer { key: "tasks-ctx-menu" }
     }
 }

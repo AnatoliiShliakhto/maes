@@ -5,6 +5,7 @@ use ::indexmap::IndexMap;
 use ::shared::{common::*, models::*, payloads::*, services::*, utils::*};
 use ::std::{collections::HashSet, str::FromStr};
 use ::tokio::{fs, task::spawn_blocking};
+use crate::common::State;
 
 pub async fn list_workspaces(connection: Connection) -> Result<Json<Vec<WorkspaceMetadata>>> {
     connection.checked()?;
@@ -210,24 +211,21 @@ fn get_mut_tree(
     })
 }
 
-async fn init_workspace_meta(workspace: &Workspace) -> Result<()> {
-    let path = Store::get_path(&workspace.id, WORKSPACE)?;
+pub async fn init_workspace_meta(workspace: &Workspace) -> Result<()> {
+    let path = Store::get_path(&workspace.id, WORKSPACE);
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).await.map_err(map_log_err)?;
     }
     let metadata = WorkspaceMetadata {
         id: workspace.id.clone(),
         name: workspace.name.clone(),
+        version: 0
     };
     let encrypted = Store::encrypt_binary(&workspace.id, metadata, false).await?;
     fs::write(&path, encrypted).await.map_err(map_log_err)
 }
 async fn load_workspaces_meta() -> Result<Vec<WorkspaceMetadata>> {
-    let Some(base) = Store::base_path() else {
-        return Ok(vec![]);
-    };
-
-    let mut rd = fs::read_dir(&*base).await.map_err(map_log_err)?;
+    let mut rd = fs::read_dir(State::path().join("workspaces")).await.map_err(map_log_err)?;
     let mut names = Vec::with_capacity(128);
     while let Some(entry) = rd.next_entry().await.map_err(map_log_err)? {
         if entry.file_type().await.map_err(map_log_err)?.is_dir() {
@@ -244,7 +242,7 @@ async fn load_workspaces_meta() -> Result<Vec<WorkspaceMetadata>> {
 
     let metas = stream::iter(names)
         .map(|workspace| async move {
-            let path = Store::get_path(&workspace, WORKSPACE)?;
+            let path = Store::get_path(&workspace, WORKSPACE);
             match fs::read(&path).await {
                 Ok(encrypted) => {
                     let meta =

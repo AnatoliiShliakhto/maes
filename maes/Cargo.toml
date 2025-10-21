@@ -18,12 +18,13 @@ dirs = { workspace = true }
 indexmap = { workspace = true }
 reqwest = { workspace = true }
 rfd = { workspace = true }
+single-instance = { workspace = true }
+semver = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
 windows = { workspace = true }
-web-sys = { workspace = true }
 
 [build-dependencies]
 dotenvy = { workspace = true }

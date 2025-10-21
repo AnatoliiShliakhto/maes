@@ -15,7 +15,6 @@ pub fn SurveyManager(survey_id: ReadSignal<String>) -> Element {
     if !AuthService::claims().is_supervisor() {
         return rsx! {};
     }
-    use_init_dialog();
     use_init_input_dialog();
     use_init_context_menu();
 
@@ -51,7 +50,6 @@ pub fn SurveyManager(survey_id: ReadSignal<String>) -> Element {
                 }
             }
         }
-        DialogContainer { key: "survey-manager-dialog" }
         InputDialogContainer { key: "survey-manager-dialog" }
         ContextMenuContainer { key: "survey-manager-ctx-menu" }
     }

@@ -18,7 +18,6 @@ use ::windows::{
 static HOTSPOT: LazyLock<Arc<RwLock<Hotspot>>> =
     LazyLock::new(|| Arc::new(RwLock::new(Hotspot::new())));
 static HOTSPOT_STATUS: GlobalSignal<bool> = Signal::global(|| false);
-
 static HOTSPOT_MSG_CH: LazyLock<(watch::Sender<HotspotMsg>, watch::Receiver<HotspotMsg>)> =
     LazyLock::new(|| watch::channel(HotspotMsg::Inactive));
 

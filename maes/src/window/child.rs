@@ -1,5 +1,5 @@
 use super::manager::WindowKind;
-use crate::{prelude::*, services::*, elements::*, components::widgets::*, reports::*};
+use crate::{prelude::*, services::*, elements::*, components::widgets::*, reports::*, pages::*};
 use ::dioxus::desktop::{
     Config as LaunchBuilderConfig, LogicalPosition, LogicalSize, WindowBuilder, use_window
 };
@@ -55,6 +55,7 @@ fn ChildWindow(title: String, kind: WindowKind, claims: Arc<Claims>) -> Element{
             oncontextmenu: move |evt| evt.prevent_default(),
             ChildHeader { title }
             match kind {
+                WindowKind::About => rsx! { About {} },
                 WindowKind::WiFiInstruction => rsx! { WiFiInstruction {} },
                 WindowKind::QuizTickets { task } => rsx! { QuizTickets { task } },
                 WindowKind::SurveyTickets { task } => rsx! { SurveyTickets { task } },

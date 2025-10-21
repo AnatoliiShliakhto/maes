@@ -9,12 +9,14 @@ pub fn Login() -> Element {
     let config = ConfigService::read();
     let mut workspaces = use_signal(Vec::<WorkspaceMetadata>::new);
     let mut create_workspace_dialog = use_init_create_workspace_dialog();
+    let mut refresh_counter = use_signal(|| 0);
 
     use_effect(move || {
         if (create_workspace_dialog.is_visible)() {
             return;
         };
 
+        let _ = refresh_counter.read();
         api_fetch!(
             GET,
             "/api/v1/workspaces",
@@ -36,6 +38,9 @@ pub fn Login() -> Element {
         }).ok();
         AuthService::login(workspace, login, password);
     };
+
+    let on_success_import = use_callback(move |_| refresh_counter.with_mut(|c| *c += 1));
+    let _ = bind_task_dispatcher(Some(on_success_import), None);
 
     rsx! {
         div {
@@ -91,7 +96,7 @@ pub fn Login() -> Element {
                                     span { { t!("or") } }
                                     a {
                                         class: "link link-hover text-accent",
-                                        //onclick: import, todo
+                                        onclick: move |_| Exchange::import(),
                                         { t!("import-existed-workspace") }
                                     }
                                 }

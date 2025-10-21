@@ -19,6 +19,7 @@ pub fn SurveyEditorSurvey() -> Element {
             UpdateSurveyPayload {
                 name,
                 node: survey_guard.node.clone(),
+                categories: vec![],
             },
             on_success = move |body: Survey| {
                 survey.with_mut(|s| {

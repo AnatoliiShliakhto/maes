@@ -4,7 +4,6 @@ use crate::{
     prelude::*,
     services::*,
 };
-use ::std::sync::LazyLock;
 
 #[component]
 pub fn QuizEditorQuestion(

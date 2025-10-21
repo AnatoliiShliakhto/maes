@@ -12,6 +12,8 @@ pub struct CreateSurveyPayload {
 pub struct UpdateSurveyPayload {
     pub name: String,
     pub node: String,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub categories: Vec<SurveyCategory>,
 }
 
 #[derive(Clone, Deserialize, Serialize)]

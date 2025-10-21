@@ -4,7 +4,7 @@ use crate::{pages::*, prelude::*, services::*, components::dialogs::*};
 pub fn SurveyTree() -> Element {
     let claims = AuthService::claims();
 
-    let survey = use_context::<Signal<Survey>>();
+    let mut survey = use_context::<Signal<Survey>>();
     let mut selected = use_context::<Signal<SurveyManagerAction>>();
     let survey_guard = survey.read();
     let node_class = if SurveyManagerAction::Survey == *selected.read() {
@@ -19,12 +19,49 @@ pub fn SurveyTree() -> Element {
             selected.set(SurveyManagerAction::Category("".to_string()))
         });
 
+    let copy_categories_action = use_callback(move |_| {
+        let survey_guard = survey.read();
+        let categories = survey_guard.categories.values().cloned().collect::<Vec<_>>();
+        if Clipboard::copy_json(categories).is_ok() {
+            ToastService::success(t!("copy-to-clipboard-success"))
+        } else {
+            ToastService::error(t!("copy-to-clipboard-error"))
+        }
+    });
+
+    let paste_categories_action = use_callback(move |_| {
+        let survey_guard = survey.read();
+        let Ok(categories) = Clipboard::paste_json::<Vec<SurveyCategory>>() else {
+            ToastService::error(t!("paste-from-clipboard-error"));
+            return
+        };
+        api_fetch!(
+            PATCH,
+            format!("/api/v1/manager/surveys/{survey_id}", survey_id = survey_guard.id),
+            UpdateSurveyPayload {
+                name: survey_guard.name.clone(),
+                node: survey_guard.node.clone(),
+                categories: categories.clone(),
+            },
+            on_success = move |_body: Survey| {
+                survey.with_mut(|q| {
+                    for category in categories {
+                        q.categories.insert(category.id.clone(), category);
+                    }
+                });
+                ToastService::success(t!("paste-from-clipboard-success"));
+            }
+        );
+    });
+
     let ctx_menu = make_ctx_menu!([
         (t!("create-survey-category"),
         "bi bi-folder-plus",
         create_category_action,
         false,
         true),
+        (t!("copy-to-clipboard"), "bi bi-clipboard-plus", copy_categories_action),
+        (t!("paste-from-clipboard"), "bi bi-clipboard", paste_categories_action),
     ]);
     
     rsx! {

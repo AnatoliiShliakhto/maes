@@ -87,6 +87,28 @@ fn RenderTaskItem(task: ReadSignal<Task>) -> Element {
         WindowManager::open_window(t!("wifi-instruction"), WindowKind::WiFiInstruction)
     });
 
+    let finish_action = {
+        let callback = use_callback(move |_| {
+            let task_guard = task.peek();
+            let endpoint = format!("/api/v1/tasks/finish/{task_id}", task_id = task_guard.id);
+            api_call!(
+                POST,
+                endpoint,
+                on_success = move || {
+                    let id = task.peek().id.clone();
+                    tasks.with_mut(|ts| ts.retain(|t| t.id != id));
+                    if selected.read().id == id {
+                        kind.set(EntityKind::Workspace)
+                    }
+                },
+            )
+        });
+        use_callback(move |_| {
+            let name = task.peek().name.clone();
+            use_dialog().warning(t!("finish-task-message", name = name), Some(callback))
+        })
+    };
+
     let ctx_menu = match task.peek().kind {
         EntityKind::QuizRecord => {
             let report_action = use_callback(move |_| {
@@ -111,6 +133,7 @@ fn RenderTaskItem(task: ReadSignal<Task>) -> Element {
 
             let disabled = task.peek().progress == 0;
             make_ctx_menu!([
+                (t!("finish"), "bi bi-flag", finish_action, disabled, true),
                 (t!("report"), "bi bi-file-earmark-text", report_action, disabled),
                 (t!("quiz-tickets"), "bi bi-ticket", tickets_report_action),
                 (t!("instruction"), "bi bi-wifi", wifi_report_action, false, true),
@@ -140,6 +163,7 @@ fn RenderTaskItem(task: ReadSignal<Task>) -> Element {
 
             let disabled = task.peek().progress == 0;
             make_ctx_menu!([
+                (t!("finish"), "bi bi-flag", finish_action, disabled, true),
                 (t!("report"), "bi bi-file-earmark-text", report_action, disabled),
                 (t!("survey-tickets"), "bi bi-ticket", tickets_report_action),
                 (t!("instruction"), "bi bi-wifi", wifi_report_action, false, true),

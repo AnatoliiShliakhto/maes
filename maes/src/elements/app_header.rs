@@ -1,4 +1,4 @@
-use crate::{prelude::*, services::*, components::widgets::*};
+use crate::{components::widgets::*, prelude::*, services::*, window::*};
 use ::dioxus::desktop::use_window;
 
 #[component]
@@ -32,6 +32,7 @@ pub fn AppHeader() -> Element {
             div {
                 role: "button",
                 class: "btn btn-ghost btn-square rounded-none hover:btn-secondary p-0",
+                onclick: move |_| WindowManager::open_window(t!("about"), WindowKind::About),
                 //i { class: "bi bi-three-dots-vertical text-xl" }
                 img { src: "/assets/icon.png", class: "w-6"}
             }
