@@ -49,13 +49,13 @@ pub fn SideMenu() -> Element {
                 }
             }
             li { class: "mx-0" }
-            if claims.is_admin() {
-                MenuItem {
-                    icon: rsx! { i { class: "bi bi-box-seam text-2xl" } },
-                    label: t!("export"),
-                    onclick: move |_| Exchange::export(vec![])
-                }
-            }
+            // if claims.is_admin() {
+            //     MenuItem {
+            //         icon: rsx! { i { class: "bi bi-box-seam text-2xl" } },
+            //         label: t!("export"),
+            //         onclick: move |_| Exchange::export(vec![])
+            //     }
+            // }
             MenuItem {
                 to: Route::Settings {},
                 icon: rsx! { i { class: "bi bi-gear text-2xl" } },

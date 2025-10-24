@@ -59,7 +59,6 @@ delete = Видалити
 delete-entity-message = Ви дійсно бажаєте видалити "{ $name }"? Цю дію неможливо скасувати.
 delete-quiz-category-message = Ви впевнені, що бажаєте видалити категорію "{ $name }"?
 delete-quiz-question-message = Ви впевнені, що бажаєте видалити питання "{ $name }"?
-delete-reports-message = Ви бажаєте видалити звіти? Цю дію неможливо скасувати.
 delete-survey-category-message = Ви впевнені, що бажаєте видалити категорію "{ $name }"?
 delete-task-message = Ви впевнені, що бажаєте видалити задачу "{ $name }"?
 delete-user-message = Ви впевнені, що бажаєте видалити користувача "{ $username }"?
@@ -351,6 +350,11 @@ grade = { $grade ->
     [3] 3 задовільно
     *[other] 2 незадовільно
 }
+delete-reports-message = Ви бажаєте видалити { $reports ->
+    [one] цей звіт
+    [few] { $reports } звіти
+    *[many] { $reports } звітів
+}? Цю дію неможливо скасувати.
 
 status-code-100 = Продовжуйте
 status-code-101 = Перемикання протоколів
