@@ -29,19 +29,19 @@ pub mod prelude {
 use ::dioxus::desktop::{
     Config as LaunchBuilderConfig, LogicalPosition, LogicalSize, WindowBuilder,
 };
-use components::{widgets::*, dialogs::*};
+use ::single_instance::SingleInstance;
+use components::{dialogs::*, widgets::*};
 use elements::*;
 use pages::*;
 use prelude::*;
 use services::*;
-use ::single_instance::SingleInstance;
 
 fn main() {
-    if let Ok(instance) = SingleInstance::new(env!("CARGO_PKG_NAME"))
-        && !instance.is_single()
-    {
-        return;
-    }
+    let Some(instance) = SingleInstance::new(env!("CARGO_PKG_NAME")).ok()
+        .filter(|i| i.is_single())
+    else { return };
+    let _keep_alive = instance;
+
     let app_data_path = app_data_path();
     let _log_guard = init_file_logger(
         env!("CARGO_PKG_NAME"),
@@ -86,7 +86,9 @@ fn main() {
             let download_url_sig = use_signal(|| "".to_string());
             let update_action = use_callback(move |_| UpdateService::update(download_url_sig()));
             use_effect(move || {
-                if download_url_sig.read().is_empty() { return }
+                if download_url_sig.read().is_empty() {
+                    return;
+                }
                 dialog.info(t!("new-version-available"), Some(update_action));
             });
             use_effect(move || {

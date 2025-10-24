@@ -193,7 +193,7 @@ fn RenderTaskItem(task: ReadSignal<Task>) -> Element {
             },
             oncontextmenu: ctx_menu,
             div {
-                class: "flex text-base-content/70 text-xl items-center justify-center",
+                class: "flex text-primary/40 text-xl items-center justify-center",
                 match task_guard.kind {
                     EntityKind::QuizRecord => rsx! { i { class: "bi bi-mortarboard" } },
                     EntityKind::SurveyRecord => rsx! { i { class: "bi bi-incognito" } },

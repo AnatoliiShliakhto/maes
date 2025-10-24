@@ -54,7 +54,7 @@ pub fn Reports() -> Element {
             );
         });
         use_callback(move |_| {
-            use_dialog().warning(t!("delete-reports-message"), Some(callback));
+            use_dialog().warning(t!("delete-reports-message", reports = state.selected.read().len()), Some(callback));
         })
     };
 
@@ -257,7 +257,7 @@ fn RenderReportList() -> Element {
                         }
                     }
                     div {
-                        class: "flex text-base-content/70 text-xl items-center justify-center",
+                        class: "flex text-primary/40 text-xl items-center justify-center",
                         match report.kind {
                             EntityKind::QuizRecord => rsx! { i { class: "bi bi-mortarboard" } },
                             EntityKind::SurveyRecord => rsx! { i { class: "bi bi-incognito" } },
