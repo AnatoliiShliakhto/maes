@@ -62,19 +62,55 @@ pub fn QuizTake() -> Element {
                             }
                         }
                     }
-                    if question.kind == QuizActivityQuestionKind::Single {
-                        RenderSingleKindQuestion {
-                            key: "{question.id}",
-                            question: question.clone(),
-                        }
-                    } else {
-                        RenderMultipleKindQuestion{
-                            key: "{question.id}",
-                            question: question.clone(),
+                    match question.kind {
+                        QuizActivityQuestionKind::Open => rsx! {
+                            RenderOpenKindQuestion{
+                                key: "{question.id}",
+                                question: question.clone(),
+                            }
+                        },
+                        QuizActivityQuestionKind::Single => rsx! {
+                            RenderSingleKindQuestion {
+                                key: "{question.id}",
+                                question: question.clone(),
+                            }
+                        },
+                        QuizActivityQuestionKind::Multiple => rsx! {
+                            RenderMultipleKindQuestion{
+                                key: "{question.id}",
+                                question: question.clone(),
+                            }
                         }
                     }
                 }
                 RenderControls {}
+            }
+        }
+    }
+}
+
+#[component]
+fn RenderOpenKindQuestion(question: ReadSignal<QuizActivityQuestion>) -> Element {
+    let answer = question.peek().answered.iter().next().cloned().unwrap_or_default();
+
+    rsx! {
+        div {
+            class: "flex px-4 pt-5",
+            textarea {
+                class: "textarea w-full resize-none overflow-hidden",
+                style: "field-sizing: content;",
+                placeholder: t!("answer-placeholder"),
+                required: true,
+                minlength: 0,
+                maxlength: 3000,
+                initial_value: "{answer}",
+                oninput: move |evt| {
+                    QUIZ.with_mut(|quiz| {
+                        let Some(question) = quiz.questions.get_mut(&question.read().id) else { return };
+                        question.answered.clear();
+                        question.answered.insert(evt.value());
+                    });
+                }
             }
         }
     }

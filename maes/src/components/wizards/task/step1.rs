@@ -20,7 +20,7 @@ pub fn TaskWizardStep1() -> Element {
                 }
 
                 div {
-                    class: "flex-scrollable flex-wrap gap-5 items-center justify-center",
+                    class: "flex-scrollable flex-row flex-wrap gap-5 items-center justify-center",
                     div {
                         class: format!("card cursor-pointer hover:bg-base-200 hover:shadow-lg w-50 h-50 {class}",
                             class = if is_quiz { "bg-base-200 shadow-lg" } else { "bg-base-100" }

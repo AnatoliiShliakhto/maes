@@ -35,6 +35,7 @@ async fn main(config: ServerConfig, handle: Handle, dispatcher: Dispatcher) -> R
     
     State::init(&config.ident, &data_path, dispatcher)?;
     ExchangeService::init();
+    TextSimilarityService::init().await?;
     
     let router = router::init_router(data_path, &config);
     let (_scheme, _host, port) = parse_scheme_host_port(&config.host).map_err(map_log_err)?;

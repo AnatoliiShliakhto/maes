@@ -109,71 +109,78 @@ fn RenderTaskItem(task: ReadSignal<Task>) -> Element {
         })
     };
 
-    let ctx_menu = match task.peek().kind {
-        EntityKind::QuizRecord => {
-            let report_action = use_callback(move |_| {
-                let task_guard = task.read();
+    let report_action = use_callback(move |_| {
+        let task_guard = task.read();
+        match task_guard.kind {
+            EntityKind::QuizRecord => {
                 WindowManager::open_window(
                     t!("quiz-report-title"),
                     WindowKind::QuizReport {
                         entity: task_guard.id.clone(),
                     },
                 )
-            });
-
-            let tickets_report_action = use_callback(move |_| {
-                let task_guard = task.read();
+            },
+            EntityKind::SurveyRecord => {
                 WindowManager::open_window(
                     t!("quiz-tickets-title"),
                     WindowKind::QuizTickets {
                         task: task_guard.id.clone(),
                     },
                 )
-            });
+            },
+            _ => (),
+        }
+    });
 
-            let disabled = task.peek().progress == 0;
+    let tickets_report_action = use_callback(move |_| {
+        let task_guard = task.read();
+        match task_guard.kind {
+            EntityKind::QuizRecord => {
+                WindowManager::open_window(
+                    t!("quiz-tickets-title"),
+                    WindowKind::QuizTickets {
+                        task: task_guard.id.clone(),
+                    },
+                )
+            },
+            EntityKind::SurveyRecord => {
+                WindowManager::open_window(
+                    t!("survey-tickets-title"),
+                    WindowKind::SurveyTickets {
+                        task: task_guard.id.clone(),
+                    }
+                )
+            },
+            _ => (),
+        }
+    });
+
+    let dummy_callback = use_callback(move |evt: MouseEvent| {
+        evt.prevent_default();
+        evt.stop_propagation();
+    });
+
+    let is_report_action_disabled = task.peek().progress == 0;
+    let ctx_menu = match task.read().kind {
+        EntityKind::QuizRecord => {
             make_ctx_menu!([
-                (t!("finish"), "bi bi-flag", finish_action, disabled, true),
-                (t!("report"), "bi bi-file-earmark-text", report_action, disabled),
+                (t!("finish"), "bi bi-flag", finish_action, is_report_action_disabled, true),
+                (t!("report"), "bi bi-file-earmark-text", report_action, is_report_action_disabled),
                 (t!("quiz-tickets"), "bi bi-ticket", tickets_report_action),
                 (t!("instruction"), "bi bi-wifi", wifi_report_action, false, true),
                 (t!("delete"), "bi bi-trash", delete_action),
             ])
         }
         EntityKind::SurveyRecord => {
-            let report_action = use_callback(move |_| {
-                let task_guard = task.read();
-                WindowManager::open_window(
-                    t!("survey-report-title"),
-                    WindowKind::SurveyReport {
-                        entity: task_guard.id.clone(),
-                    },
-                )
-            });
-
-            let tickets_report_action = use_callback(move |_| {
-                let task_guard = task.read();
-                WindowManager::open_window(
-                    t!("survey-tickets-title"),
-                    WindowKind::SurveyTickets {
-                        task: task_guard.id.clone(),
-                    },
-                )
-            });
-
-            let disabled = task.peek().progress == 0;
             make_ctx_menu!([
-                (t!("finish"), "bi bi-flag", finish_action, disabled, true),
-                (t!("report"), "bi bi-file-earmark-text", report_action, disabled),
+                (t!("finish"), "bi bi-flag", finish_action, is_report_action_disabled, true),
+                (t!("report"), "bi bi-file-earmark-text", report_action, is_report_action_disabled),
                 (t!("survey-tickets"), "bi bi-ticket", tickets_report_action),
                 (t!("instruction"), "bi bi-wifi", wifi_report_action, false, true),
                 (t!("delete"), "bi bi-trash", delete_action),
             ])
         }
-        _ => use_callback(move |evt: MouseEvent| {
-            evt.prevent_default();
-            evt.stop_propagation();
-        }),
+        _ => dummy_callback,
     };
 
     rsx! {

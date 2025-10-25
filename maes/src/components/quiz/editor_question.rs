@@ -83,7 +83,7 @@ pub fn QuizEditorQuestion(
             })
             .collect::<Vec<_>>();
 
-        if answers.len() < 2 {
+        if answers.len() < 1 {
             ToastService::error(t!("answers-count-error"));
             return;
         }
@@ -144,9 +144,7 @@ pub fn QuizEditorQuestion(
     });
 
     if answers.read().is_empty() {
-        for _ in 0..2 {
-            create_action.call(())
-        }
+        create_action.call(())
     }
 
     let is_admin = claims.is_admin();

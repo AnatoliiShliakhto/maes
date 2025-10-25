@@ -52,6 +52,18 @@ const _FAVICON: Asset = asset!("/assets/favicon.ico");
 const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
 const MAIN_JS: Asset = asset!("/assets/main.bundle.js");
 const BOOTSTRAP_ICONS_CSS: Asset = asset!("/assets/bootstrap-icons.css");
+const _AI_MODEL: Asset = asset!(
+    "/assets/ai-model/model.onnx",
+    AssetOptions::builder()
+        .with_hash_suffix(false)
+        .into_asset_options()
+);
+const _AI_TOKENIZER: Asset = asset!(
+    "/assets/ai-model/tokenizer.json",
+    AssetOptions::builder()
+        .with_hash_suffix(false)
+        .into_asset_options()
+);
 
 #[component]
 pub fn Head(is_main: bool) -> Element {
@@ -63,6 +75,8 @@ pub fn Head(is_main: bool) -> Element {
         _UAFSANS_MEDIUM_TTF.resolve(),
         _UAFSANS_SEMIBOLD_TTF.resolve(),
         _UAFSANS_BOLD_TTF.resolve(),
+        _AI_MODEL.resolve(),
+        _AI_TOKENIZER.resolve(),
     );
     let config = ConfigService::read();
 

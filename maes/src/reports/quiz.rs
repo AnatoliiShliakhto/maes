@@ -633,7 +633,9 @@ fn RenderStudentQuestionReport(question: QuizQuestion, answers_ids: HashSet<Stri
                 class: "flex gap-2",
                 div {
                     class: "flex items-center justify-center",
-                    if is_correct {
+                    if question.answers.len() == 1 {
+                        i { class: "bi bi-openai text-base-content/70" }
+                    } else if is_correct {
                         i { class: "bi bi-check-square text-green-700" }
                     } else {
                         i { class: "bi bi-x-square text-red-700" }
@@ -650,30 +652,87 @@ fn RenderStudentQuestionReport(question: QuizQuestion, answers_ids: HashSet<Stri
                     "{question.name}"
                 }
             }
-            ol {
-                class: "**list-inside** space-y-0.5 pl-4 pt-1 pb-3",
-                for answer in question.answers.values() {
+            if question.answers.len() == 1 {
+                ol {
+                    class: "list-inside space-y-0.5 pl-4 pt-1 pb-3",
                     li {
                         class: "flex gap-2",
                         div {
                             class: "flex items-center justify-center w-6",
-                            if answers_ids.contains(&answer.id) && answer.correct {
-                                i { class: "bi bi-check-circle text-green-700" }
-                            } else if answers_ids.contains(&answer.id) && !answer.correct {
-                                i { class: "bi bi-check text-red-700" }
-                            } else if answer.correct {
-                                i { class: "bi bi-circle text-red-700" }
-                            }
+                            i { class: "bi bi-chat-right-text text-base-content/70" }
                         }
                         div {
                             class: "flex flex-col",
-                            if answer.img {
-                                div {
-                                    class: "max-w-30 w-full p-2",
-                                    img { class: "w-full h-auto object-contain", src: format!("{img_base_url}/{id}.webp", id = answer.id) }
+                            if let Some(answer) = question.answers.values().next() {
+                                if answer.img {
+                                    div {
+                                        class: "max-w-30 w-full p-2",
+                                        img { class: "w-full h-auto object-contain", src: format!("{img_base_url}/{id}.webp", id = answer.id) }
+                                    }
+                                }
+                                "[{quiz_guard.grade.similarity.to_string()}%] {answer.name}"
+                            }
+                        }
+                    }
+                    li {
+                        class: "flex gap-2",
+                        if let Some(answer) = question.answers.values().next() {{
+                            let mut correct = false;
+                            let mut similarity = 0;
+                            let mut text = String::new();
+                            for s in answers_ids.iter() {
+                                if s.starts_with(answer.id.as_str()) {
+                                    let mut parts = s.splitn(3, '|');
+                                    let _a = parts.next().unwrap_or_default();
+                                    let b = parts.next().unwrap_or_default();
+                                    let c = parts.next().unwrap_or_default();
+
+                                    correct = c == "1";
+                                    similarity = b.parse::<usize>().unwrap_or_default();
+                                } else {
+                                    text.push_str(s);
                                 }
                             }
-                            "{answer.name}"
+                            rsx! {
+                                div {
+                                    class: "flex items-center justify-center w-6",
+                                    if correct {
+                                        i { class: "bi bi-check-square text-green-700" }
+                                    } else {
+                                        i { class: "bi bi-x-square text-red-700" }
+                                    }
+                                }
+                                div { "[{similarity.to_string()}%] {text}" }
+                            }
+                        }}
+                    }
+                }
+            } else {
+                ol {
+                    class: "list-inside space-y-0.5 pl-4 pt-1 pb-3",
+                    for answer in question.answers.values() {
+                        li {
+                            class: "flex gap-2",
+                            div {
+                                class: "flex items-center justify-center w-6",
+                                if answers_ids.contains(&answer.id) && answer.correct {
+                                    i { class: "bi bi-check-circle text-green-700" }
+                                } else if answers_ids.contains(&answer.id) && !answer.correct {
+                                    i { class: "bi bi-check text-red-700" }
+                                } else if answer.correct {
+                                    i { class: "bi bi-circle text-red-700" }
+                                }
+                            }
+                            div {
+                                class: "flex flex-col",
+                                if answer.img {
+                                    div {
+                                        class: "max-w-30 w-full p-2",
+                                        img { class: "w-full h-auto object-contain", src: format!("{img_base_url}/{id}.webp", id = answer.id) }
+                                    }
+                                }
+                                "{answer.name}"
+                            }
                         }
                     }
                 }

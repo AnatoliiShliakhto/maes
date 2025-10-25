@@ -39,6 +39,7 @@ pub enum QuizActivityQuestionKind {
     #[default]
     Single = 0,
     Multiple = 1,
+    Open = 2,
 }
 
 #[derive(Debug, Default, Clone, PartialEq, Deserialize, Serialize)]
