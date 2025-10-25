@@ -11,6 +11,7 @@ pub fn QuizEditorQuiz() -> Element {
     let mut grade_a = use_signal(|| quiz_guard.grade.a);
     let mut grade_b = use_signal(|| quiz_guard.grade.b);
     let mut grade_c = use_signal(|| quiz_guard.grade.c);
+    let mut grade_similarity = use_signal(|| quiz_guard.grade.similarity);
 
     let save_action = move |evt: FormEvent| {
         evt.stop();
@@ -22,8 +23,9 @@ pub fn QuizEditorQuiz() -> Element {
             Some(grade_a),
             Some(grade_b),
             Some(grade_c),
+            Some(grade_similarity),
         ) = form_values!(
-            evt, "name", "attempts", "duration", "grade_a", "grade_b", "grade_c"
+            evt, "name", "attempts", "duration", "grade_a", "grade_b", "grade_c", "grade_similarity"
         )
         else {
             ToastService::error(t!("missing-fields"));
@@ -41,6 +43,7 @@ pub fn QuizEditorQuiz() -> Element {
                     a: grade_a.parse::<usize>().unwrap_or(75),
                     b: grade_b.parse::<usize>().unwrap_or(50),
                     c: grade_c.parse::<usize>().unwrap_or(25),
+                    similarity: grade_similarity.parse::<usize>().unwrap_or(75),
                 },
                 categories: vec![],
             },
@@ -253,6 +256,35 @@ pub fn QuizEditorQuiz() -> Element {
                             step: 1,
                             initial_value: "{grade_c}",
                             onchange: move |event| grade_c.set(event.value().parse::<usize>().unwrap_or_default())
+                        }
+                    }
+                }
+            }
+            fieldset {
+                //                class: "fieldset p-4 border border-base-300 text-sm rounded-(--radius-box)",
+                class: "fieldset p-2 text-sm",
+                legend {
+                    class: "fieldset-legend text-sm text-primary",
+                    i { class: "bi bi-openai" }
+                    { t!("text-similarity-settings") }
+                }
+                fieldset {
+                    class: "fieldset w-full m-0",
+                    legend {
+                        class: "text-sm",
+                        { t!("grade-similarity-settings", value = grade_similarity()) }
+                    }
+                    div {
+                        class: "w-full",
+                        input {
+                            class: "range range-secondary range-xs w-full",
+                            name: "grade_similarity",
+                            r#type: "range",
+                            min: 0,
+                            max: 100,
+                            step: 1,
+                            initial_value: "{grade_similarity}",
+                            onchange: move |event| grade_similarity.set(event.value().parse::<usize>().unwrap_or_default())
                         }
                     }
                 }

@@ -19,13 +19,13 @@ cargo install --git https://github.com/DioxusLabs/dioxus dioxus-cli
 [tasks.delete-artifacts]
 script_runner = "@shell"
 script= '''
-rm -rf "target/dx"
+npm run clean:dx
 '''
 
 [tasks.app-js]
 script_runner = "@shell"
 script= '''
-npm run build
+webpack --mode production
 '''
 
 [tasks.app-css]

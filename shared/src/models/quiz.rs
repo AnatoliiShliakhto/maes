@@ -52,6 +52,8 @@ pub struct QuizGrade {
     pub a: usize,
     pub b: usize,
     pub c: usize,
+    #[serde(default)]
+    pub similarity: usize,
 }
 
 impl Default for QuizGrade {
@@ -60,6 +62,7 @@ impl Default for QuizGrade {
             a: 75,
             b: 50,
             c: 25,
+            similarity: 70,
         }
     }
 }
@@ -72,6 +75,10 @@ impl QuizGrade {
             s if s >= self.c => 3,
             _ => 2,
         }
+    }
+
+    pub fn calc_similarity(&self, similarity: usize) -> bool {
+        similarity >= self.similarity
     }
 }
 

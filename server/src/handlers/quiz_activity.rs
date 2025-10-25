@@ -186,8 +186,7 @@ pub async fn get_quiz_activity_details(
             ((sum as f64) / (scores.len() as f64)).round() as usize
         };
         let student = quiz_rec_guard.students.index(student_idx);
-        let can_take =
-            quiz_rec_guard.attempts == 0 || quiz_rec_guard.attempts > student.attempts;
+        let can_take = quiz_rec_guard.attempts == 0 || quiz_rec_guard.attempts > student.attempts;
 
         QuizActivityDetails {
             workspace: quiz_rec_guard.workspace.clone(),
@@ -223,7 +222,8 @@ pub async fn get_quiz_activity(
             .get(&student_id)
             .ok_or((StatusCode::NOT_FOUND, "student-not-found"))?
             .attempts
-            > quiz_rec_guard.attempts && quiz_rec_guard.attempts > 0
+            > quiz_rec_guard.attempts
+            && quiz_rec_guard.attempts > 0
         {
             Err("attempts-exceeded")?
         }
@@ -233,11 +233,7 @@ pub async fn get_quiz_activity(
             .map(|c| (c.id.clone(), c.count))
             .collect::<HashMap<String, usize>>();
 
-        (
-            map,
-            quiz_rec_guard.quiz.clone(),
-            quiz_rec_guard.duration,
-        )
+        (map, quiz_rec_guard.quiz.clone(), quiz_rec_guard.duration)
     };
 
     let quiz = Store::find::<Quiz>(&ws_id, &quiz_id)
@@ -291,24 +287,48 @@ pub async fn update_quiz_activity(activity: QuizActivity) -> Result<()> {
         .clone();
 
     let (total_grade, result, fail_important, answers) = categories.iter().fold(
-        (0, Vec::with_capacity(categories.len()), false, Vec::<HashMap<String, HashSet<String>>>::new()),
+        (
+            0,
+            Vec::with_capacity(categories.len()),
+            false,
+            Vec::<HashMap<String, HashSet<String>>>::new(),
+        ),
         |(mut total_grade, mut result, mut fail, mut answers), (category_id, category)| {
             let activity_questions = activity
                 .questions
                 .iter()
                 .filter(|(_, q)| &q.category == category_id)
                 .collect::<Vec<_>>();
-            let (correct_questions, student_answers) =
-                activity_questions
-                    .iter()
-                    .fold((0, HashMap::<String, HashSet<String>>::new()), |(mut correct, mut answers), (_question_id, question)| {
-                        let Some(quiz_question) = quiz
-                            .categories
-                            .get(&category.id)
-                            .and_then(|c| c.questions.get(&question.id))
-                        else {
-                            return (correct, answers);
+            let (correct_questions, student_answers) = activity_questions.iter().fold(
+                (0, HashMap::<String, HashSet<String>>::new()),
+                |(mut correct, mut answers), (_question_id, question)| {
+                    let Some(quiz_question) = quiz
+                        .categories
+                        .get(&category.id)
+                        .and_then(|c| c.questions.get(&question.id))
+                    else {
+                        return (correct, answers);
+                    };
+                    if question.answered.is_empty() {
+                        return (correct, answers);
+                    }
+                    if quiz_question.answers.len() == 1 {
+                        if let (Some(student_answer), Some(answer)) = (
+                            question.answered.iter().next(),
+                            quiz_question.answers.values().next(),
+                        ) {
+                            let similarity = TextSimilarityService::compare_sync(
+                                answer.name.clone(),
+                                student_answer.clone(),
+                            );
+                            let passed = if quiz.grade.calc_similarity(similarity) { 1 } else { 0 }; 
+                            correct += passed;
+                            let mut set = HashSet::with_capacity(2);
+                            set.insert(student_answer.clone());
+                            set.insert(format!("{id}|{similarity}|{passed}", id = answer.id));
+                            answers.insert(quiz_question.id.clone(), set);
                         };
+                    } else {
                         let correct_answers = quiz_question
                             .answers
                             .values()
@@ -319,8 +339,10 @@ pub async fn update_quiz_activity(activity: QuizActivity) -> Result<()> {
                             correct += 1;
                         }
                         answers.insert(quiz_question.id.clone(), question.answered.clone());
-                        (correct, answers)
-                    });
+                    }
+                    (correct, answers)
+                },
+            );
 
             let score = if !activity_questions.is_empty() {
                 ((correct_questions as f64) / (activity_questions.len() as f64) * 100.0) as usize
@@ -344,10 +366,20 @@ pub async fn update_quiz_activity(activity: QuizActivity) -> Result<()> {
         },
     );
 
-    let categories_count = if !categories.is_empty() { categories.len() } else { 1 };
-    let grade = if !fail_important { ((total_grade as f64) / (categories_count as f64) + 0.5).floor() as usize } else { 2 };
+    let categories_count = if !categories.is_empty() {
+        categories.len()
+    } else {
+        1
+    };
+    let grade = if !fail_important {
+        ((total_grade as f64) / (categories_count as f64) + 0.5).floor() as usize
+    } else {
+        2
+    };
 
-    if student.grade > grade { return Ok(()) }
+    if student.grade > grade {
+        return Ok(());
+    }
 
     let (snapshot, progress) = {
         let mut quiz_rec_guard = quiz_rec_arc.write().await;
@@ -358,8 +390,16 @@ pub async fn update_quiz_activity(activity: QuizActivity) -> Result<()> {
         quiz_rec_guard.answers.set_row(student_idx, answers);
         quiz_rec_guard.results.set_row(student_idx, result);
 
-        let count = quiz_rec_guard.students.values().filter(|s| s.grade > 0).count();
-        let progress = if quiz_rec_guard.students.is_empty() { 0 } else { (count * 100) / quiz_rec_guard.students.len() };
+        let count = quiz_rec_guard
+            .students
+            .values()
+            .filter(|s| s.grade > 0)
+            .count();
+        let progress = if quiz_rec_guard.students.is_empty() {
+            0
+        } else {
+            (count * 100) / quiz_rec_guard.students.len()
+        };
 
         (quiz_rec_guard.clone(), progress)
     };
@@ -417,8 +457,10 @@ async fn generate_question(
         .unwrap_or_default();
     answers.shuffle(&mut rand::rng());
 
-    let kind = if answers.iter().filter(|a| a.correct).count() == 1 {
+    let kind = if answers.iter().filter(|a| a.correct).count() == 1 && answers.len() > 1 {
         QuizActivityQuestionKind::Single
+    } else if answers.len() == 1 {
+        QuizActivityQuestionKind::Open
     } else {
         QuizActivityQuestionKind::Multiple
     };
