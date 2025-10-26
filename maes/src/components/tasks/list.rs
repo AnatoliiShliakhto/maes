@@ -122,9 +122,9 @@ fn RenderTaskItem(task: ReadSignal<Task>) -> Element {
             },
             EntityKind::SurveyRecord => {
                 WindowManager::open_window(
-                    t!("quiz-tickets-title"),
-                    WindowKind::QuizTickets {
-                        task: task_guard.id.clone(),
+                    t!("survey-report-title"),
+                    WindowKind::SurveyReport {
+                        entity: task_guard.id.clone(),
                     },
                 )
             },

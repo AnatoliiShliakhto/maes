@@ -25,7 +25,7 @@ npm run clean:dx
 [tasks.app-js]
 script_runner = "@shell"
 script= '''
-webpack --mode production
+npm run build:js
 '''
 
 [tasks.app-css]

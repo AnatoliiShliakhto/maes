@@ -83,7 +83,7 @@ pub fn QuizEditorQuestion(
             })
             .collect::<Vec<_>>();
 
-        if answers.len() < 1 {
+        if answers.is_empty() {
             ToastService::error(t!("answers-count-error"));
             return;
         }
