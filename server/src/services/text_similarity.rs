@@ -35,7 +35,9 @@ impl TextSimilarityService {
             return Err(Error::from("text-similarity already initialized"));
         }
 
-        let model_dir = env::current_exe().unwrap().parent().unwrap().join("assets");
+        let exe = env::current_exe().map_err(map_log_err)?;
+        let exe_dir = exe.parent().ok_or_else(|| Error::from("text-similarity: exe dir not found"))?;
+        let model_dir = exe_dir.join("assets");
         let (tx_any, mut rx_any) = mpsc::unbounded_channel::<AnyJob>();
         *guard = Some(tx_any.clone());
         drop(guard);
@@ -89,7 +91,11 @@ fn worker_loop_any(model_dir: &Path, rx: &mut mpsc::UnboundedReceiver<AnyJob>) -
     let tokenizer_path = model_dir.join("tokenizer.json");
     let model_path = model_dir.join("model.onnx");
 
-    let tokenizer = Tokenizer::from_file(tokenizer_path.to_str().unwrap()).map_err(map_log_err)?;
+    if !tokenizer_path.exists() || !model_path.exists() {
+        error!("text-similarity assets not found in {model_dir:?}");
+        return Err(Error::from("text-similarity assets missing"));
+    }
+    let tokenizer = Tokenizer::from_file(&tokenizer_path).map_err(map_log_err)?;
     let mut session = env
         .new_session_builder()
         .map_err(map_log_err)?
@@ -171,32 +177,25 @@ fn encode(
     let token_type_ids_arr =
         Array2::from_shape_vec((batch, seq_len), token_type_ids.clone()).map_err(map_log_err)?;
 
-    let input_info = session
-        .inputs
-        .iter()
-        .map(|i| i.name.clone())
-        .collect::<Vec<_>>();
-    if input_info.len() != 3 {
-        error!(
-            "Unexpected number of model inputs: {:?}. Expected 3",
-            input_info
-        );
+    let input_info = session.inputs.iter().map(|i| i.name.clone()).collect::<Vec<_>>();
+    if !(input_info.len() == 2 || input_info.len() == 3) {
+        error!("Unexpected number of model inputs: {input_info:?}. Expected 2 or 3");
         Err("onnx-error")?
     }
-
-    let mut by_index: Vec<Option<onnxruntime::ndarray::ArrayD<i64>>> = vec![None, None, None];
+    use onnxruntime::ndarray::ArrayD;
+    let mut by_index: Vec<Option<ArrayD<i64>>> = vec![None; input_info.len()];
     for (i, name) in input_info.iter().enumerate() {
         match name.as_str() {
             "input_ids" => by_index[i] = Some(input_ids_arr.clone().into_dyn()),
             "attention_mask" => by_index[i] = Some(attention_mask_arr.clone().into_dyn()),
             "token_type_ids" => by_index[i] = Some(token_type_ids_arr.clone().into_dyn()),
             other => {
-                error!("Unknown input name: {}", other);
+                error!("Unknown input name: {other}");
                 Err("onnx-error")?
             }
         }
     }
-    let inputs_vec: Vec<onnxruntime::ndarray::ArrayD<i64>> = by_index
+    let inputs_vec: Vec<ArrayD<i64>> = by_index
         .into_iter()
         .map(|o| {
             o.ok_or_else(|| {
@@ -215,7 +214,7 @@ fn encode(
     let view = out.view();
     let shape = view.shape();
     if shape.len() != 3 {
-        error!("Unexpected output shape: {:?}", shape);
+        error!("Unexpected output shape: {shape:?}");
         Err("onnx-error")?
     }
     let hidden = shape[2];

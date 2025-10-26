@@ -52,7 +52,7 @@ pub struct QuizGrade {
     pub a: usize,
     pub b: usize,
     pub c: usize,
-    #[serde(default)]
+    #[serde(default = "default_similarity")]
     pub similarity: usize,
 }
 
@@ -137,3 +137,5 @@ pub struct QuizClipboard {
     pub quiz: String,
     pub categories: Vec<QuizCategory>,
 }
+
+fn default_similarity() -> usize { 70usize }
