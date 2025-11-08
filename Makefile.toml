@@ -22,6 +22,26 @@ script= '''
 npm run clean:dx
 '''
 
+[tasks.aide_ui-css]
+script_runner = "@shell"
+script= '''
+npx @tailwindcss/cli -i ./aide_ui/tailwind.css -o ./aide_ui/assets/tailwind.css
+'''
+
+[tasks.aide_ui-dev]
+dependencies = ["aide_ui-css"]
+script_runner = "@shell"
+script= '''
+dx serve --package aide_ui --port 3321
+'''
+
+[tasks.aide_ui]
+dependencies = ["aide_ui-css"]
+script_runner = "@shell"
+script= '''
+dx bundle --release --package aide_ui
+'''
+
 [tasks.app-js]
 script_runner = "@shell"
 script= '''

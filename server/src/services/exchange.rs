@@ -273,12 +273,12 @@ fn apply_import_fs_changes(root: &Path, temp: &Path, ws_id: &str, updated_ids: V
         let src_path = temp.join(format!("entities/{id}.bin"));
         if src_path.exists() {
             let dest_path = root.join(format!("workspaces/{ws_id}/{id}.bin"));
-            let _ = move_file(src_path, dest_path);
+            _ = move_file(src_path, dest_path);
         }
 
         let src_dir = temp.join(format!("assets/{id}"));
         let dest_dir = root.join(format!("assets/{ws_id}/{id}"));
-        let _ = move_dir_replace(src_dir, dest_dir);
+        _ = move_dir_replace(src_dir, dest_dir);
     }
 }
 

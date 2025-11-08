@@ -16,7 +16,6 @@ pub fn SurveyManager(survey_id: ReadSignal<String>) -> Element {
         return rsx! {};
     }
     use_init_input_dialog();
-    use_init_context_menu();
 
     use_context_provider(|| Signal::new(SurveyManagerAction::Survey));
     let mut survey = use_context_provider(|| Signal::new(Survey::default()));
@@ -51,6 +50,5 @@ pub fn SurveyManager(survey_id: ReadSignal<String>) -> Element {
             }
         }
         InputDialogContainer { key: "survey-manager-dialog" }
-        ContextMenuContainer { key: "survey-manager-ctx-menu" }
     }
 }

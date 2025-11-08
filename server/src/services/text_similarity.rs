@@ -76,7 +76,7 @@ impl TextSimilarityService {
         };
 
         let (reply_tx, reply_rx) = std_mpsc::sync_channel(1);
-        let _ = tx.send(AnyJob::Sync(a.into(), b.into(), reply_tx));
+        _ = tx.send(AnyJob::Sync(a.into(), b.into(), reply_tx));
         reply_rx.recv().unwrap_or(0)
     }
 }
@@ -95,6 +95,8 @@ fn worker_loop_any(model_dir: &Path, rx: &mut mpsc::UnboundedReceiver<AnyJob>) -
         error!("text-similarity assets not found in {model_dir:?}");
         return Err(Error::from("text-similarity assets missing"));
     }
+    let max_len = get_max_length_from_tokenizer(&tokenizer_path)
+        .unwrap_or(MAX_LEN);
     let tokenizer = Tokenizer::from_file(&tokenizer_path).map_err(map_log_err)?;
     let mut session = env
         .new_session_builder()
@@ -107,17 +109,17 @@ fn worker_loop_any(model_dir: &Path, rx: &mut mpsc::UnboundedReceiver<AnyJob>) -
     while let Some(job) = rx.blocking_recv() {
         match job {
             AnyJob::Async((a, b, reply)) => {
-                let res = compare_impl(&tokenizer, &mut session, &a, &b).map_err(|e| {
+                let res = compare_impl(&tokenizer, &mut session, &a, &b, max_len).map_err(|e| {
                     error!("compare_impl failed: {e}");
                     e
                 });
-                let _ = reply.send(res);
+                _ = reply.send(res);
             }
             AnyJob::Sync(a, b, reply) => {
-                let res = compare_impl(&tokenizer, &mut session, &a, &b)
+                let res = compare_impl(&tokenizer, &mut session, &a, &b, max_len)
                     .map(|v| v)
                     .unwrap_or_default();
-                let _ = reply.send(res);
+                _ = reply.send(res);
             }
         }
     }
@@ -130,8 +132,9 @@ fn compare_impl(
     session: &mut Session<'static>,
     a: &str,
     b: &str,
+    max_len: usize,
 ) -> Result<usize> {
-    let embeddings = encode(tokenizer, session, &[a, b], MAX_LEN)?;
+    let embeddings = encode(tokenizer, session, &[a, b], max_len)?;
     let sim = cosine_similarity(&embeddings[0], &embeddings[1]);
     Ok((sim * 100f32).round() as usize)
 }
@@ -270,4 +273,27 @@ fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
     } else {
         dot / (na * nb)
     }
+}
+
+fn get_max_length_from_tokenizer(tokenizer_path: &Path) -> Result<usize> {
+    let content = std::fs::read_to_string(tokenizer_path).map_err(map_log_err)?;
+    let json: serde_json::Value = serde_json::from_str(&content).map_err(map_log_err)?;
+
+    let max_len = json
+        .get("truncation")
+        .and_then(|t| t.get("max_length"))
+        .and_then(|v| v.as_u64())
+        .or_else(|| {
+            json.get("model")
+                .and_then(|m| m.get("max_length"))
+                .and_then(|v| v.as_u64())
+        })
+        .or_else(|| {
+            json.get("post_processor")
+                .and_then(|p| p.get("max_length"))
+                .and_then(|v| v.as_u64())
+        })
+        .unwrap_or(MAX_LEN as u64) as usize;
+
+    Ok(max_len)
 }

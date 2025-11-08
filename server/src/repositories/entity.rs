@@ -38,7 +38,7 @@ impl EntityRepository {
             }
             out
         };
-        entities.sort_unstable_by(|a, b| a.path.cmp(&b.path).then(a.name.cmp(&b.name)));
+        entities.sort_unstable_by(|a, b| b.metadata.updated_at.cmp(&a.metadata.updated_at).then(a.name.cmp(&b.name)));
 
         Ok(entities)
     }

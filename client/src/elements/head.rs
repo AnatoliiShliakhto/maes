@@ -36,6 +36,12 @@ const _UAFSANS_BOLD_TTF: Asset = asset!(
         .with_hash_suffix(false)
         .into_asset_options()
 );
+const _APP_SMALL_ICON: Asset = asset!(
+    "/assets/32x32.png",
+    AssetOptions::builder()
+        .with_hash_suffix(false)
+        .into_asset_options()
+);
 const APP_ICON: Asset = asset!(
     "/assets/icon.png",
     AssetOptions::builder()
@@ -49,7 +55,8 @@ const MAIN_JS: Asset = asset!("/assets/main.js");
 
 #[component]
 pub fn Head() -> Element {
-    let _ = (
+    _ = (
+        _APP_SMALL_ICON.resolve(),
         _BOOTSTRAP_ICONS_WOFF2.resolve(),
         _BOOTSTRAP_ICONS_WOFF.resolve(),
         _UAFSANS_REGULAR_TTF.resolve(),

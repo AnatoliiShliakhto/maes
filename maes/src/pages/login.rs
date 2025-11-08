@@ -16,7 +16,7 @@ pub fn Login() -> Element {
             return;
         };
 
-        let _ = refresh_counter.read();
+        _ = refresh_counter.read();
         api_fetch!(
             GET,
             "/api/v1/workspaces",
@@ -40,7 +40,7 @@ pub fn Login() -> Element {
     };
 
     let on_success_import = use_callback(move |_| refresh_counter.with_mut(|c| *c += 1));
-    let _ = bind_task_dispatcher(Some(on_success_import), None);
+    _ = bind_task_dispatcher(Some(on_success_import), None);
 
     rsx! {
         div {

@@ -129,10 +129,10 @@ window.barChart = async (id, payload) => {
         chart: {
             type: 'bar',
             height: chartHeight,
-            width: 790,
+            width: 750,
             toolbar: { show: false }
         },
-        grid: { show: false, padding: { left: 30, right: 0, top: 0, bottom: 0 } },
+        grid: { show: false, padding: { left: 30, right: 15, top: 0, bottom: 0 } },
         plotOptions: {
             bar: {
                 borderRadius: 4,
@@ -198,10 +198,10 @@ window.stackedBarChart = async (id, payload) => {
             type: 'bar',
             stacked: true,
             height: chartHeight,
-            width: 790,
+            width: 750,
             toolbar: { show: false }
         },
-        grid: { show: false, padding: { left: 30, right: 0, top: 0, bottom: 0 } },
+        grid: { show: false, padding: { left: 30, right: 15, top: 0, bottom: 0 } },
         plotOptions: {
             bar: {
                 borderRadius: 4,

@@ -4,7 +4,7 @@ use crate::prelude::*;
 pub fn CleanLayout() -> Element {
     rsx! {
         div {
-            class: "flex-fixed",
+            class: "flex-fixed print:contents",
             Outlet::<Route> {}
         }
     }

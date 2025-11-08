@@ -75,10 +75,11 @@ fn api_v1_router() -> Router {
 
 fn entity_router() -> Router {
     Router::new()
+        .route("/merge", post(merge_entities))
         .route("/payload/{kind}/{id}", get(get_entity_payload))
         .route(
             "/{kind}/{id}",
-            get(list_entities_by_node).delete(delete_entity),
+            get(list_entities_by_node).patch(update_entity).delete(delete_entity),
         )
         .route("/{kind}", get(list_entities))
 }

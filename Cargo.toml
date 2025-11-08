@@ -1,11 +1,11 @@
 [workspace]
 resolver = "3"
-members = ["client", "shared", "maes", "server"]
+members = ["client", "shared", "maes", "server", "aide", "aide_ui"]
 default-members = ["maes"]
 
 [workspace.package]
 edition = "2024"
-version = "0.2.1"
+version = "0.2.2"
 description = "Military Aptitude & Evaluation System"
 keywords = ["Rust", "LMS", "WASM", "application"]
 authors = ["Anatolii Shliakhto <a.shlyakhto@gmail.com>"]
@@ -14,16 +14,16 @@ readme = "README.md"
 license = "MIT"
 
 [workspace.dependencies]
-aes-gcm = { version = "0.11.0-rc.1", features = ["aes"] }
+aes-gcm = { version = "0.11.0-rc.2", features = ["aes"] }
 arboard = { version = "3.6.1" }
-argon2 = { version = "0.6.0-rc.1" }
+argon2 = { version = "0.6.0-rc.2" }
 axum = { version = "0.8.6" }
 axum-server = { version = "0.7.2" }
 base64 = { version = "0.22.1" }
 chrono = { version = "0.4.42" }
 csv = { version = "1.4.0" }
 dashmap = { version = "7.0.0-rc2" }
-dioxus = { version = "0.7.0-rc.3" }
+dioxus = { version = "0.7.1" }
 dirs = { version = "6.0.0" }
 dotenvy = { version = "0.15.7" }
 fluent-bundle = { version = "0.16.0" }
@@ -36,9 +36,9 @@ lz4_flex = { version = "0.11.5" }
 moka = { version = "0.12.11", features = ["future"] }
 nanoid = { version = "0.4.0" }
 onnxruntime = { version = "0.0.14" }
-pbkdf2 = { version = "0.13.0-rc.1" }
+pbkdf2 = { version = "0.13.0-rc.2" }
 qrcode-generator = { version = "5.0.0" }
-rand = { version = "0.10.0-rc.0" }
+rand = { version = "0.10.0-rc.5" }
 reqwest = { version = "0.12.24", features = ["json"] }
 rfd = { version = "0.15.4" }
 single-instance = { version = "0.3.3" }
@@ -46,8 +46,11 @@ semver = { version = "1.0.27" }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = { version = "1.0.145" }
 serde_repr = { version = "0.1.20" }
-sha2 = { version = "0.11.0-rc.2" }
+sha2 = { version = "0.11.0-rc.3" }
 subtle = { version = "2.6.1" }
+tauri = { version = "2.9.2" }
+tauri-build = { version = "2.5.1" }
+tauri-plugin-barcode-scanner = { version = "2.4.2" }
 tokio = { version = "1.48.0", features = ["full"] }
 tokenizers = { version = "0.22.1" }
 tower = { version = "0.5.2" }
@@ -58,7 +61,10 @@ tracing-subscriber = { version = "0.3.20", features = ["env-filter"] }
 unic-langid = { version = "0.9.6" }
 zip = { version = "6.0.0" }
 walkdir = { version = "2.5.0" }
-web-sys = { version = "0.3.81" }
+wasm-bindgen = { version = "0.2.105" }
+wasm-bindgen-futures = { version = "0.4.55" }
+js-sys = { version = "0.3.82" }
+web-sys = { version = "0.3.82", features = ["Window", "CustomEvent", "EventTarget"] }
 winres = { version = "0.1.12" }
 windows = { version = "0.62.2", features = [
     "Foundation",

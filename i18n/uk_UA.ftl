@@ -60,13 +60,14 @@ delete-entity-message = Ви дійсно бажаєте видалити "{ $na
 delete-quiz-category-message = Ви впевнені, що бажаєте видалити категорію "{ $name }"?
 delete-quiz-question-message = Ви впевнені, що бажаєте видалити питання "{ $name }"?
 delete-survey-category-message = Ви впевнені, що бажаєте видалити категорію "{ $name }"?
-delete-task-message = Ви впевнені, що бажаєте видалити задачу "{ $name }"?
+delete-task-message = Ви впевнені, що бажаєте видалити завдання "{ $name }"?
 delete-user-message = Ви впевнені, що бажаєте видалити користувача "{ $username }"?
 delete-workspace-message = Ви впевнені, що бажаєте видалити робочій простір "{ $name }"?
 deserialize-error = Помилка десеріалізації
 device-connected = Підключився: { $name }
 download = Зберегти
 edit = Редагувати
+edit-report = Редагування звіту
 entity-not-found = За запитом нічого не знайдено
 error = Помилка
 export = Експорт
@@ -120,6 +121,8 @@ login-form-announcement = Увійдіть до свого облікового 
 login-form-title = Авторизація
 logout-success = Повертайтеся ще
 maes-dialog-filter = Файл даних MAES
+merge = Об'єднати
+entities-merge-failed = Неможливо об'єднати
 missing-fields = Не всі поля форми заповнені
 mock-title = Емулятор пристрою
 name = назва
@@ -167,6 +170,7 @@ grade-average = Середній бал
 reboot-tooltip = Для активації налаштувань потрібно перезаватижи додаток
 report = Звіт
 reports = Звіти
+reports-merged = Звіти об'єдані
 retry = Повторити
 run = До виконання!
 save = Зберегти
@@ -215,12 +219,12 @@ survey-tickets = Білети
 survey-tickets-title = Білети анонімного опитування
 surveys = Опитування
 surveys-navigator = Структура опитувань
-task = Задача
-task-created = Задача створена
+task = Завдання
+task-created = Завдання створене
 task-inspector = Панель керування
-finish-task-message = Завершити виконання задачі "{ $name }" та перемістити результат в архів звітів?
-tasks = Задачі
-task-not-found = Задачу не знайдено
+finish-task-message = Завершити завдання "{ $name }" та перемістити результат в архів звітів?
+tasks = Завдання
+task-not-found = Завдання не знайдено
 text-similarity-settings = Штучний інтелект
 ticket = Білет
 theme-abyss = Безодня
@@ -291,14 +295,14 @@ workspace-version-conflict = Версія робочого простору за
 workspaces = Робочі простори
 yes = Так!
 
-task-wizard-step-1-title = Оберіть задачу
+task-wizard-step-1-title = Оберіть завдання
 task-wizard-step-2-title = Оберіть { $kind ->
     [quiz] тест
     [survey] опитування
-    *[other] задачу
+    *[other] завдання
 }
 task-wizard-step-3-title = Оберіть підрозділ
-task-wizard-step-4-title = Створити задачу
+task-wizard-step-4-title = Створити завдання
 
 quiz-attempts = { $count ->
     [0] Кількість спроб: без обмежень

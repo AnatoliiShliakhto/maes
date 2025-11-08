@@ -11,7 +11,6 @@ pub fn WorkspaceSurveys() -> Element {
         return rsx! {};
     }
     use_init_input_dialog();
-    use_init_context_menu();
 
     use_context_provider(|| Signal::new(EntityKind::Survey));
     use_context_provider(|| Signal::new(SelectedItem::default()));
@@ -61,6 +60,5 @@ pub fn WorkspaceSurveys() -> Element {
             }
         }
         InputDialogContainer { key: "ws-survey-input-dialog" }
-        ContextMenuContainer { key: "ws-survey-ctx-menu" }
     }
 }

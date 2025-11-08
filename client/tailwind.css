@@ -55,4 +55,4 @@
     }
 }
 
-@source "./maes/src/**/*.{rs,html,css},./client/src/**/*.{rs,html,css}";
+@source "./client/src/**/*.{rs,html,css}";

@@ -1,0 +1,17 @@
+{
+  "$schema": "../gen/schemas/mobile-schema.json",
+  "identifier": "mobile-capability",
+  "description": "Mobile app permissions",
+  "windows": ["*"],
+  "permissions": [
+    "core:default",
+    "barcode-scanner:default",
+    "barcode-scanner:allow-vibrate",
+    "barcode-scanner:allow-scan",
+    "barcode-scanner:allow-cancel",
+    "barcode-scanner:allow-open-app-settings",
+    "barcode-scanner:allow-check-permissions",
+    "barcode-scanner:allow-request-permissions"
+  ],
+  "platforms": ["android", "iOS"]
+}

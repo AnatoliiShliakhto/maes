@@ -29,12 +29,12 @@ hot_reload = false
 
 [bundle]
 publisher = "Anatolii Shliakhto"
-identifier = "com.maes.app"
+identifier = "dev.ashliakhto.maes"
 copyright = "Copyright 2025 Anatolii Shliakhto"
 category = "Utility"
 short_description = "MAES"
 long_description = "Military Aptitude & Evaluation System"
-resources = ["target/dx/client/release/bundle"]
+resources = ["target/dx/client/release/bundle", "maes/assets/libs"]
 icon = ["maes/assets/icon.ico"]
 
 [bundle.windows]
@@ -43,9 +43,14 @@ product_name = "MAES - Military Aptitude & Evaluation System"
 file_description = "MAES - Military Aptitude & Evaluation System"
 timestamp_url = "http://timestamp.digicert.com"
 tsp = true
-allow_downgrades = false
+allow_downgrades = true
 internal_name = "MAES"
 original_filename = "maes.exe"
+
+[bundle.windows.wix]
+dialog_image_path = "maes/assets/installer.png"
+#fragmentPaths = ["wix/main.wxs"]
+#componentGroupRefs = ["OnnxRuntimeFiles"]
 
 [bundle.windows.webview_install_mode.DownloadBootstrapper]
 silent = true

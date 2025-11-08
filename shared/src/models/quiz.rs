@@ -62,7 +62,7 @@ impl Default for QuizGrade {
             a: 75,
             b: 50,
             c: 25,
-            similarity: 70,
+            similarity: default_similarity(),
         }
     }
 }

@@ -11,7 +11,6 @@ pub fn WorkspaceQuizzes() -> Element {
         return rsx! {};
     }
     use_init_input_dialog();
-    use_init_context_menu();
 
     use_context_provider(|| Signal::new(EntityKind::Quiz));
     use_context_provider(|| Signal::new(SelectedItem::default()));
@@ -61,6 +60,5 @@ pub fn WorkspaceQuizzes() -> Element {
             }
         }
         InputDialogContainer { key: "ws-quiz-input-dialog" }
-        ContextMenuContainer { key: "ws-quiz-ctx-menu" }
     }
 }

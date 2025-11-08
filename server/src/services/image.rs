@@ -91,7 +91,7 @@ impl ImageService {
                 let sem = sem.clone();
                 tokio::spawn(async move {
                     let _permit = sem.acquire().await;
-                    let _ = Self::remove(&ws, &en, id).await;
+                    _ = Self::remove(&ws, &en, id).await;
                 });
             }
         });

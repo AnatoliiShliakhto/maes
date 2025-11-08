@@ -17,7 +17,7 @@ pub async fn authorize(
         let ws_arc = Store::find::<Workspace>(workspace.clone(), workspace).await?;
         let ws_guard = ws_arc.read().await;
 
-        let user = match ws_guard.users.values().find(|u| u.login == login) {
+        let user = match ws_guard.users.values().find(|u| u.login.to_lowercase() == login.to_lowercase()) {
             Some(u) => u.clone(),
             None => return Err((StatusCode::NOT_FOUND, "credentials-not-found").into()),
         };

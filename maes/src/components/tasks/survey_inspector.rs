@@ -8,13 +8,14 @@ pub fn SurveyInspector() -> Element {
     let selected = use_context::<Signal<SelectedItem>>();
     let selected_guard = selected.read();
     let mut pinned = use_signal(|| false);
+    let workspace = use_memo(|| AuthService::claims().ws_id.clone());
 
     let survey_qr = QrGenerator::text(
         format!(
             "{host}/{kind}/{workspace_id}/{survey_id}",
             host = config.server.host,
             kind = EntityKind::SurveyRecord,
-            workspace_id = selected_guard.path,
+            workspace_id = workspace(),
             survey_id = selected_guard.id
         ),
         300,
@@ -62,7 +63,7 @@ pub fn SurveyInspector() -> Element {
         div {
             class: "flex-fixed w-full items-center justify-center p-10",
             img {
-                class: "max-h-full w-auto object-contain overflow-hidden rounded-(--radius-box)",
+                class: "max-h-full w-auto object-contain overflow-hidden rounded-(--radius-box) border-1 border-base-200",
                 class: "hover:shadow-xl cursor-pointer",
                 onclick: move |_| {
                     let selected_guard = selected.read();
@@ -70,7 +71,7 @@ pub fn SurveyInspector() -> Element {
                         "{host}/{kind}/{workspace_id}/{survey_id}",
                         host = localhost(),
                         kind = EntityKind::SurveyRecord,
-                        workspace_id = selected_guard.path,
+                        workspace_id = workspace(),
                         survey_id = selected_guard.id
                     );
                     WindowManager::open_window(t!("mock-title"), WindowKind::Mock { url })

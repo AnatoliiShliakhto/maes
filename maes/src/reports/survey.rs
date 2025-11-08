@@ -71,16 +71,20 @@ pub fn SurveyReport(entity: ReadSignal<String>) -> Element {
                 div { "{survey_rec_guard.path}" }
                 div {
                     class: "flex w-full justify-end",
-                    { t!("date-stamp", date = survey_rec_guard.metadata.created_at()) }
-                    " - "
-                    { t!("date-stamp", date = survey_rec_guard.metadata.updated_at()) }
+                    if survey_rec_guard.metadata.created_at() != survey_rec_guard.metadata.updated_at() {
+                        { t!("date-stamp", date = survey_rec_guard.metadata.created_at()) }
+                        " - "
+                        { t!("date-stamp", date = survey_rec_guard.metadata.updated_at()) }
+                    } else {
+                        { t!("date-stamp", date = survey_rec_guard.metadata.updated_at()) }
+                    }
                 }
             }
 
             for category in survey_rec_guard.categories.values() {
                 div {
                     class: "flex flex-col p-5 items-center break-inside-avoid",
-                    div { class: "text-lg font-semibold", "{category.name}" }
+                    div { class: "text-lg font-semibold px-10", "{category.name}" }
                     if category.answers.is_empty() {
                         RenderQuestionsCategory { category: category.clone() }
                     } else if category.questions.is_empty() {
