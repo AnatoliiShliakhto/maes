@@ -199,7 +199,7 @@ impl Hotspot {
                 let args: &WiFiDirectConnectionRequestedEventArgs = args;
                 match args.GetConnectionRequest() {
                     Ok(request) => {
-                        let _ = Self::handle_connection_request(request);
+                        _ = Self::handle_connection_request(request);
                     }
                     Err(e) => error!("{e:?}"),
                 }
@@ -217,7 +217,7 @@ impl Hotspot {
         {
             std::thread::spawn(move || {
                 unsafe {
-                    let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
+                    _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
                 }
 
                 let op = match WiFiDirectDevice::FromIdAsync(&id) {
@@ -253,6 +253,6 @@ impl Hotspot {
 
 impl Drop for Hotspot {
     fn drop(&mut self) {
-        let _ = self.stop();
+        _ = self.stop();
     }
 }

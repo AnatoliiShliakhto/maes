@@ -49,12 +49,6 @@
         @apply flex flex-1 flex-col min-h-0 overflow-y-auto;
     }
 
-    /*input[type="date"]::-webkit-calendar-picker-indicator {*/
-    /*    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="%23374151" viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/></svg>');*/
-    /*    background-size: 16px 16px;*/
-    /*    background-repeat: no-repeat;*/
-    /*    background-position: center;*/
-    /*}*/
     .print-area {
         font-family: "Times New Roman", Times, serif !important;
         @apply min-h-0 min-w-0 w-full h-auto;
@@ -74,19 +68,23 @@
         @apply text-sm text-base-content/70;
     }
 
-    .quiz-report-table {
-        @apply table table-auto border-collapse border-spacing-0;
+    .report-table {
+        @apply table table-auto;
+        border-collapse: collapse;
+        border-spacing: 0;
     }
-    .quiz-report-table tr {
+    .report-table tr {
         @apply break-inside-avoid;
     }
-    .quiz-report-table th {
-        @apply border-1 font-semibold text-base-content px-2 py-1;
+    .report-table th {
+        @apply font-semibold text-base-content px-2 py-1;
+        border: 1px solid;
     }
-    .quiz-report-table td {
-        @apply border-1 text-base-content text-center p-1;
+    .report-table td {
+        @apply text-base-content text-center p-1;
+        border: 1px solid;
     }
-    .quiz-report-table .rotated {
+    .report-table .rotated {
         @apply w-min whitespace-nowrap [writing-mode:vertical-rl] [text-orientation:sideways] rotate-180;
     }
 
@@ -96,45 +94,105 @@
 
 @media print {
     :root {
-        color-scheme: light;
+        color-scheme: light !important;
     }
     html[data-theme] {
-        --theme: lofi;
+        --theme: lofi !important;
     }
     html, body {
         font-family: "Times New Roman", Times, serif !important;
         -ms-overflow-style: none;
         scrollbar-width: none;
-        @apply min-h-0 min-w-0 w-auto h-auto forced-color-adjust-auto;
+        @apply min-h-0 min-w-0 w-auto h-auto;
+        display: block !important;
+        overflow: visible !important;
     }
+
     ::-webkit-scrollbar {
         display: none;
     }
+
     .print-hidden {
         @apply hidden;
     }
-    /*.tickets-grid {*/
-    /*    @apply overflow-hidden;*/
+
+    /*.table-zebra tbody tr:nth-child(odd) {*/
+    /*    background-color: transparent !important;*/
     /*}*/
-    html, body, div {
-        height: auto !important;
-        min-height: 0 !important;
-        overflow: visible !important;
+
+    /*.table-zebra tbody tr:nth-child(even) {*/
+    /*    background-color: transparent !important;*/
+    /*}*/
+
+    .print-area {
+        padding: 0 5mm !important;
+        margin: 0 auto !important;
+    }
+
+    .report-table {
+        display: table !important;
+        border-collapse: collapse !important;
+        border-spacing: 0 !important;
+        page-break-after: auto !important;
+        background: transparent !important;
+        box-sizing: border-box !important;
+    }
+
+    .report-table thead {
+        display: table-header-group !important;
+    }
+
+    .report-table tbody {
+        display: table-row-group !important;
+    }
+
+    .report-table tfoot {
+        display: table-footer-group !important;
+    }
+
+    .report-table tr {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        background: transparent !important;
+    }
+
+    .report-table thead tr {
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+    }
+
+    .report-table th {
+        border-width: 0.5pt !important;
+        border-style: solid !important;
+        border-color: #000 !important;
+        padding: 4px !important;
+        font-weight: 600 !important;
+        background: transparent !important;
+        box-sizing: border-box !important;
+    }
+
+    .report-table td {
+        border-width: 0.5pt !important;
+        border-style: solid !important;
+        border-color: #000 !important;
+        padding: 4px !important;
+        background: transparent !important;
         box-sizing: border-box !important;
     }
 }
 
 @media print and (orientation: portrait) {
     .print-area {
-        @apply max-w-[200mm];
+        max-width: 190mm !important;
     }
     .tickets-grid { @apply grid-cols-4; }
 }
+
 @media print and (orientation: landscape) {
     .print-area {
-        @apply max-w-[287mm];
+        max-width: 267mm !important;
     }
     .tickets-grid { @apply grid-cols-6; }
 }
 
-@source "./maes/src/**/*.{rs,html,css},./client/src/**/*.{rs,html,css}";
+@source "./maes/src/**/*.{rs,html,css}";

@@ -12,7 +12,6 @@ pub fn WorkspaceManager() -> Element {
     }
     use_init_input_dialog();
     use_init_create_user_dialog();
-    use_init_context_menu();
 
     use_context_provider(|| Signal::new(EntityKind::Workspace));
     use_context_provider(|| Signal::new(SelectedItem::default()));
@@ -62,6 +61,5 @@ pub fn WorkspaceManager() -> Element {
         }
         InputDialogContainer { key: "ws-input-dialog" }
         CreateUserDialogContainer { key: "ws-create-user-dialog" }
-        ContextMenuContainer { key: "ws-ctx-menu" }
     }
 }

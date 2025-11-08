@@ -211,14 +211,14 @@ async fn save_atomic<P: AsRef<Path>>(path: P, data: &[u8]) -> Result<()> {
     let rename_res = fs::rename(&tmp, path).await;
     if let Err(_e) = rename_res {
         if fs::try_exists(path).await.unwrap_or(false) {
-            let _ = fs::remove_file(path).await;
+            _ = fs::remove_file(path).await;
         }
         fs::rename(&tmp, path).await.map_err(map_log_err)?;
     }
 
     if let Some(parent) = path.parent() {
         if let Ok(dir) = fs::File::open(parent).await {
-            let _ = dir.sync_all().await;
+            _ = dir.sync_all().await;
         }
     }
 

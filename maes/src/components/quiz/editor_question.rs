@@ -277,7 +277,7 @@ pub fn QuizEditorQuestion(
                                         class: "flex bg-base-200 items-center justify-center rounded-(--radius-box)",
                                         div {
                                             class: "max-w-50 w-full p-2",
-                                            img { class: "w-full h-auto object-contain", src: format!("{}/images/{}/{}/{}.webp", localhost(), ws, quiz_id, id) }
+                                            img { class: "max-w-full h-auto object-contain", src: format!("{}/images/{}/{}/{}.webp", localhost(), ws, quiz_id, id) }
                                         }
                                     }
                                 }

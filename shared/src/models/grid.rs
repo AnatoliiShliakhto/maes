@@ -129,4 +129,27 @@ impl<T: Clone + 'static> Grid<T> {
         }
         sum as f64 / self.cols as f64
     }
+    
+    pub fn extend_rows(&mut self, other: &Self) {
+        if self.cols != other.cols {
+            return;
+        }
+        self.rows += other.rows;
+        self.data.extend(other.data.clone());
+    }
+
+    pub fn merge(&mut self, other: &Self)
+    where
+        T: std::ops::AddAssign + Copy + 'static,
+    {
+        if self.rows != other.rows || self.cols != other.cols {
+            return;
+        }
+
+        for row in 0..self.rows {
+            for col in 0..self.cols {
+                self.add_value(row, col, *other.get(row, col));
+            }
+        }
+    }
 }

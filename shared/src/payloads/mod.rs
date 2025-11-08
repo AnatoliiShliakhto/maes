@@ -6,6 +6,7 @@ mod students;
 mod task;
 mod image;
 mod exchange;
+mod entity;
 
 pub use self::{
     workspace::*,   
@@ -16,4 +17,5 @@ pub use self::{
     task::*,
     image::*,
     exchange::*,
+    entity::*,
 };

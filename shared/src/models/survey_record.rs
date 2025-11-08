@@ -34,6 +34,17 @@ impl SurveyRecord {
             metadata: self.metadata.clone(),
         }
     }
+
+    pub fn to_entity(&self) -> Entity {
+        Entity {
+            id: self.id.clone(),
+            name: self.name.clone(),
+            kind: EntityKind::SurveyRecord,
+            node: self.node.clone(),
+            path: self.path.clone(),
+            metadata: self.metadata.clone(),
+        }
+    }    
 }
 
 #[derive(Debug, Default, Clone, PartialEq, Deserialize, Serialize)]

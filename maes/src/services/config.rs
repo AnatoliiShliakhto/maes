@@ -77,7 +77,23 @@ impl ConfigService {
                 import: dirs::desktop_dir().unwrap_or_default(),
                 images: dirs::desktop_dir().unwrap_or_default(),
             },
-            windows: Default::default(),
+            windows: WindowsConfig {
+                main: Default::default(),
+                child: WindowConfig {
+                    top: 80,
+                    left: 120,
+                    width: 1000,
+                    height: 700,
+                    maximized: false,
+                },
+                mock: WindowConfig {
+                    top: 85,
+                    left: 155,
+                    width: 400,
+                    height: 600,
+                    maximized: false,
+                },
+            },
             language: "uk".to_string(),
             theme: "corporate".to_string(),
         }
@@ -109,7 +125,7 @@ impl ConfigService {
         }
 
         fs::rename(&tmp_path, path).map_err(|e| {
-            let _ = fs::remove_file(&tmp_path);
+            _ = fs::remove_file(&tmp_path);
             format!("{e}")
         })?;
 

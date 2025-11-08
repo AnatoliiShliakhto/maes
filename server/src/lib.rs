@@ -30,7 +30,7 @@ async fn main(config: ServerConfig, handle: Handle, dispatcher: Dispatcher) -> R
         .join("maes");
     let ws_path = data_path.join("workspaces");
     if !ws_path.exists() {
-        let _ = fs::create_dir_all(ws_path).await.map_err(|e| error!("Failed to create workspace directory: {e}"));
+        _ = fs::create_dir_all(ws_path).await.map_err(|e| error!("Failed to create workspace directory: {e}"));
     }
     
     State::init(&config.ident, &data_path, dispatcher)?;

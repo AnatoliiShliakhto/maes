@@ -184,6 +184,7 @@ pub async fn delete_workspace_treenode(
         ImageService::remove_entities(&session.workspace, vec).await?;
     }
 
+    EntityRepository::upsert(&session.workspace, snapshot.to_entity()).await?;
     Store::upsert(snapshot).await?;
     Ok(Json(node_id))
 }

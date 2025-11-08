@@ -1,0 +1,24 @@
+[application]
+name = "aide_ui"
+tailwind_input = "auide_ui/tailwind.css"
+tailwind_output = "aide_ui/assets/tailwind.css"
+#static_dir = "client/assets"
+default_platform = "web"
+
+[web.app]
+
+# HTML title tag content
+title = "Aide"
+
+[web.watcher]
+watch_path = ["aide_ui/src"]
+
+[web.resource]
+style = []
+script = []
+
+[web.resource.dev]
+
+# Javascript code file
+# serve: [dev-server] only
+script = []

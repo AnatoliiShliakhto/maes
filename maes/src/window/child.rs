@@ -51,7 +51,7 @@ fn ChildWindow(title: String, kind: WindowKind, claims: Arc<Claims>) -> Element{
     rsx! {
         Head { is_main: false }
         div {
-            class: "flex-fixed h-dvh w-dvw min-h-screen print:min-h-screen-0 print:w-full print:h-full",
+            class: "flex-fixed h-dvh w-dvw min-h-screen print:min-h-screen-0 print:w-full print:h-full print:contents",
             oncontextmenu: move |evt| evt.prevent_default(),
             ChildHeader { title }
             match kind {

@@ -42,6 +42,12 @@ const APP_ICON: Asset = asset!(
         .with_hash_suffix(false)
         .into_asset_options()
 );
+const _APP_SMALL_ICON: Asset = asset!(
+    "/assets/32x32.png",
+    AssetOptions::builder()
+        .with_hash_suffix(false)
+        .into_asset_options()
+);
 const _OK_CHEVRON: Asset = asset!(
     "/assets/ok.svg",
     AssetOptions::builder()
@@ -67,7 +73,8 @@ const _AI_TOKENIZER: Asset = asset!(
 
 #[component]
 pub fn Head(is_main: bool) -> Element {
-    let _ = (
+    _ = (
+        _APP_SMALL_ICON.resolve(),
         _OK_CHEVRON.resolve(),
         _BOOTSTRAP_ICONS_WOFF2.resolve(),
         _BOOTSTRAP_ICONS_WOFF.resolve(),

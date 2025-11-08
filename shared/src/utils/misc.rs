@@ -66,3 +66,15 @@ pub fn extract_form_checkboxes(payload: &[String]) -> Vec<bool> {
     }
     result
 }
+
+pub fn find_last_common<T: Clone + PartialEq>(arr1: &[T], arr2: &[T]) -> Option<T> {
+    let min_len = arr1.len().min(arr2.len());
+
+    for i in (0..min_len).rev() {
+        if arr1[i] == arr2[i] {
+            return Some(arr1[i].clone());
+        }
+    }
+
+    None
+}

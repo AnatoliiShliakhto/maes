@@ -1,4 +1,9 @@
-use crate::{components::{dialogs::*, widgets::*}, prelude::*, services::*, window::*};
+use crate::{
+    components::{dialogs::*, inputs::*, widgets::*},
+    prelude::*,
+    services::*,
+    window::*,
+};
 use ::chrono::{TimeDelta, TimeZone, Utc};
 use ::std::{collections::HashSet, ops::Add};
 
@@ -9,6 +14,8 @@ pub struct ReportsState {
     pub from: Signal<i64>,
     pub to: Signal<i64>,
     pub selected: Signal<HashSet<String>>,
+    pub dialog_open: Signal<bool>,
+    pub changed: Signal<i32>,
 }
 
 impl Default for ReportsState {
@@ -19,6 +26,8 @@ impl Default for ReportsState {
             from: Signal::new(i64::MIN),
             to: Signal::new(i64::MAX),
             selected: Signal::new(HashSet::new()),
+            dialog_open: Signal::new(false),
+            changed: Signal::new(0),
         }
     }
 }
@@ -27,10 +36,10 @@ impl Default for ReportsState {
 pub fn Reports() -> Element {
     let mut state = use_context_provider(ReportsState::default);
     let mut reports = use_context_provider(|| Signal::new(Vec::<Entity>::new()));
-    let mut refresh_counter = use_signal(|| 0);
+    let mut dialog = use_dialog();
 
     use_effect(move || {
-        let _ = refresh_counter.read();
+        _ = state.changed.read();
         api_fetch!(
             GET,
             "/api/v1/reports",
@@ -38,8 +47,8 @@ pub fn Reports() -> Element {
         );
     });
 
-    let on_success_import = use_callback(move |_| refresh_counter.with_mut(|c| *c += 1));
-    let _ = bind_task_dispatcher(Some(on_success_import), None);
+    let on_success_import = use_callback(move |_| state.changed.with_mut(|c| *c += 1));
+    _ = bind_task_dispatcher(Some(on_success_import), None);
 
     let delete_action = {
         let callback = use_callback(move |_| {
@@ -54,8 +63,33 @@ pub fn Reports() -> Element {
             );
         });
         use_callback(move |_| {
-            use_dialog().warning(t!("delete-reports-message", reports = state.selected.read().len()), Some(callback));
+            dialog.warning(
+                t!(
+                    "delete-reports-message",
+                    reports = state.selected.read().len()
+                ),
+                Some(callback),
+            );
         })
+    };
+
+    let merge_action = move |_| {
+        if state.selected.read().len() < 2 {
+            return;
+        }
+        api_fetch!(
+            POST,
+            "/api/v1/entities/merge",
+            state.selected.read().iter().cloned().collect::<Vec<_>>(),
+            on_success = move |body: Entity| {
+                state.selected.with_mut(|s| {
+                    s.clear();
+                    s.insert(body.id.clone());
+                });
+                reports.with_mut(|vec| vec.insert(0, body));
+                ToastService::success(t!("reports-merged"))
+            }
+        )
     };
 
     rsx! {
@@ -87,6 +121,28 @@ pub fn Reports() -> Element {
                             { t!("download") }
                         }
                     }
+                    div { class: "divider divider-horizontal m-1 w-1" }
+                    li {
+                        button {
+                            class: format!("hover:text-primary {class}",
+                                class = if state.selected.read().len() != 1 { "btn-disabled bg-transparent text-base-content/50" } else { ""}
+                            ),
+                            onclick: move |_| state.dialog_open.set(true),
+                            i { class: "bi bi-pen" }
+                            { t!("edit") }
+                        }
+                    }
+                    li {
+                        button {
+                            class: format!("hover:text-primary {class}",
+                                class = if state.selected.read().len() < 2 { "btn-disabled bg-transparent text-base-content/50" } else { ""}
+                            ),
+                            onclick: merge_action,
+                            i { class: "bi bi-link-45deg" }
+                            { t!("merge") }
+                        }
+                    }
+                    div { class: "divider divider-horizontal m-1 w-1" }
                     li {
                         button {
                             class: format!("hover:text-error {class}",
@@ -185,6 +241,7 @@ pub fn Reports() -> Element {
             }
             RenderReportList {}
         }
+        EditReportDialogContainer { key: "edit-report-container" }
     }
 }
 
@@ -199,8 +256,8 @@ fn RenderReportList() -> Element {
         .filter(|r| {
             let is_match = state.name.read().is_empty()
                 || r.name
-                .to_lowercase()
-                .contains(&state.name.read().to_lowercase());
+                    .to_lowercase()
+                    .contains(&state.name.read().to_lowercase());
             let is_path_match =
                 state.path.read().is_empty() || r.path.contains(&*state.path.read());
             let is_from =
@@ -209,6 +266,18 @@ fn RenderReportList() -> Element {
             is_match && is_path_match && is_from && is_to
         })
         .collect::<Vec<_>>();
+
+    let on_select = use_callback(move |args: (EntityKind, String)| match args.0 {
+        EntityKind::QuizRecord => WindowManager::open_window(
+            t!("quiz-report-title"),
+            WindowKind::QuizReport { entity: args.1 },
+        ),
+        EntityKind::SurveyRecord => WindowManager::open_window(
+            t!("survey-report-title"),
+            WindowKind::SurveyReport { entity: args.1 },
+        ),
+        _ => (),
+    });
 
     rsx! {
         ul {
@@ -219,20 +288,7 @@ fn RenderReportList() -> Element {
                     class: "list-row hover:bg-base-200 rounded-none cursor-pointer",
                     onclick: {
                         let (kind, id) = (report.kind, report.id.clone());
-                        move |_| {
-                            to_owned![id];
-                            match kind {
-                                EntityKind::QuizRecord => WindowManager::open_window(
-                                    t!("quiz-report-title"),
-                                    WindowKind::QuizReport { entity: id }
-                                ),
-                                EntityKind::SurveyRecord => WindowManager::open_window(
-                                    t!("survey-report-title"),
-                                    WindowKind::SurveyReport { entity: id }
-                                ),
-                                _ => ()
-                            }
-                        }
+                        move |_| on_select.call((kind, id.clone()))
                     },
                     div {
                         class: "flex flex-1 items-center justify-center",
@@ -289,6 +345,131 @@ fn RenderReportList() -> Element {
                                 "{report.metadata.updated_by}"
                                 i { class: "bi bi-person text-primary ml-2" }
                             }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+#[component]
+pub fn EditReportDialogContainer() -> Element {
+    let mut state = use_context::<ReportsState>();
+    let mut reports = use_context::<Signal<Vec<Entity>>>();
+
+    if !*state.dialog_open.read() {
+        return rsx! {};
+    };
+    let Some(report_id) = state.selected.read().iter().next().cloned() else {
+        return rsx! {};
+    };
+    let Some(report) = reports.read().iter().find(|r| r.id == report_id).cloned() else {
+        return rsx! {};
+    };
+
+    let edit_action = move |evt: FormEvent| {
+        evt.stop();
+        let (Some(kind), Some(id), Some(name), Some(path)) =
+            form_values!(evt, "kind", "id", "name", "path")
+        else {
+            ToastService::error(t!("missing-fields"));
+            return;
+        };
+
+        let endpoint = format!("/api/v1/entities/{kind}/{id}");
+        api_call!(
+            PATCH,
+            endpoint,
+            UpdateEntityPayload {
+                name: name.clone(),
+                path: path.clone()
+            },
+            on_success = move || {
+                to_owned![id, name, path];
+                reports.with_mut(|vec| {
+                    vec.iter_mut().find(|e| e.id == id).map(|e| {
+                        e.name = name.clone();
+                        e.path = path.clone();
+                    })
+                });
+            },
+        );
+        state.dialog_open.set(false);
+    };
+
+    rsx! {
+        dialog {
+            class: "modal modal-open",
+            div {
+                class: "modal-box flex flex-col gap-5",
+                onclick: |evt| evt.stop_propagation(),
+                h3 {
+                    class: "text-lg font-semibold text-accent",
+                    { t!("edit-report") }
+                }
+
+                form {
+                    id: "edit-report-form",
+                    autocomplete: "off",
+                    onsubmit: edit_action,
+                    input {
+                        r#type: "submit",
+                        style: "position: absolute; left: -9999px; width: 1px; height: 1px;",
+                        tabindex: -1,
+                    }
+                    input {
+                        r#type: "hidden",
+                        name: "kind",
+                        value: "{report.kind}",
+                    }
+                    input {
+                        r#type: "hidden",
+                        name: "id",
+                        value: "{report.id}",
+                    }
+
+                    fieldset {
+                        class: "fieldset flex flex-col p-4 border border-base-300 rounded-(--radius-box) mt-3 gap-5",
+                        legend {
+                            class: "fieldset-legend",
+                            i { class: "bi bi-journal-text mr-1" }
+                            { t!("report") }
+                        }
+                        TextInputComponent {
+                            label: rsx! { span { i { class: "bi bi-anthropic mr-1" } { t!("name") } } },
+                            name: "name",
+                            placeholder: t!("name"),
+                            minlength: 5,
+                            maxlength: 100,
+                            required: true,
+                            initial_value: "{report.name}"
+                        }
+                        TextArea {
+                            name: "path",
+                            placeholder: t!("unit"),
+                            minlength: 5,
+                            maxlength: 300,
+                            required: true,
+                            initial_value: "{report.path}"
+                        }
+                    }
+
+                    div {
+                        class: "flex justify-end gap-2 mt-7",
+                        button {
+                            class: "btn btn-ghost",
+                            onclick: move |evt| {
+                                evt.stop_propagation();
+                                evt.prevent_default();
+                                state.dialog_open.set(false);
+                            },
+                            { t!("no") }
+                        }
+                        button {
+                            form: "edit-report-form",
+                            class: "btn btn-primary",
+                            { t!("yes") }
                         }
                     }
                 }

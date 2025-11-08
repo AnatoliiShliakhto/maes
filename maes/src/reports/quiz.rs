@@ -119,7 +119,7 @@ pub fn QuizReport(entity: ReadSignal<String>) -> Element {
             }
         }
         div {
-            class: "flex flex-1 flex-col print-area overflow-auto px-5 print:px-1",
+            class: "flex flex-1 flex-col print-area overflow-auto px-5 print:px-1 print:contents",
             "data-theme": "lofi",
             if state.read().active_student.is_some() {
                 RenderStudentReport {}
@@ -151,9 +151,9 @@ fn RenderQuizReport() -> Element {
         }
 
         div {
-            class: "flex w-full h-min-0 w-min-0",
+            class: "flex w-full h-min-0 w-min-0 print:contents",
             table {
-                class: "quiz-report-table table-zebra",
+                class: "report-table table-zebra w-[calc(100%_-_1px)]",
                 thead {
                     tr {
                         if has_ranks {
@@ -323,7 +323,7 @@ fn StatsReport() -> Element {
             class: "flex",
 
             table {
-                class: "quiz-report-table table-zebra w-auto inline-table",
+                class: "report-table table-zebra w-auto inline-table",
                 thead {
                     tr {
                         th { class: "text-center", "" }
@@ -417,7 +417,7 @@ fn StatsReport() -> Element {
         // div {
         //     class: "flex",
         //     table {
-        //         class: "quiz-report-table table-zebra w-auto inline-table",
+        //         class: "report-table table-zebra w-auto inline-table",
         //         thead {
         //             tr {
         //                 th { class: "text-center", { t!("categories") } }
@@ -642,11 +642,11 @@ fn RenderStudentQuestionReport(question: QuizQuestion, answers_ids: HashSet<Stri
                     }
                 }
                 div {
-                    class: "flex flex-col",
+                    class: "flex flex-col font-semibold",
                     if question.img {
                         div {
                             class: "max-w-30 w-full p-2",
-                            img { class: "w-full h-auto object-contain", src: format!("{img_base_url}/{id}.webp", id = question.id) }
+                            img { class: "max-w-full h-auto object-contain", src: format!("{img_base_url}/{id}.webp", id = question.id) }
                         }
                     }
                     "{question.name}"
@@ -667,7 +667,7 @@ fn RenderStudentQuestionReport(question: QuizQuestion, answers_ids: HashSet<Stri
                                 if answer.img {
                                     div {
                                         class: "max-w-30 w-full p-2",
-                                        img { class: "w-full h-auto object-contain", src: format!("{img_base_url}/{id}.webp", id = answer.id) }
+                                        img { class: "max-w-full h-auto object-contain", src: format!("{img_base_url}/{id}.webp", id = answer.id) }
                                     }
                                 }
                                 "[{quiz_guard.grade.similarity.to_string()}%] {answer.name}"
@@ -728,7 +728,7 @@ fn RenderStudentQuestionReport(question: QuizQuestion, answers_ids: HashSet<Stri
                                 if answer.img {
                                     div {
                                         class: "max-w-30 w-full p-2",
-                                        img { class: "w-full h-auto object-contain", src: format!("{img_base_url}/{id}.webp", id = answer.id) }
+                                        img { class: "max-w-full h-auto object-contain", src: format!("{img_base_url}/{id}.webp", id = answer.id) }
                                     }
                                 }
                                 "{answer.name}"

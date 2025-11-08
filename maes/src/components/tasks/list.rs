@@ -195,7 +195,7 @@ fn RenderTaskItem(task: ReadSignal<Task>) -> Element {
                 selected.set(SelectedItem {
                     id: task_guard.id.clone(),
                     name: task_guard.name.clone(),
-                    path: task_guard.workspace.clone(),
+                    path: task_guard.path.clone(),
                 })
             },
             oncontextmenu: ctx_menu,

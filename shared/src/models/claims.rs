@@ -4,6 +4,7 @@ use ::serde::{Deserialize, Serialize};
 #[derive(Default, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Claims {
     pub id: String,
+    pub ws_id: String,
     pub username: String,
     pub workspace: String,
     pub version: String,

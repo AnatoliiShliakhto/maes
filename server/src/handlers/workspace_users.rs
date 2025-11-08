@@ -1,9 +1,8 @@
-use crate::{middleware::*, services::*};
+use crate::{middleware::*, services::*, repositories::*};
 use ::axum::{Json, extract::Path};
 use ::shared::{common::*, models::*, payloads::*, services::*, utils::*};
 use ::std::collections::HashSet;
 use ::tokio::task::spawn_blocking;
-
 
 pub async fn list_workspace_users(session: Session) -> Result<Json<Vec<WorkspaceUser>>> {
     let node_id = session.node.clone();
@@ -94,6 +93,7 @@ pub async fn add_workspace_user(
         (ws_guard.clone(), user)
     };
 
+    EntityRepository::upsert(&session.workspace, snapshot.to_entity()).await?;
     Store::upsert(snapshot).await?;
     Ok(Json(user))
 }
@@ -116,6 +116,7 @@ pub async fn delete_workspace_user(
         ws_guard.clone()
     };
 
+    EntityRepository::upsert(&session.workspace, snapshot.to_entity()).await?;
     Store::upsert(snapshot).await?;
     Ok(Json(user_id))
 }

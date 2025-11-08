@@ -2,8 +2,6 @@ use crate::{prelude::*, components::{widgets::*, tasks::*}};
 
 #[component]
 pub fn Tasks() -> Element {
-    use_init_context_menu();
-
     use_context_provider(|| Signal::new(SelectedItem::default()));
     use_context_provider(|| Signal::new(EntityKind::Workspace));
 
@@ -23,7 +21,5 @@ pub fn Tasks() -> Element {
                 }
             }
         }
-        
-        ContextMenuContainer { key: "tasks-ctx-menu" }
     }
 }

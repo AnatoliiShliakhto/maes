@@ -24,7 +24,7 @@ pub fn RenderWifiCard() -> Element {
             div {
                 class: "h-full max-h-44",
                 img {
-                    class: "max-h-full w-auto object-contain overflow-hidden rounded-(--radius-box)",
+                    class: "max-h-full w-auto object-contain overflow-hidden rounded-(--radius-box) border-1 border-base-200",
                     src: QrGenerator::text(wifi_payload, 300)
                 }
             }
@@ -71,7 +71,7 @@ pub fn RenderTicketCard() -> Element {
                     div {
                         class: "h-full max-h-44",
                         img {
-                            class: "max-h-full w-auto object-contain overflow-hidden rounded-(--radius-box)",
+                            class: "max-h-full w-auto object-contain overflow-hidden rounded-(--radius-box) border-1 border-base-200",
                             src: qr_src
                         }
                     }

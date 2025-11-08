@@ -52,8 +52,8 @@ pub fn QuizTake() -> Element {
                             class: "flex flex-col w-full",
                             if question.img {
                                 div {
-                                    class: "flex w-full max-w-md items-center justify-center mb-4",
-                                    img { class: "w-full h-auto object-contain", src: format!("/images/{}/{}/{}.webp", quiz_guard.workspace, quiz_guard.quiz, question.id) }
+                                    class: "flex w-full max-w-md items-center justify-start mb-4",
+                                    img { class: "max-w-full h-auto object-contain", src: format!("/images/{}/{}/{}.webp", quiz_guard.workspace, quiz_guard.quiz, question.id) }
                                 }
                             }
                             div {
@@ -151,8 +151,8 @@ fn RenderSingleKindQuestion(question: ReadSignal<QuizActivityQuestion>) -> Eleme
                         class: "flex flex-col w-full justify-center",
                         if answer.img {
                             div {
-                                class: "flex w-full max-w-md items-center justify-center mb-2",
-                                img { class: "w-full h-auto object-contain", src: format!("/images/{}/{}/{}.webp", quiz_guard.workspace, quiz_guard.quiz, answer.id) }
+                                class: "flex w-full max-w-md items-center justify-start mb-2",
+                                img { class: "max-w-full h-auto object-contain", src: format!("/images/{}/{}/{}.webp", quiz_guard.workspace, quiz_guard.quiz, answer.id) }
                             }
                         }
                         div {
@@ -204,8 +204,8 @@ fn RenderMultipleKindQuestion(question: ReadSignal<QuizActivityQuestion>) -> Ele
                         class: "flex flex-col w-full justify-center",
                         if answer.img {
                             div {
-                                class: "flex w-full max-w-md items-center justify-center mb-2",
-                                img { class: "w-full h-auto object-contain", src: format!("/images/{}/{}/{}.webp", quiz_guard.workspace, quiz_guard.quiz, answer.id) }
+                                class: "flex w-full max-w-md items-center justify-start mb-2",
+                                img { class: "max-w-full h-auto object-contain", src: format!("/images/{}/{}/{}.webp", quiz_guard.workspace, quiz_guard.quiz, answer.id) }
                             }
                         }
                         div {

@@ -34,7 +34,7 @@ pub fn AppHeader() -> Element {
                 class: "btn btn-ghost btn-square rounded-none hover:btn-secondary p-0",
                 onclick: move |_| WindowManager::open_window(t!("about"), WindowKind::About),
                 //i { class: "bi bi-three-dots-vertical text-xl" }
-                img { src: "/assets/icon.png", class: "w-6"}
+                img { src: "/assets/32x32.png", class: "w-6"}
             }
             div {
                 class: "flex flex-1 flex-nowrap gap-4 px-1 justify-start cursor-move",

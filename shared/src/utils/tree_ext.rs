@@ -11,6 +11,7 @@ pub trait TreeExt {
     fn node_descendants(&self, id: impl AsRef<str>) -> Vec<String>;
     fn populate_children(&mut self);
     fn sort_by_name(&mut self);
+    fn node_path_ids(&self, id: impl AsRef<str>) -> Vec<String>;
 }
 
 #[inline]
@@ -75,6 +76,30 @@ where
     }
 
     path.join(" ")
+}
+
+#[inline]
+fn collect_path_ids_with_get<'a, F>(id: impl AsRef<str>, mut get: F) -> Vec<String>
+where
+    F: FnMut(&str) -> Option<&'a TreeNode>,
+{
+    let mut path: Vec<String> = Vec::with_capacity(8);
+    let mut current_id = id.as_ref().to_owned();
+
+    let mut hops = 0usize;
+    while let Some(node) = get(current_id.as_str()) {
+        path.push(node.id.clone());
+        if node.parent.is_empty() {
+            break;
+        }
+        current_id = node.parent.clone();
+        hops += 1;
+        if hops > 10_000 {
+            break;
+        }
+    }
+
+    path.iter().rev().map(|s| s.to_owned()).collect()
 }
 
 impl TreeExt for Vec<TreeNode> {
@@ -172,6 +197,14 @@ impl TreeExt for Vec<TreeNode> {
         self.sort_by(|a, b|
             a.name.to_lowercase().cmp(&b.name.to_lowercase()))
     }
+
+    fn node_path_ids(&self, id: impl AsRef<str>) -> Vec<String> {
+        let mut map: HashMap<&str, &TreeNode> = HashMap::with_capacity(self.len());
+        for n in self {
+            map.insert(n.id.as_str(), n);
+        }
+        collect_path_ids_with_get(id, |key| map.get(key).copied())
+    }
 }
 
 impl TreeExt for HashMap<String, TreeNode> {
@@ -249,6 +282,10 @@ impl TreeExt for HashMap<String, TreeNode> {
     }
 
     fn sort_by_name(&mut self) {}
+
+    fn node_path_ids(&self, id: impl AsRef<str>) -> Vec<String> {
+        collect_path_ids_with_get(id, |key| self.get(key))
+    }
 }
 
 impl TreeExt for IndexMap<String, TreeNode> {
@@ -347,5 +384,9 @@ impl TreeExt for IndexMap<String, TreeNode> {
             }
         }
         *self = tmp;
+    }
+
+    fn node_path_ids(&self, id: impl AsRef<str>) -> Vec<String> {
+        collect_path_ids_with_get(id, |key| self.get(key))
     }
 }

@@ -80,8 +80,9 @@ fn main() {
         .with_cfg(launch_builder_config)
         .launch(|| {
             let mut app_state = use_app_state();
-            let _ = bind_msg_dispatcher();
+            _ = bind_msg_dispatcher();
             let mut dialog = use_init_dialog();
+            use_init_context_menu();
 
             let download_url_sig = use_signal(|| "".to_string());
             let update_action = use_callback(move |_| UpdateService::update(download_url_sig()));
@@ -97,7 +98,7 @@ fn main() {
 
             rsx! {
                 div {
-                    class: "flex-fixed h-dvh w-dvw min-h-screen",
+                    class: "flex-fixed h-dvh w-dvw min-h-screen print:contents",
                     oncontextmenu: move |evt| {
                         if !cfg!(debug_assertions) {
                             evt.prevent_default();
@@ -149,6 +150,7 @@ fn main() {
 
                     DialogContainer { key: "dialog-container" }
                     ToastContainer { key: "toast-container" }
+                    ContextMenuContainer { key: "ctx-menu-container" }
                     Resizer { key: "resizer" }
                 }
             }

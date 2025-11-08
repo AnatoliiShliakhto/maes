@@ -21,6 +21,7 @@ impl SessionService {
 
         let claims = Claims {
             id: arc.id.clone(),
+            ws_id: arc.workspace.clone(),
             username: arc.username.clone(),
             workspace: arc.workspace_name.clone(),
             version: arc.workspace_version.clone(),

@@ -5,6 +5,7 @@
 /package-lock.json
 /.env
 /data
+/aide/gen/schemas
 
 /maes/assets/main.bundle.js
 /maes/assets/main.bundle.js.LICENSE.txt

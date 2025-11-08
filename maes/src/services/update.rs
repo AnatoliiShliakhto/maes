@@ -54,7 +54,7 @@ impl UpdateService {
             if download_to(&path, &url).await.is_err() {
                 return;
             }
-            let _ = run_msi(&path).await;
+            _ = run_msi(&path).await;
         });
     }
 }

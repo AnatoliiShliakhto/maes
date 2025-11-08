@@ -1,0 +1,107 @@
+@import "tailwindcss";
+@plugin "daisyui" {
+    root: ":root";
+    themes: corporate --default, dim --prefersdark, light, dark, cupcake, bumblebee, emerald, retro,
+    garden, forest, aqua, lofi, pastel, fantasy, wireframe, black, luxury, dracula, cmyk, synthwave,
+    autumn, business, acid, lemonade, night, coffee, winter,  nord, sunset, abyss, silk;
+}
+
+@font-face {
+    font-family: 'uafsans';
+    src: url('/assets/uafsans-regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'uafsans';
+    src: url('/assets/uafsans-medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'uafsans';
+    src: url('/assets/uafsans-semibold.ttf') format('truetype');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'uafsans';
+    src: url('/assets/uafsans-bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@layer base {
+    html, body {
+        @apply h-full w-full overflow-hidden antialiased forced-color-adjust-none touch-manipulation select-none;
+        @apply flex flex-1 flex-col min-h-0;
+        font-family: uafsans, ui-sans-serif, system-ui, sans-serif;
+    }
+
+    #main {
+        @apply flex flex-1 flex-col min-h-0;
+    }
+
+    .flex-fixed {
+        @apply flex flex-1 flex-col min-h-0;
+    }
+
+    .flex-scrollable {
+        @apply flex flex-1 flex-col min-h-0 overflow-y-auto;
+    }
+
+    html:has(.flex-visible) {
+        background: transparent !important;
+    }
+    html:has(.flex-visible) body {
+        background: transparent !important;
+    }
+    html:has(.flex-visible) body > * {
+        visibility: hidden;
+    }
+    .flex-visible {
+        visibility: visible !important;
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(8px);
+        padding: 1rem;
+    }
+    .flex-visible * {
+        visibility: visible !important;
+    }
+
+    @keyframes scan {
+        0% {
+            top: 0%;
+            opacity: 0;
+        }
+        50% {
+            top: 50%;
+            opacity: 1;
+        }
+        100% {
+            top: 100%;
+            opacity: 0;
+        }
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.5;
+        }
+    }
+}
+
+@source "./aide_ui/src/**/*.{rs,html,css}";
