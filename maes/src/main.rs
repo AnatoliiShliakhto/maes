@@ -85,7 +85,7 @@ fn main() {
             use_init_context_menu();
 
             let download_url_sig = use_signal(|| "".to_string());
-            let update_action = use_callback(move |_| UpdateService::update(download_url_sig()));
+            let update_action = Callback::new(move |_| UpdateService::update(download_url_sig()));
             use_effect(move || {
                 if download_url_sig.read().is_empty() {
                     return;

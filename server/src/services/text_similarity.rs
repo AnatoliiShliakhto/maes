@@ -139,6 +139,7 @@ fn compare_impl(
     Ok((sim * 100f32).round() as usize)
 }
 
+
 fn encode(
     tokenizer: &Tokenizer,
     session: &mut Session<'static>,
@@ -216,30 +217,47 @@ fn encode(
         .ok_or_else(|| Error::from("onnx-error"))?;
     let view = out.view();
     let shape = view.shape();
-    if shape.len() != 3 {
-        error!("Unexpected output shape: {shape:?}");
-        Err("onnx-error")?
-    }
-    let hidden = shape[2];
 
-    let last_data = view.as_slice().ok_or_else(|| {
+    let output_data = view.as_slice().ok_or_else(|| {
         error!("Output tensor is not contiguous");
         Error::from("onnx-error")
     })?;
 
     let mut result = Vec::with_capacity(batch);
-    for b in 0..batch {
-        let offset = b * seq_len * hidden;
-        let row = &last_data[offset..offset + seq_len * hidden];
-        let attn_row = &attention_mask[b * seq_len..(b + 1) * seq_len];
-        let pooled = mean_pool(row, attn_row, seq_len, hidden);
-        let mut norm: f32 = pooled.iter().map(|v| v * v).sum::<f32>().sqrt();
-        if norm == 0.0 {
-            norm = 1.0;
+
+    match shape.len() {
+        2 => {
+            let embedding_dim = shape[1];
+            for b in 0..batch {
+                let offset = b * embedding_dim;
+                let embedding = output_data[offset..offset + embedding_dim].to_vec();
+                result.push(embedding);
+            }
         }
-        let pooled = pooled.into_iter().map(|v| v / norm).collect::<Vec<_>>();
-        result.push(pooled);
+
+        3 => {
+            let hidden = shape[2];
+            for b in 0..batch {
+                let offset = b * seq_len * hidden;
+                let row = &output_data[offset..offset + seq_len * hidden];
+                let attn_row = &attention_mask[b * seq_len..(b + 1) * seq_len];
+                let pooled = mean_pool(row, attn_row, seq_len, hidden);
+
+                let mut norm: f32 = pooled.iter().map(|v| v * v).sum::<f32>().sqrt();
+                if norm == 0.0 {
+                    norm = 1.0;
+                }
+                let normalized = pooled.into_iter().map(|v| v / norm).collect::<Vec<_>>();
+                result.push(normalized);
+            }
+        }
+
+        _ => {
+            error!("Unexpected output shape: {shape:?}. Expected [batch, hidden] or [batch, seq_len, hidden]");
+            Err("onnx-error")?
+        }
     }
+
     Ok(result)
 }
 

@@ -47,11 +47,11 @@ pub fn Reports() -> Element {
         );
     });
 
-    let on_success_import = use_callback(move |_| state.changed.with_mut(|c| *c += 1));
+    let on_success_import = Callback::new(move |_| state.changed.with_mut(|c| *c += 1));
     _ = bind_task_dispatcher(Some(on_success_import), None);
 
     let delete_action = {
-        let callback = use_callback(move |_| {
+        let callback = Callback::new(move |_| {
             api_call!(
                 DELETE,
                 "/api/v1/reports",
@@ -62,7 +62,7 @@ pub fn Reports() -> Element {
                 },
             );
         });
-        use_callback(move |_| {
+        Callback::new(move |_| {
             dialog.warning(
                 t!(
                     "delete-reports-message",
@@ -124,7 +124,7 @@ pub fn Reports() -> Element {
                     div { class: "divider divider-horizontal m-1 w-1" }
                     li {
                         button {
-                            class: format!("hover:text-primary {class}",
+                            class: format!("hover:text-warning {class}",
                                 class = if state.selected.read().len() != 1 { "btn-disabled bg-transparent text-base-content/50" } else { ""}
                             ),
                             onclick: move |_| state.dialog_open.set(true),
@@ -134,7 +134,7 @@ pub fn Reports() -> Element {
                     }
                     li {
                         button {
-                            class: format!("hover:text-primary {class}",
+                            class: format!("hover:text-accent {class}",
                                 class = if state.selected.read().len() < 2 { "btn-disabled bg-transparent text-base-content/50" } else { ""}
                             ),
                             onclick: merge_action,
@@ -267,7 +267,7 @@ fn RenderReportList() -> Element {
         })
         .collect::<Vec<_>>();
 
-    let on_select = use_callback(move |args: (EntityKind, String)| match args.0 {
+    let on_select = Callback::new(move |args: (EntityKind, String)| match args.0 {
         EntityKind::QuizRecord => WindowManager::open_window(
             t!("quiz-report-title"),
             WindowKind::QuizReport { entity: args.1 },

@@ -1,8 +1,14 @@
-use crate::{components::dialogs::*, pages::*, prelude::*, services::*};
+use crate::{
+    components::{dialogs::*, widgets::*},
+    pages::*,
+    prelude::*,
+    services::*,
+};
 
 #[component]
 pub fn QuizTree() -> Element {
     let claims = AuthService::claims();
+    let mut context_menu = use_context_menu();
 
     let mut quiz = use_context::<Signal<Quiz>>();
     let mut selected = use_context::<Signal<QuizManagerAction>>();
@@ -13,13 +19,12 @@ pub fn QuizTree() -> Element {
         ""
     };
 
-    let create_category_action =
-        use_callback(move |_| {
-            ToastService::info(t!("fill-form-message"));
-            selected.set(QuizManagerAction::Category("".to_string()))
-        });
+    let create_category_action = Callback::new(move |_| {
+        ToastService::info(t!("fill-form-message"));
+        selected.set(QuizManagerAction::Category("".to_string()))
+    });
 
-    let copy_categories_action = use_callback(move |_| {
+    let copy_categories_action = Callback::new(move |_| {
         let quiz_guard = quiz.read();
         let categories = quiz_guard.categories.values().cloned().collect::<Vec<_>>();
         let buffer = QuizClipboard {
@@ -34,11 +39,11 @@ pub fn QuizTree() -> Element {
         }
     });
 
-    let paste_categories_action = use_callback(move |_| {
+    let paste_categories_action = Callback::new(move |_| {
         let quiz_guard = quiz.read();
         let Ok(buffer) = Clipboard::paste_json::<QuizClipboard>() else {
             ToastService::error(t!("paste-from-clipboard-error"));
-            return
+            return;
         };
         let mut categories = quiz_guard.categories.values().cloned().collect::<Vec<_>>();
         categories.extend(buffer.categories.clone());
@@ -74,15 +79,28 @@ pub fn QuizTree() -> Element {
         );
     });
 
-    let ctx_menu = make_ctx_menu!([
-        (t!("create-quiz-category"),
-        "bi bi-folder-plus",
-        create_category_action,
-        false,
-        true),
-        (t!("copy-to-clipboard"), "bi bi-clipboard-plus", copy_categories_action),
-        (t!("paste-from-clipboard"), "bi bi-clipboard", paste_categories_action),
-    ]);
+    let ctx_menu = make_ctx_menu!(
+        context_menu,
+        [
+            (
+                t!("create-quiz-category"),
+                "bi bi-folder-plus",
+                create_category_action,
+                false,
+                true
+            ),
+            (
+                t!("copy-to-clipboard"),
+                "bi bi-clipboard-plus",
+                copy_categories_action
+            ),
+            (
+                t!("paste-from-clipboard"),
+                "bi bi-clipboard",
+                paste_categories_action
+            ),
+        ]
+    );
 
     rsx! {
         ul {
@@ -114,6 +132,9 @@ pub fn QuizTree() -> Element {
 #[component]
 fn RenderQuizTreeCategory(category_id: ReadSignal<String>) -> Element {
     let claims = AuthService::claims();
+    let mut context_menu = use_context_menu();
+    let mut dialog = use_dialog();
+
     let mut quiz = use_context::<Signal<Quiz>>();
     let mut selected = use_context::<Signal<QuizManagerAction>>();
     let quiz_guard = quiz.read();
@@ -126,12 +147,12 @@ fn RenderQuizTreeCategory(category_id: ReadSignal<String>) -> Element {
         _ => "",
     };
 
-    let create_question_action = use_callback(move |_| {
+    let create_question_action = Callback::new(move |_| {
         ToastService::info(t!("fill-form-message"));
         selected.set(QuizManagerAction::Question(category_id(), safe_nanoid!()))
     });
 
-    let copy_category_action = use_callback(move |_| {
+    let copy_category_action = Callback::new(move |_| {
         let quiz_guard = quiz.read();
         if let Some(category) = quiz_guard.categories.get(&*category_id.read()) {
             let buffer = QuizClipboard {
@@ -141,7 +162,7 @@ fn RenderQuizTreeCategory(category_id: ReadSignal<String>) -> Element {
             };
             if Clipboard::copy_json(buffer).is_ok() {
                 ToastService::success(t!("copy-to-clipboard-success"));
-                return
+                return;
             }
         }
         ToastService::error(t!("copy-to-clipboard-error"))
@@ -149,7 +170,7 @@ fn RenderQuizTreeCategory(category_id: ReadSignal<String>) -> Element {
 
     let delete_category_action = {
         let category_name = category.name.clone();
-        let callback = use_callback(move |_| {
+        let callback = Callback::new(move |_| {
             api_fetch!(
                 DELETE,
                 format!(
@@ -167,25 +188,32 @@ fn RenderQuizTreeCategory(category_id: ReadSignal<String>) -> Element {
                 }
             )
         });
-        use_callback(move |_| {
-            use_dialog().warning(
+        Callback::new(move |_| {
+            dialog.warning(
                 t!("delete-quiz-category-message", name = category_name.clone()),
                 Some(callback),
             )
         })
     };
 
-    let ctx_menu = make_ctx_menu!([
-        (
-            t!("create-quiz-question"),
-            "bi bi-question-square",
-            create_question_action,
-            false,
-            true
-        ),
-        (t!("copy-to-clipboard"), "bi bi-clipboard-plus", copy_category_action),
-        (t!("delete"), "bi bi-trash", delete_category_action),
-    ]);
+    let ctx_menu = make_ctx_menu!(
+        context_menu,
+        [
+            (
+                t!("create-quiz-question"),
+                "bi bi-question-square",
+                create_question_action,
+                false,
+                true
+            ),
+            (
+                t!("copy-to-clipboard"),
+                "bi bi-clipboard-plus",
+                copy_category_action
+            ),
+            (t!("delete"), "bi bi-trash", delete_category_action),
+        ]
+    );
 
     let select_action =
         move |_| selected.set(QuizManagerAction::Category(category_id.read().clone()));
@@ -236,6 +264,9 @@ fn RenderQuizTreeQuestion(
     question_id: ReadSignal<String>,
 ) -> Element {
     let claims = AuthService::claims();
+    let mut context_menu = use_context_menu();
+    let mut dialog = use_dialog();
+
     let mut quiz = use_context::<Signal<Quiz>>();
     let mut selected = use_context::<Signal<QuizManagerAction>>();
     let quiz_guard = quiz.read();
@@ -254,7 +285,7 @@ fn RenderQuizTreeQuestion(
 
     let delete_question_action = {
         let question_name = question.name.clone();
-        let callback = use_callback(move |_| {
+        let callback = Callback::new(move |_| {
             api_fetch!(
                 DELETE,
                 format!(
@@ -265,9 +296,7 @@ fn RenderQuizTreeQuestion(
                 ),
                 on_success = move |body: String| {
                     quiz.with_mut(|q| {
-                        if let Some(category) = q
-                        .categories
-                        .get_mut(&*category_id.read()) {
+                        if let Some(category) = q.categories.get_mut(&*category_id.read()) {
                             category.questions.shift_remove(&body);
                         }
                     });
@@ -277,8 +306,8 @@ fn RenderQuizTreeQuestion(
                 }
             )
         });
-        use_callback(move |_| {
-            use_dialog().warning(
+        Callback::new(move |_| {
+            dialog.warning(
                 t!("delete-quiz-question-message", name = question_name.clone()),
                 Some(callback),
             )
@@ -288,9 +317,10 @@ fn RenderQuizTreeQuestion(
     let select_action =
         move |_| selected.set(QuizManagerAction::Question(category_id(), question_id()));
 
-    let ctx_menu = make_ctx_menu!([
-        (t!("delete"), "bi bi-trash", delete_question_action),
-    ]);
+    let ctx_menu = make_ctx_menu!(
+        context_menu,
+        [(t!("delete"), "bi bi-trash", delete_question_action),]
+    );
 
     rsx! {
         li {

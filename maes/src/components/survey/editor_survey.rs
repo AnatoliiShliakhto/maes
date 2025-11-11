@@ -15,7 +15,10 @@ pub fn SurveyEditorSurvey() -> Element {
         };
         api_fetch!(
             PATCH,
-            format!("/api/v1/manager/surveys/{survey_id}", survey_id = survey_guard.id),
+            format!(
+                "/api/v1/manager/surveys/{survey_id}",
+                survey_id = survey_guard.id
+            ),
             UpdateSurveyPayload {
                 name,
                 node: survey_guard.node.clone(),

@@ -22,7 +22,6 @@ pub struct TextAreaProps {
 
 #[component]
 pub fn TextArea(props: TextAreaProps) -> Element {
-
     rsx! {
         fieldset {
             class: "fieldset w-full",

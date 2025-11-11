@@ -54,7 +54,7 @@ pub fn CreateWorkspaceDialogContainer() -> Element {
     if !is_visible() {
         return rsx! {};
     };
-    
+
     rsx! {
         dialog {
             class: "modal modal-open",

@@ -1,4 +1,4 @@
-use crate::{prelude::*, pages::*, elements::*};
+use crate::{elements::*, pages::*, prelude::*};
 
 #[derive(Clone, PartialEq, Routable)]
 #[rustfmt::skip]

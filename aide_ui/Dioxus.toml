@@ -1,6 +1,6 @@
 [application]
 name = "aide_ui"
-tailwind_input = "auide_ui/tailwind.css"
+tailwind_input = "aide_ui/tailwind.css"
 tailwind_output = "aide_ui/assets/tailwind.css"
 #static_dir = "client/assets"
 default_platform = "web"

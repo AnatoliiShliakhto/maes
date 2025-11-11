@@ -1,4 +1,4 @@
-use crate::{components::inputs::*, prelude::*, services::*, pages::*};
+use crate::{components::inputs::*, pages::*, prelude::*, services::*};
 use ::std::sync::LazyLock;
 
 static DEFAULT_CATEGORY: LazyLock<QuizCategory> = LazyLock::new(QuizCategory::default);

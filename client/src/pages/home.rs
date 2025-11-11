@@ -5,9 +5,9 @@ pub fn Home() -> Element {
 
     rsx! {
         div {
-            class: "flex-scrollable justify-center items-center gap-2",
+            class: "flex-scrollable justify-center items-center gap-2 p-4",
             div {
-                class: "card w-full h-auto max-w-md card-border shadow-lg",
+                class: "card w-full h-auto max-w-md card-border shadow-lg bg-base-100",
                 div {
                     class: "card-body",
                     div {

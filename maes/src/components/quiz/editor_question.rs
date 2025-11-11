@@ -31,7 +31,7 @@ pub fn QuizEditorQuestion(
     let mut answers = use_signal(|| question.answers.clone());
     let mut has_img = use_signal(|| question.img);
 
-    let create_action = use_callback(move |_| {
+    let create_action = Callback::new(move |_| {
         let id = safe_nanoid!();
         answers.write().insert(
             id.clone(),
@@ -42,7 +42,7 @@ pub fn QuizEditorQuestion(
         );
     });
 
-    let delete_action = use_callback(move |answer_id: String| {
+    let delete_action = Callback::new(move |answer_id: String| {
         answers.write().shift_remove(&answer_id);
     });
 
@@ -131,11 +131,11 @@ pub fn QuizEditorQuestion(
         };
     };
 
-    let add_image_action = use_callback(move |item: (String, Callback)| {
+    let add_image_action = Callback::new(move |item: (String, Callback)| {
         add_image_dialog(quiz.read().id.clone(), item.0, item.1)
     });
 
-    let remove_image_action = use_callback(move |item: (String, Callback)| {
+    let remove_image_action = Callback::new(move |item: (String, Callback)| {
         api_call!(
             DELETE,
             format!("/api/v1/manager/images/{}/{}", quiz.read().id, item.0),
@@ -219,10 +219,10 @@ pub fn QuizEditorQuestion(
                                 onclick: move |evt| {
                                     evt.prevent_default();
                                     if has_img() {
-                                        let on_success = use_callback(move |_| has_img.set(false));
+                                        let on_success = Callback::new(move |_| has_img.set(false));
                                         remove_image_action.call((question_id(), on_success));
                                     } else {
-                                        let on_success = use_callback(move |_| has_img.set(true));
+                                        let on_success = Callback::new(move |_| has_img.set(true));
                                         add_image_action.call((question_id(), on_success));
                                     }
                                 },
@@ -301,7 +301,7 @@ pub fn QuizEditorQuestion(
                                             move |evt| {
                                                 evt.prevent_default();
                                                 to_owned![answer_id, answer_id_clone];
-                                                let on_success = use_callback(move |_| {
+                                                let on_success = Callback::new(move |_| {
                                                     to_owned![answer_id];
                                                     answers.with_mut(|map| {
                                                         if let Some(a) = map.get_mut(&answer_id) {

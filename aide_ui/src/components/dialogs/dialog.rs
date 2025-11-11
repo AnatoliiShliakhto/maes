@@ -145,6 +145,7 @@ pub fn DialogContainer() -> Element {
                         button {
                             class: "btn {dialog.r#type.read().css_btn_class()}",
                             onclick: move |_| dialog.close(),
+                            { t!("ok") }
                         }
                     }
                 }

@@ -39,7 +39,7 @@ pub fn Login() -> Element {
         AuthService::login(workspace, login, password);
     };
 
-    let on_success_import = use_callback(move |_| refresh_counter.with_mut(|c| *c += 1));
+    let on_success_import = Callback::new(move |_| refresh_counter.with_mut(|c| *c += 1));
     _ = bind_task_dispatcher(Some(on_success_import), None);
 
     rsx! {

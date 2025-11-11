@@ -1,8 +1,10 @@
-use crate::{components::dialogs::*, prelude::*, services::*};
+use crate::{components::{dialogs::*, widgets::*}, prelude::*, services::*};
 
 #[component]
 pub fn WorkspaceTree() -> Element {
     let claims = AuthService::claims();
+
+    let mut context_menu = use_context_menu();
     let mut input_dialog = use_input_dialog();
 
     let kind = use_context::<Signal<EntityKind>>();
@@ -23,7 +25,7 @@ pub fn WorkspaceTree() -> Element {
     });
 
     let add_action = {
-        let callback = use_callback(move |name: String| {
+        let callback = Callback::new(move |name: String| {
             api_fetch!(
                 POST,
                 format!("/api/v1/workspaces/tree/{kind}"),
@@ -34,10 +36,13 @@ pub fn WorkspaceTree() -> Element {
                 on_success = move |body: TreeNode| tree.with_mut(|t| t.add_node(body)),
             );
         });
-        use_callback(move |_| input_dialog.open(t!("add"), callback, t!("name"), ""))
+        Callback::new(move |_| input_dialog.open(t!("add"), callback, t!("name"), ""))
     };
 
-    let ctx_menu = make_ctx_menu!([(t!("add"), "bi bi-folder-plus", add_action, false, false)]);
+    let ctx_menu = make_ctx_menu!(
+        context_menu,
+        [(t!("add"), "bi bi-folder-plus", add_action, false, false)]
+    );
 
     rsx! {
         ul {
@@ -82,6 +87,7 @@ pub fn WorkspaceTree() -> Element {
 fn RenderTreeNode(node_id: ReadSignal<String>) -> Element {
     let claims = AuthService::claims();
 
+    let mut context_menu = use_context_menu();
     let mut input_dialog = use_input_dialog();
 
     let kind = use_context::<Signal<EntityKind>>();
@@ -98,7 +104,7 @@ fn RenderTreeNode(node_id: ReadSignal<String>) -> Element {
     };
 
     let add_action = {
-        let callback = use_callback(move |name: String| {
+        let callback = Callback::new(move |name: String| {
             api_fetch!(
                 POST,
                 format!("/api/v1/workspaces/tree/{kind}"),
@@ -109,13 +115,13 @@ fn RenderTreeNode(node_id: ReadSignal<String>) -> Element {
                 on_success = move |body: TreeNode| tree.with_mut(|t| t.add_node(body)),
             );
         });
-        use_callback(move |_| input_dialog.open(t!("add"), callback, t!("name"), ""))
+        Callback::new(move |_| input_dialog.open(t!("add"), callback, t!("name"), ""))
     };
 
     let update_action = {
         let node_name = node.name.clone();
         let node_parent = node.parent.clone();
-        let callback = use_callback(move |name: String| {
+        let callback = Callback::new(move |name: String| {
             api_fetch!(
                 PATCH,
                 format!("/api/v1/workspaces/tree/{kind}/{node_id}"),
@@ -133,12 +139,12 @@ fn RenderTreeNode(node_id: ReadSignal<String>) -> Element {
                 },
             );
         });
-        use_callback(move |_| input_dialog.open(t!("edit"), callback, t!("name"), &node_name))
+        Callback::new(move |_| input_dialog.open(t!("edit"), callback, t!("name"), &node_name))
     };
 
     let delete_action = {
         let node_name = node.name.clone();
-        let callback = use_callback(move |_| {
+        let callback = Callback::new(move |_| {
             api_fetch!(
                 DELETE,
                 format!("/api/v1/workspaces/tree/{kind}/{node_id}"),
@@ -148,7 +154,7 @@ fn RenderTreeNode(node_id: ReadSignal<String>) -> Element {
                 },
             );
         });
-        use_callback(move |_| {
+        Callback::new(move |_| {
             use_dialog().warning(
                 t!("delete-entity-message", name = node_name.clone()),
                 Some(callback),
@@ -160,16 +166,16 @@ fn RenderTreeNode(node_id: ReadSignal<String>) -> Element {
         EntityKind::Workspace => (
             "create-user",
             "bi bi-person-plus",
-            use_callback(move |_| {
-                let callback = use_callback(move |_| selected.set(selected()));
+            Callback::new(move |_| {
+                let callback = Callback::new(move |_| selected.set(selected()));
                 use_create_user_dialog().open(node_id(), Some(callback));
             }),
         ),
         EntityKind::Quiz => (
             "create-quiz",
             "bi bi-mortarboard",
-            use_callback(move |_| {
-                let callback = use_callback(move |name: String| {
+            Callback::new(move |_| {
+                let callback = Callback::new(move |name: String| {
                     api_fetch!(
                         POST,
                         "/api/v1/manager/quizzes",
@@ -188,8 +194,8 @@ fn RenderTreeNode(node_id: ReadSignal<String>) -> Element {
         EntityKind::Survey => (
             "create-survey",
             "bi bi-incognito",
-            use_callback(move |_| {
-                let callback = use_callback(move |name: String| {
+            Callback::new(move |_| {
+                let callback = Callback::new(move |name: String| {
                     api_fetch!(
                         POST,
                         "/api/v1/manager/surveys",
@@ -205,21 +211,24 @@ fn RenderTreeNode(node_id: ReadSignal<String>) -> Element {
                 input_dialog.open(t!("create-survey"), callback, t!("name"), "")
             }),
         ),
-        _ => ("create", "bi bi-plus", use_callback(|_| {})),
+        _ => ("create", "bi bi-plus", Callback::new(|_| {})),
     };
 
-    let ctx_menu = make_ctx_menu!([
-        (
-            t!(create_entity_title),
-            create_entity_icon,
-            create_entity_action,
-            false,
-            true
-        ),
-        (t!("add"), "bi bi-folder-plus", add_action),
-        (t!("edit"), "bi bi-pen", update_action),
-        (t!("delete"), "bi bi-trash", delete_action),
-    ]);
+    let ctx_menu = make_ctx_menu!(
+        context_menu,
+        [
+            (
+                t!(create_entity_title),
+                create_entity_icon,
+                create_entity_action,
+                false,
+                true
+            ),
+            (t!("add"), "bi bi-folder-plus", add_action),
+            (t!("edit"), "bi bi-pen", update_action),
+            (t!("delete"), "bi bi-trash", delete_action),
+        ]
+    );
 
     let select_action = move |_evt: MouseEvent| {
         if let Some(node) = tree().iter().find(|n| n.id == *node_id.read()) {

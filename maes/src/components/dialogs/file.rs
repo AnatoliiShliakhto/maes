@@ -20,14 +20,18 @@ pub fn add_image_dialog(entity: impl Into<String>, id: impl Into<String>, on_suc
             return;
         };
         ConfigService::with_mut(|config| {
-             if let Some(path) = path.path().parent() {
-                 config.recent.images = path.to_path_buf()
-             }
-
-        }).ok();
+            if let Some(path) = path.path().parent() {
+                config.recent.images = path.to_path_buf()
+            }
+        })
+        .ok();
         api_call!(
             POST,
-            format!("/api/v1/manager/images/{entity_id}/{item_id}", entity_id = entity_id, item_id = id),
+            format!(
+                "/api/v1/manager/images/{entity_id}/{item_id}",
+                entity_id = entity_id,
+                item_id = id
+            ),
             AddImagePayload {
                 path: path.path().to_string_lossy().to_string(),
             },
