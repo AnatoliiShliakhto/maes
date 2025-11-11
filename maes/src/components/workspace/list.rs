@@ -31,23 +31,18 @@ fn RenderListItemRow(item: ReadSignal<Entity>) -> Element {
     let mut list = use_context::<Signal<Vec<Entity>>>();
     let item_guard = item.read();
     let mut active = use_context::<Signal<Option<SelectedItem>>>();
-    let active_class = if let Some(true) = active.read().as_ref().map(|a| a.id == item_guard.id) {
-        "bg-base-300"
-    } else {
-        ""
-    };
+    let mut dialog = use_dialog();
 
     let delete_action = move |evt: MouseEvent| {
         evt.stop_propagation();
-
-        let callback = use_callback(move |_| {
+        let callback = Callback::new(move |_| {
             api_fetch!(
                 DELETE,
                 format!("/api/v1/entities/{kind}/{id}", id = item.read().id),
                 on_success = move |body: String| list.with_mut(|l| l.retain(|e| e.id != body))
             )
         });
-        use_dialog().warning(
+        dialog.warning(
             t!("delete-entity-message", name = item.read().name.clone()),
             Some(callback),
         )
@@ -79,6 +74,11 @@ fn RenderListItemRow(item: ReadSignal<Entity>) -> Element {
             }
             _ => (),
         }
+    };
+    let active_class = if let Some(true) = active.read().as_ref().map(|a| a.id == item_guard.id) {
+        "bg-base-300"
+    } else {
+        ""
     };
 
     rsx! {

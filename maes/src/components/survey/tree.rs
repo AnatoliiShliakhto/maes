@@ -1,8 +1,14 @@
-use crate::{pages::*, prelude::*, services::*, components::dialogs::*};
+use crate::{
+    components::{dialogs::*, widgets::*},
+    pages::*,
+    prelude::*,
+    services::*,
+};
 
 #[component]
 pub fn SurveyTree() -> Element {
     let claims = AuthService::claims();
+    let mut context_menu = use_context_menu();
 
     let mut survey = use_context::<Signal<Survey>>();
     let mut selected = use_context::<Signal<SurveyManagerAction>>();
@@ -13,15 +19,18 @@ pub fn SurveyTree() -> Element {
         ""
     };
 
-    let create_category_action =
-        use_callback(move |_| {
-            ToastService::info(t!("fill-form-message"));
-            selected.set(SurveyManagerAction::Category("".to_string()))
-        });
+    let create_category_action = Callback::new(move |_| {
+        ToastService::info(t!("fill-form-message"));
+        selected.set(SurveyManagerAction::Category("".to_string()))
+    });
 
-    let copy_categories_action = use_callback(move |_| {
+    let copy_categories_action = Callback::new(move |_| {
         let survey_guard = survey.read();
-        let categories = survey_guard.categories.values().cloned().collect::<Vec<_>>();
+        let categories = survey_guard
+            .categories
+            .values()
+            .cloned()
+            .collect::<Vec<_>>();
         if Clipboard::copy_json(categories).is_ok() {
             ToastService::success(t!("copy-to-clipboard-success"))
         } else {
@@ -29,15 +38,18 @@ pub fn SurveyTree() -> Element {
         }
     });
 
-    let paste_categories_action = use_callback(move |_| {
+    let paste_categories_action = Callback::new(move |_| {
         let survey_guard = survey.read();
         let Ok(categories) = Clipboard::paste_json::<Vec<SurveyCategory>>() else {
             ToastService::error(t!("paste-from-clipboard-error"));
-            return
+            return;
         };
         api_fetch!(
             PATCH,
-            format!("/api/v1/manager/surveys/{survey_id}", survey_id = survey_guard.id),
+            format!(
+                "/api/v1/manager/surveys/{survey_id}",
+                survey_id = survey_guard.id
+            ),
             UpdateSurveyPayload {
                 name: survey_guard.name.clone(),
                 node: survey_guard.node.clone(),
@@ -54,16 +66,29 @@ pub fn SurveyTree() -> Element {
         );
     });
 
-    let ctx_menu = make_ctx_menu!([
-        (t!("create-survey-category"),
-        "bi bi-folder-plus",
-        create_category_action,
-        false,
-        true),
-        (t!("copy-to-clipboard"), "bi bi-clipboard-plus", copy_categories_action),
-        (t!("paste-from-clipboard"), "bi bi-clipboard", paste_categories_action),
-    ]);
-    
+    let ctx_menu = make_ctx_menu!(
+        context_menu,
+        [
+            (
+                t!("create-survey-category"),
+                "bi bi-folder-plus",
+                create_category_action,
+                false,
+                true
+            ),
+            (
+                t!("copy-to-clipboard"),
+                "bi bi-clipboard-plus",
+                copy_categories_action
+            ),
+            (
+                t!("paste-from-clipboard"),
+                "bi bi-clipboard",
+                paste_categories_action
+            ),
+        ]
+    );
+
     rsx! {
         ul {
             class: "menu flex-wrap",
@@ -94,6 +119,8 @@ pub fn SurveyTree() -> Element {
 #[component]
 fn RenderSurveyTreeCategory(category_id: ReadSignal<String>) -> Element {
     let claims = AuthService::claims();
+    let mut context_menu = use_context_menu();
+
     let mut survey = use_context::<Signal<Survey>>();
     let mut selected = use_context::<Signal<SurveyManagerAction>>();
     let survey_guard = survey.read();
@@ -108,7 +135,7 @@ fn RenderSurveyTreeCategory(category_id: ReadSignal<String>) -> Element {
 
     let delete_category_action = {
         let category_name = category.name.clone();
-        let callback = use_callback(move |_| {
+        let callback = Callback::new(move |_| {
             api_fetch!(
                 DELETE,
                 format!(
@@ -126,19 +153,25 @@ fn RenderSurveyTreeCategory(category_id: ReadSignal<String>) -> Element {
                 }
             )
         });
-        use_callback(move |_| {
+        Callback::new(move |_| {
             use_dialog().warning(
-                t!("delete-survey-category-message", name = category_name.clone()),
+                t!(
+                    "delete-survey-category-message",
+                    name = category_name.clone()
+                ),
                 Some(callback),
             )
         })
     };
 
-    let ctx_menu = make_ctx_menu!([(t!("delete"), "bi bi-trash", delete_category_action)]);
+    let ctx_menu = make_ctx_menu!(
+        context_menu,
+        [(t!("delete"), "bi bi-trash", delete_category_action)]
+    );
 
     let select_action =
-        move |_| selected.set(SurveyManagerAction::Category(category_id.read().clone()));    
-    
+        move |_| selected.set(SurveyManagerAction::Category(category_id.read().clone()));
+
     rsx! {
         li {
             div {
@@ -148,6 +181,6 @@ fn RenderSurveyTreeCategory(category_id: ReadSignal<String>) -> Element {
                 i { class: "bi bi-ui-checks text-base-content/70" }
                 "{category.name}"
             }
-        }        
+        }
     }
 }

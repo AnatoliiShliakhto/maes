@@ -25,7 +25,7 @@ impl AuthService {
             on_success = |body: Claims| {
                 if ClientService::set_token(&body.token) { 
                     CLAIMS.with_mut(|c| *c = Arc::new(body));
-                    use_app_state().set(AppState::Authorized);
+                    use_app_state().set(AppState::Authorized)
                 }
             },
         );

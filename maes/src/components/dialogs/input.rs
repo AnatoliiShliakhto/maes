@@ -49,7 +49,7 @@ pub fn InputDialogContainer() -> Element {
     }
     let mut value = use_signal(String::new);
 
-    let submit_action = use_callback(move |_| {
+    let submit_action = Callback::new(move |_| {
         let value = value().trim().to_string();
         if value.is_empty() {
             return;

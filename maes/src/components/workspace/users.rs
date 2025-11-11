@@ -26,20 +26,21 @@ pub fn WorkspaceUsers() -> Element {
 #[component]
 fn RenderUserRow(user: ReadSignal<WorkspaceUser>) -> Element {
     let claims =  AuthService::claims();
-
+    let mut dialog = use_dialog();
+    
     let mut users = use_context::<Signal<Vec<WorkspaceUser>>>();
     let user_guard = user.read();
     let first_chars = extract_first_chars(&user_guard.username);
 
     let delete_action = move |_| {
-        let callback = use_callback(move |_| {
+        let callback = Callback::new(move |_| {
             api_fetch!(
                 DELETE,
                 format!("/api/v1/workspaces/users/{id}", id = user.read().id),
                 on_success = move |body: String| users.with_mut(|u| u.retain(|u| u.id != body)),
             )
         });
-        use_dialog().warning(
+        dialog.warning(
             t!(
                 "delete-user-message",
                 username = user.read().username.clone()

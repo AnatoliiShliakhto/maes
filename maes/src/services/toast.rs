@@ -118,7 +118,7 @@ fn ToastComponent(toast: Toast) -> Element {
         is_visible.set(true);
     });
 
-    let handle_remove = use_callback(move |_| {
+    let handle_remove = Callback::new(move |_| {
         ToastService::remove(&toast_id);
     });
 

@@ -15,11 +15,11 @@ pub fn StudentsList() -> Element {
         );
     });
 
-    let add_action = use_callback(move |body: Vec<Student>| {
+    let add_action = Callback::new(move |body: Vec<Student>| {
         students.with_mut(|s| s.extend(body));
     });
 
-    let paste_action = use_callback(move |_| {
+    let paste_action = Callback::new(move |_| {
         let students_guard = students.read();
         let Ok(mut payload) = Clipboard::paste_students() else {
             return;
@@ -37,8 +37,8 @@ pub fn StudentsList() -> Element {
         );
     });
 
-    let clear_action = use_callback(move |_| {
-        let callback = use_callback(move |_| {
+    let clear_action = Callback::new(move |_| {
+        let callback = Callback::new(move |_| {
             api_call!(
                 DELETE,
                 format!("/api/v1/students/{node_id}", node_id = selected.read().id),

@@ -25,7 +25,14 @@ pub fn QuizEditorQuiz() -> Element {
             Some(grade_c),
             Some(grade_similarity),
         ) = form_values!(
-            evt, "name", "attempts", "duration", "grade_a", "grade_b", "grade_c", "grade_similarity"
+            evt,
+            "name",
+            "attempts",
+            "duration",
+            "grade_a",
+            "grade_b",
+            "grade_c",
+            "grade_similarity"
         )
         else {
             ToastService::error(t!("missing-fields"));

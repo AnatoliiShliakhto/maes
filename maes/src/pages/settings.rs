@@ -185,10 +185,10 @@ fn RenderWorkspaces() -> Element {
         )
     });
 
-    let delete_action = use_callback(move |ws: WorkspaceMetadata| {
+    let delete_action = Callback::new(move |ws: WorkspaceMetadata| {
         let id = ws.id.clone();
         let name = ws.name.clone();
-        let callback = use_callback(move |_| {
+        let callback = Callback::new(move |_| {
             to_owned![id, name];
             api_fetch!(
                 DELETE,

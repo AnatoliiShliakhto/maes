@@ -20,7 +20,7 @@ pub fn ClientLayout() -> Element {
                 Header {}
             }
             div {
-                class: "flex-fixed p-4",
+                class: "flex-fixed",
                 Outlet::<Route> {}
             }
         }

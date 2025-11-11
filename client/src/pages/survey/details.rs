@@ -20,9 +20,9 @@ pub fn SurveyDetails(
     
     rsx! {
         div {
-            class: format!("flex-scrollable justify-center items-center gap-2 {class}", class = if details.read().workspace.is_empty() { "hidden" } else { "" }),
+            class: format!("flex-scrollable justify-center items-center gap-2 p-4 {class}", class = if details.read().workspace.is_empty() { "hidden" } else { "" }),
             div {
-                class: "card w-full h-auto max-w-md card-border shadow-lg",
+                class: "card w-full h-auto max-w-md card-border shadow-lg bg-base-100",
                 div {
                     class: "card-body",
                     div {

@@ -19,17 +19,23 @@ pub fn SurveyEditorCategory(category_id: ReadSignal<String>) -> Element {
     let mut answers = use_signal(|| category.answers.clone());
     let mut questions = use_signal(|| category.questions.clone());
 
-    let create_answer_action = use_callback(move |_| {
+    let create_answer_action = Callback::new(move |_| {
         let count = if answers.read().is_empty() { 2 } else { 1 };
         answers.with_mut(|items| {
             for _ in 0..count {
                 let id = safe_nanoid!();
-                items.insert(id.clone(), SurveyCategoryItem { id, ..Default::default() });
+                items.insert(
+                    id.clone(),
+                    SurveyCategoryItem {
+                        id,
+                        ..Default::default()
+                    },
+                );
             }
         });
     });
 
-    let create_question_action = use_callback(move |_| {
+    let create_question_action = Callback::new(move |_| {
         let id = safe_nanoid!();
         questions.write().insert(
             id.clone(),
@@ -82,7 +88,10 @@ pub fn SurveyEditorCategory(category_id: ReadSignal<String>) -> Element {
 
         let category_id_guard = category_id.read();
         let survey_id = survey.read().id.clone();
-        let endpoint = format!("/api/v1/manager/surveys/{}/{}", survey_id, category_id_guard);
+        let endpoint = format!(
+            "/api/v1/manager/surveys/{}/{}",
+            survey_id, category_id_guard
+        );
 
         let payload = UpdateSurveyCategoryPayload {
             name,
@@ -257,7 +266,7 @@ fn RenderSurveyCategoryItem(
     let claims = AuthService::claims();
     let item_guard = item.read();
 
-    let delete_action = use_callback(move |id: String| {
+    let delete_action = Callback::new(move |id: String| {
         collection.with_mut(|c| {
             if c.len() == 2 && collection_name.read().eq("answer") {
                 c.clear()

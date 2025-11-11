@@ -8,7 +8,8 @@ use ::std::time::Duration;
 #[component]
 pub fn TasksList() -> Element {
     let mut tasks = use_context_provider(|| Signal::new(Vec::<Task>::new()));
-
+    let navigator = use_navigator();
+    
     use_future(move || async move {
         loop {
             api_fetch!(
@@ -30,7 +31,7 @@ pub fn TasksList() -> Element {
                 li {
                     button {
                         class: "hover:text-success",
-                        onclick: move |_| { use_navigator().push(Route::TaskWizard {}); },
+                        onclick: move |_| { navigator.push(Route::TaskWizard {}); },
                         i { class: "bi bi-magic" }
                         { t!("create") }
                     }
@@ -50,6 +51,8 @@ pub fn TasksList() -> Element {
 
 #[component]
 fn RenderTaskItem(task: ReadSignal<Task>) -> Element {
+    let mut context_menu = use_context_menu();
+    let mut dialog = use_dialog();
     let mut kind = use_context::<Signal<EntityKind>>();
     let mut selected = use_context::<Signal<SelectedItem>>();
     let mut tasks = use_context::<Signal<Vec<Task>>>();
@@ -58,7 +61,7 @@ fn RenderTaskItem(task: ReadSignal<Task>) -> Element {
     let is_selected = task_guard.id == selected.read().id;
 
     let delete_action = {
-        let callback = use_callback(move |_| {
+        let callback = Callback::new(move |_| {
             let task_guard = task.peek();
             let endpoint = format!(
                 "/api/v1/tasks/{kind}/{task_id}",
@@ -77,18 +80,18 @@ fn RenderTaskItem(task: ReadSignal<Task>) -> Element {
                 },
             )
         });
-        use_callback(move |_| {
+        Callback::new(move |_| {
             let name = task.peek().name.clone();
-            use_dialog().warning(t!("delete-task-message", name = name), Some(callback))
+            dialog.warning(t!("delete-task-message", name = name), Some(callback))
         })
     };
 
-    let wifi_report_action = use_callback(move |_| {
+    let wifi_report_action = Callback::new(move |_| {
         WindowManager::open_window(t!("wifi-instruction"), WindowKind::WiFiInstruction)
     });
 
     let finish_action = {
-        let callback = use_callback(move |_| {
+        let callback = Callback::new(move |_| {
             let task_guard = task.peek();
             let endpoint = format!("/api/v1/tasks/finish/{task_id}", task_id = task_guard.id);
             api_call!(
@@ -103,13 +106,13 @@ fn RenderTaskItem(task: ReadSignal<Task>) -> Element {
                 },
             )
         });
-        use_callback(move |_| {
+        Callback::new(move |_| {
             let name = task.peek().name.clone();
-            use_dialog().warning(t!("finish-task-message", name = name), Some(callback))
+            dialog.warning(t!("finish-task-message", name = name), Some(callback))
         })
     };
 
-    let report_action = use_callback(move |_| {
+    let report_action = Callback::new(move |_| {
         let task_guard = task.read();
         match task_guard.kind {
             EntityKind::QuizRecord => {
@@ -132,7 +135,7 @@ fn RenderTaskItem(task: ReadSignal<Task>) -> Element {
         }
     });
 
-    let tickets_report_action = use_callback(move |_| {
+    let tickets_report_action = Callback::new(move |_| {
         let task_guard = task.read();
         match task_guard.kind {
             EntityKind::QuizRecord => {
@@ -155,7 +158,7 @@ fn RenderTaskItem(task: ReadSignal<Task>) -> Element {
         }
     });
 
-    let dummy_callback = use_callback(move |evt: MouseEvent| {
+    let dummy_callback = Callback::new(move |evt: MouseEvent| {
         evt.prevent_default();
         evt.stop_propagation();
     });
@@ -163,7 +166,7 @@ fn RenderTaskItem(task: ReadSignal<Task>) -> Element {
     let is_report_action_disabled = task.peek().progress == 0;
     let ctx_menu = match task.read().kind {
         EntityKind::QuizRecord => {
-            make_ctx_menu!([
+            make_ctx_menu!(context_menu, [
                 (t!("finish"), "bi bi-flag", finish_action, is_report_action_disabled, true),
                 (t!("report"), "bi bi-file-earmark-text", report_action, is_report_action_disabled),
                 (t!("quiz-tickets"), "bi bi-ticket", tickets_report_action),
@@ -172,7 +175,7 @@ fn RenderTaskItem(task: ReadSignal<Task>) -> Element {
             ])
         }
         EntityKind::SurveyRecord => {
-            make_ctx_menu!([
+            make_ctx_menu!(context_menu, [
                 (t!("finish"), "bi bi-flag", finish_action, is_report_action_disabled, true),
                 (t!("report"), "bi bi-file-earmark-text", report_action, is_report_action_disabled),
                 (t!("survey-tickets"), "bi bi-ticket", tickets_report_action),
@@ -190,7 +193,7 @@ fn RenderTaskItem(task: ReadSignal<Task>) -> Element {
                 class = if is_selected { "bg-base-300" } else { "" }
             ),
             onclick: move |_| {
-                let task_guard = task.read();
+                let task_guard = task.peek();
                 kind.set(task_guard.kind);
                 selected.set(SelectedItem {
                     id: task_guard.id.clone(),

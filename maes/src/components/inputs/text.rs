@@ -30,7 +30,7 @@ pub struct TextInputProps {
 
 #[component]
 pub fn TextInputComponent(props: TextInputProps) -> Element {
-    rsx!{
+    rsx! {
         label {
             class: format!("floating-label lowercase {class}", class = props.class),
             { props.label }

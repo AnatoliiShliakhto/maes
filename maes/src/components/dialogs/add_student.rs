@@ -39,9 +39,7 @@ pub fn AddStudentDialogContainer() -> Element {
 
     let add_action = move |evt: FormEvent| {
         evt.stop();
-        let (rank, Some(name),) =
-            form_values!(evt, "rank", "name")
-        else {
+        let (rank, Some(name)) = form_values!(evt, "rank", "name") else {
             ToastService::error(t!("missing-fields"));
             return;
         };
@@ -49,10 +47,7 @@ pub fn AddStudentDialogContainer() -> Element {
         api_fetch!(
             POST,
             format!("/api/v1/students/{}", (dialog.node)().unwrap_or_default()),
-            vec![AddStudentPayload {
-                rank,
-                name,
-            }],
+            vec![AddStudentPayload { rank, name }],
             on_success = move |body: Vec<Student>| {
                 if let Some(on_confirm) = (dialog.on_confirm)() {
                     on_confirm.call(body);

@@ -1,13 +1,17 @@
-/.idea
-/target
-/node_modules
+/.idea/
+/.venv/
+/target/
+/node_modules/
 /Cargo.lock
 /package-lock.json
 /.env
-/data
-/aide/gen/schemas
+/aide/gen/schemas/
 
 /maes/assets/main.bundle.js
 /maes/assets/main.bundle.js.LICENSE.txt
 /maes/assets/tailwind.css
 /client/assets/tailwind.css
+
+#AI models and Libraries
+/maes/assets/ai-model/
+/maes/assets/libs/
