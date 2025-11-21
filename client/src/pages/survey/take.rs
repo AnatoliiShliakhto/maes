@@ -211,18 +211,22 @@ fn RenderControls() -> Element {
 
     rsx! {
         div {
-            class: "flex shrink-0 w-full items-center justify-between px-8 pt-10",
+            class: "flex shrink-0 w-full items-center justify-center px-8 pt-10 join",
             button {
-                class: format!("btn btn-lg btn-primary {class}" , class = if current() == 0 { "btn-disabled" } else { "" }),
+                class: format!("btn btn-lg btn-primary join-item {class}" , class = if current() == 0 { "btn-disabled" } else { "" }),
                 onclick: move |_| if current() > 0 {
                     current.set(current() - 1);
                         document::eval(r#"window.scrollToTop();"#);
                 },
                 { t!("previous") }
             }
+            button {
+                class: "btn btn-lg border-1 border-primary bg-base-100 join-item",
+                { format!("{}", current() + 1) }
+            }
             if current() + 1 < category_count {
                 button {
-                    class: "btn btn-lg btn-primary",
+                    class: "btn btn-lg btn-primary join-item",
                     onclick: move |_| {
                         current.set(current() + 1);
                         document::eval(r#"window.scrollToTop();"#);
@@ -231,7 +235,7 @@ fn RenderControls() -> Element {
                 }
             } else {
                 button {
-                    class: "btn btn-lg btn-success",
+                    class: "btn btn-lg btn-success join-item",
                     onclick: move |_| { navigator.push(Route::SurveyFinish {}); },
                     { t!("finish") }
                 }

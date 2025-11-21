@@ -33,13 +33,20 @@ pub fn About() -> Element {
                 { t!("about-description") }
             }
             div {
-                class: "flex w-full justify-center items-center pt-10",
+                class: "flex w-full justify-center items-center pt-10 gap-5",
                 a {
                     class: "btn btn-xl",
                     href: "https://github.com/AnatoliiShliakhto/maes",
                     target: "_blank",
                     i { class: "bi bi-github mr-2" }
                     { t!("about-site")}
+                }
+                a {
+                    class: "btn btn-xl",
+                    href: "assets/MAES.manual.pdf",
+                    target: "_blank",
+                    i { class: "bi bi-book mr-2" }
+                    { t!("user-manual")}
                 }
             }
         }

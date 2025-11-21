@@ -378,6 +378,15 @@ pub async fn update_quiz_activity(activity: QuizActivity) -> Result<()> {
     };
 
     if student.grade > grade {
+        let snapshot = {
+            let mut quiz_rec_guard = quiz_rec_arc.write().await;
+            if let Some(student) = quiz_rec_guard.students.get_mut(&student.id) {
+                student.attempts += 1;
+            }
+            quiz_rec_guard.clone()
+        };
+        Store::upsert(snapshot).await?;
+
         return Ok(());
     }
 

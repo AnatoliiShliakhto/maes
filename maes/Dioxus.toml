@@ -2,8 +2,8 @@
 name = "maes"
 tailwind_input = "maes/tailwind.css"
 tailwind_output = "maes/assets/tailwind.css"
-#static_dir = "maes/assets"
 default_platform = "desktop"
+#static_dir = "assets/manual"
 
 [web.app]
 

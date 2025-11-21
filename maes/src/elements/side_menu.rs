@@ -3,6 +3,7 @@ use crate::{prelude::*, services::*};
 #[component]
 pub fn SideMenu() -> Element {
     let claims = AuthService::claims();
+    let navigator = use_navigator();
 
     rsx! {
         ul {
@@ -64,7 +65,10 @@ pub fn SideMenu() -> Element {
             MenuItem {
                 icon: rsx! { i { class: "bi bi-box-arrow-right text-2xl" } },
                 label: t!("sign-out"),
-                onclick: |_| AuthService::logout(),
+                onclick: move |_| {
+                    AuthService::logout();
+                    navigator.push(Route::Tasks {});
+                },
             }
         }
     }

@@ -72,7 +72,10 @@ impl ImageService {
 
     pub async fn remove_workspace(workspace: impl AsRef<str>) -> Result<()> {
         let dir = State::path().join("assets").join(workspace.as_ref());
-        fs::remove_dir_all(dir).await.map_err(map_log_err)
+        if dir.exists() {
+            _ = fs::remove_dir_all(dir).await
+        }
+        Ok(())
     }
 
     pub async fn batch_remove(

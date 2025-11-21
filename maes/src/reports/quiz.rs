@@ -144,7 +144,14 @@ fn RenderQuizReport() -> Element {
             class: "flex flex-col w-full items-center gap-0.25 pt-5",
             div {
                 class: "text-lg font-semibold",
+                { t!("quiz-report-title") }
+            }
+            div {
+                class: "text-lg font-semibold",
+                { t!("quiz-report-subtitle") }
+                " «"
                 "{quiz_rec_guard.name}"
+                "»"
             }
             div { "{quiz_rec_guard.path}" }
             div { class: "flex w-full justify-end", { t!("date-stamp", date = quiz_rec_guard.metadata.updated_at()) } }

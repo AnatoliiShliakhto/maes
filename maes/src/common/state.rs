@@ -2,7 +2,11 @@ use crate::{prelude::*, services::*};
 use ::shared::services::dispatcher::*;
 use ::std::{path::PathBuf, sync::LazyLock};
 
-static DATA_PATH: LazyLock<PathBuf> = LazyLock::new(|| dirs::data_dir().unwrap().join("maes"));
+static DATA_PATH: LazyLock<PathBuf> = LazyLock::new(|| {
+    dirs::data_dir()
+        .unwrap_or_else(|| PathBuf::from("."))
+        .join("maes")
+});
 
 pub fn app_data_path() -> PathBuf {
     DATA_PATH.clone()

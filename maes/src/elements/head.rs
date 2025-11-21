@@ -70,6 +70,12 @@ const _AI_TOKENIZER: Asset = asset!(
         .with_hash_suffix(false)
         .into_asset_options()
 );
+const _USER_MANUAL: Asset = asset!(
+    "/assets/manual/MAES.manual.pdf",
+    AssetOptions::builder()
+        .with_hash_suffix(false)
+        .into_asset_options()
+);
 
 #[component]
 pub fn Head(is_main: bool) -> Element {
@@ -84,6 +90,7 @@ pub fn Head(is_main: bool) -> Element {
         _UAFSANS_BOLD_TTF.resolve(),
         _AI_MODEL.resolve(),
         _AI_TOKENIZER.resolve(),
+        _USER_MANUAL.resolve(),
     );
     let config = ConfigService::read();
 
