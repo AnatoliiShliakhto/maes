@@ -13,6 +13,10 @@
 * Install Dioxus CLI `cargo install dioxus-cli`
 * Install Cargo Make `cargo install cargo-make`
 
+## AI Models
+* [all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2) - 90Mb basic model
+* [paraphrase-multilingual-MiniLM-L12-v2](https://huggingface.co/sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2) - 500Mb multilingual model
+
 ## Build commands
 
 >* Build client `cargo make client-dev`

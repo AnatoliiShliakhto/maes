@@ -177,7 +177,7 @@ fn RenderWorkspaces() -> Element {
     let mut workspaces = use_signal(Vec::<WorkspaceMetadata>::new);
     let mut dialog = use_dialog();
 
-    use_hook(move || {
+    use_effect(move || {
         api_fetch!(
             GET,
             "/api/v1/workspaces",
@@ -215,6 +215,7 @@ fn RenderWorkspaces() -> Element {
             class: "list w-full",
             for ws in workspaces.iter() {
                 li {
+                    key: "{ws.id}",
                     class: "list-row hover:bg-base-200 group p-0 overflow-hidden",
                     div {
                         class: "flex flex-col justify-center m-3 list-col-grow gap-1",

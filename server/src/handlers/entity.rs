@@ -4,9 +4,8 @@ use ::axum::{
     extract::Path,
     response::{IntoResponse, Response},
 };
-use ::shared::{common::*, models::*, utils::*};
+use ::shared::{common::*, models::*, utils::*, payloads::*};
 use ::std::str::FromStr;
-use shared::payloads::UpdateEntityPayload;
 
 pub async fn list_reports(session: Session) -> Result<Json<Vec<Entity>>> {
     let kinds = vec![EntityKind::QuizRecord, EntityKind::SurveyRecord];

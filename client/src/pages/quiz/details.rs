@@ -101,7 +101,7 @@ pub fn QuizDetails(
                             }
                         } else {
                             button {
-                                class: "btn btn-neutral text-base-content/60",
+                                class: "btn btn-primary",
                                 onclick: move |_| close_window(),
                                 { t!("acquainted") }
                             }

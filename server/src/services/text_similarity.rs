@@ -230,8 +230,12 @@ fn encode(
             let embedding_dim = shape[1];
             for b in 0..batch {
                 let offset = b * embedding_dim;
-                let embedding = output_data[offset..offset + embedding_dim].to_vec();
-                result.push(embedding);
+                let embedding = &output_data[offset..offset + embedding_dim];
+                let mut norm: f32 = embedding.iter().map(|v| v * v).sum::<f32>().sqrt();
+                if norm == 0.0 {
+                    norm = 1.0;
+                }
+                result.push(embedding.iter().map(|v| v / norm).collect());
             }
         }
 

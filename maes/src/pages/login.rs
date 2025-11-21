@@ -59,6 +59,16 @@ pub fn Login() -> Element {
                             class: "py-6 px-5",
                             { t!("login-form-announcement") }
                         }
+                        div {
+                            class: "flex w-full justify-center items-center pt-5",
+                            a {
+                                class: "btn btn-xl btn-accent btn-outline",
+                                href: "assets/MAES.manual.pdf",
+                                target: "_blank",
+                                i { class: "bi bi-book mr-2" }
+                                { t!("user-manual")}
+                            }
+                        }
                     }
                     div {
                         class: "card card-border bg-base-100 w-sm shadow-lg",
