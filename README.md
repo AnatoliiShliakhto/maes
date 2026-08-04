@@ -9,9 +9,6 @@
 ## Посібник користувача
 [Завантажити](https://github.com/AnatoliiShliakhto/maes/releases/download/v0.2.0/MAES.manual.pdf)
 
-## Презентація
-[![Інтро](https://github.com/AnatoliiShliakhto/maes-bin/releases/download/v0.1.0/Intro.png)](https://youtu.be/-00g1EAatks)
-
 ## Ключові особливості
 ### 🔌 Автономна робота
 - Повна функціональність офлайн
